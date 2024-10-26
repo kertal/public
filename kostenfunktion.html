@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple-Choice-Test zur Kostentheorie</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .question p {
+            font-weight: bold;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Multiple-Choice-Test zur Kostentheorie</h1>
+    <form id="quizForm">
+        <div class="question">
+            <p>1. Was versteht man unter der Gewinnschwelle?</p>
+            <div class="options">
+                <label><input type="radio" name="q1" value="A"> A) Die Produktionsmenge, ab der ein Verlust erzielt wird.</label>
+                <label><input type="radio" name="q1" value="B"> B) Die Produktionsmenge, ab der ein Gewinn erzielt wird.</label>
+                <label><input type="radio" name="q1" value="C"> C) Die Produktionsmenge, bei der der maximale Gewinn erzielt wird.</label>
+                <label><input type="radio" name="q1" value="D"> D) Die Produktionsmenge, ab der die Kosten sinken.</label>
+            </div>
+        </div>
+        
+        <div class="question">
+            <p>2. Was passiert an der Gewinngrenze?</p>
+            <div class="options">
+                <label><input type="radio" name="q2" value="A"> A) Die Kosten übertreffen den Erlös, und man macht wieder Verlust.</label>
+                <label><input type="radio" name="q2" value="B"> B) Der Erlös ist gleich null.</label>
+                <label><input type="radio" name="q2" value="C"> C) Die Fixkosten fallen weg.</label>
+                <label><input type="radio" name="q2" value="D"> D) Die Produktionsmenge erreicht ihren maximalen Wert.</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>3. Was gibt die Preisfunktion  <b>p(x) = 50 - x</b>  an?</p>
+            <div class="options">
+                <label><input type="radio" name="q3" value="A"> A) Die fixen Kosten pro Stück.</label>
+                <label><input type="radio" name="q3" value="B"> B) Den Preis pro Stück in Abhängigkeit von der Produktionsmenge \( x \).</label>
+                <label><input type="radio" name="q3" value="C"> C) Die variablen Kosten pro Stück.</label>
+                <label><input type="radio" name="q3" value="D"> D) Die Gesamtproduktionskosten.</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>4. Wie setzen sich die Kosten bei der Schmuckproduktion zusammen?</p>
+            <div class="options">
+                <label><input type="radio" name="q4" value="A"> A) Nur aus variablen Kosten.</label>
+                <label><input type="radio" name="q4" value="B"> B) Nur aus Fixkosten.</label>
+                <label><input type="radio" name="q4" value="C"> C) Aus Fixkosten und variablen Kosten pro Stück.</label>
+                <label><input type="radio" name="q4" value="D"> D) Nur aus den Kosten für das Material.</label>
+            </div>
+        </div>
+
+        <div class="question">
+            <p>5. Was ist der Break-Even-Point?</p>
+            <div class="options">
+                <label><input type="radio" name="q5" value="A"> A) Der Punkt, ab dem Gewinn erzielt wird.</label>
+                <label><input type="radio" name="q5" value="B"> B) Der Punkt, ab dem die variablen Kosten höher als der Erlös sind.</label>
+                <label><input type="radio" name="q5" value="C"> C) Der Punkt, ab dem nur Fixkosten berücksichtigt werden.</label>
+                <label><input type="radio" name="q5" value="D"> D) Der Punkt, an dem der Erlös die Kosten deckt und weder Gewinn noch Verlust erzielt wird.</label>
+            </div>
+        </div>
+
+        <button type="button" class="submit-btn" onclick="submitQuiz()">Test Auswerten</button>
+    </form>
+
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+    const correctAnswers = {
+        q1: "B",
+        q2: "A",
+        q3: "B",
+        q4: "C",
+        q5: "D"
+    };
+
+    function submitQuiz() {
+        let score = 0;
+        let totalQuestions = Object.keys(correctAnswers).length;
+        
+        for (let question in correctAnswers) {
+            let selectedAnswer = document.querySelector(`input[name="${question}"]:checked`);
+            if (selectedAnswer && selectedAnswer.value === correctAnswers[question]) {
+                score++;
+            }
+        }
+
+        let resultText = `Du hast ${score} von ${totalQuestions} Fragen richtig beantwortet.`;
+        document.getElementById("result").textContent = resultText;
+    }
+</script>
+
+</body>
+</html>
