@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik-Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .answer {
+            display: block;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .answer:hover {
+            background-color: #f0f0f0;
+        }
+        .selected {
+            background-color: #d0e7ff;
+            color: #007bff;
+        }
+        .result {
+            font-weight: bold;
+            color: #d9534f;
+            display: none;
+        }
+        .correct {
+            color: #5cb85c;
+        }
+        .explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 1em;
+            background-color: #0275d8;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #025aa5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Statistik-Quiz</h1>
+
+        <div class="question">
+            <h2>Frage 1: Was bedeutet "absolute Häufigkeit"?</h2>
+            <label class="answer" onclick="showResult('q1', 'wrong', this)">💡 Der prozentuale Anteil von Elementen oder Objekten mit einem bestimmten Merkmal</label>
+            <label class="answer" onclick="showResult('q1', 'correct', this)">💡 Die Anzahl von Elementen oder Objekten mit einem bestimmten Merkmal</label>
+            <label class="answer" onclick="showResult('q1', 'wrong', this)">💡 Die Summe aller Häufigkeiten von Elementen oder Objekten mit einem bestimmten Merkmal </label>
+            <label class="answer" onclick="showResult('q1', 'wrong', this)">💡 Die durchschnittliche Häufigkeit von Elementen oder Objekten mit einem bestimmten Merkmal</label>
+            <p id="result-q1" class="result"></p>
+            <p class="explanation" id="explanation-q1"></p>
+        </div>
+
+        <div class="question">
+            <h2>Frage 2: Wie wird die relative Häufigkeit berechnet?</h2>
+            <label class="answer" onclick="showResult('q2', 'wrong', this)">➕ Durch Addition von Elementen oder Objekten mit einem bestimmten Merkmal</label>
+            <label class="answer" onclick="showResult('q2', 'correct', this)">➗ Durch Division der absoluten Häufigkeit durch die Gesamtzahl der Elemente oder Objekte</label>
+            <label class="answer" onclick="showResult('q2', 'wrong', this)">✖️ Durch Multiplikation der absoluten Häufigkeit mit 100</label>
+            <label class="answer" onclick="showResult('q2', 'wrong', this)">⚖️ Durch Vergleich der Häufigkeit mit den Durchschnittswerten</label>
+            <p id="result-q2" class="result"></p>
+            <p class="explanation" id="explanation-q2"></p>
+        </div>
+
+        <div class="question">
+            <h2>Frage 3: Welches Diagramm ist ein Stängel-Blatt-Diagramm?
+
+
+            </h2>
+            <p> Es gibt 5 Schüler mit den folgenden Körpergrössen:
+                150, 152, 160, 172, 173</p>
+            <label class="answer" onclick="showResult('q3', 'correct', this)">
+            <pre>
+                15 | 0 2
+                16 | 0 
+                17 | 2 3
+            </pre>    
+            </label>
+            <label class="answer" onclick="showResult('q3', 'wrong', this)">
+
+            <pre>
+                15x | 40%
+                16x | 20%
+                17x | 40%
+            </pre>    
+            
+            </label>
+            <label class="answer" onclick="showResult('q3', 'wrong', this)">
+            <pre>
+                🍎🍏🍎
+                🍎🍏
+                🍎🍏🍎
+            </pre>    
+
+            </label>
+            <p id="result-q3" class="result"></p>
+            <p class="explanation" id="explanation-q3"></p>
+        </div>
+
+        <div class="question">
+            <h2>Frage 4: Was ist ein Beispiel für eine nominale Variable? 🎨</h2>
+            <label class="answer" onclick="showResult('q4', 'correct', this)">🟡 Farben</label>
+            <label class="answer" onclick="showResult('q4', 'wrong', this)">📏 Körpergröße</label>
+            <label class="answer" onclick="showResult('q4', 'wrong', this)">🌡️ Temperatur in Grad Celsius</label>
+            <label class="answer" onclick="showResult('q4', 'wrong', this)">🕒 Zeit in Stunden</label>
+            <p id="result-q4" class="result"></p>
+            <p class="explanation" id="explanation-q4"></p>
+        </div>
+
+        <div class="question">
+            <h2>Frage 5: Was ist ein Beispiel für ein metrisches Merkmal? 📏</h2>
+            <label class="answer" onclick="showResult('q5', 'wrong', this)">🎨 Lieblingsfarbe</label>
+            <label class="answer" onclick="showResult('q5', 'correct', this)">📏 Körpergröße in cm</label>
+            <label class="answer" onclick="showResult('q5', 'wrong', this)">📅 Wochentag</label>
+            <label class="answer" onclick="showResult('q5', 'wrong', this)">🍎 Obstsorten</label>
+            <p id="result-q5" class="result"></p>
+            <p class="explanation" id="explanation-q5"></p>
+        </div>
+
+        <div class="question"></div>
+            <h2>Frage 6: Was ist ein Beispiel für ein ordinales Merkmal? 📏</h2>
+            <label class="answer" onclick="showResult('q6', 'wrong', this)">🎨 Lieblingsfarbe</label>
+            <label class="answer" onclick="showResult('q6', 'wrong', this)">📏 Fuessgr&ouml;sse in cm</label>
+            <label class="answer" onclick="showResult('q6', 'correct', this)">🏆 Rangplatz bei einem Wettkampf</label>
+            <label class="answer" onclick="showResult('q6', 'wrong', this)">🍎 Würmer in Äpfeln</label>
+            <p id="result-q6" class="result"></p>
+            <p class="explanation" id="explanation-q6"></p>
+        </div>
+
+        <button onclick="resetQuiz()">Quiz zurücksetzen</button>
+    </div>
+
+    <script>
+        function showResult(questionId, answer, element) {
+            var resultElement = document.getElementById('result-' + questionId);
+            var explanationElement = document.getElementById('explanation-' + questionId);
+            var allAnswers = element.parentNode.querySelectorAll('.answer');
+            
+            // Reset background for all answers
+            allAnswers.forEach(function(answer) {
+                answer.classList.remove('selected');
+            });
+
+            // Highlight selected answer
+            element.classList.add('selected');
+            
+            if (answer === 'correct') {
+                resultElement.textContent = "Richtig! ✅";
+                resultElement.className = "result correct";
+                explanationElement.textContent = "";
+            } else {
+                resultElement.textContent = "Falsch! ❌";
+                resultElement.className = "result";
+                if (questionId === 'q1') {
+                    explanationElement.textContent = "Die absolute Häufigkeit ist die Anzahl der Beobachtungen in einer bestimmten Kategorie.";
+                } else if (questionId === 'q2') {
+                    explanationElement.textContent = "Die relative Häufigkeit wird berechnet, indem die absolute Häufigkeit durch die Gesamtzahl der Beobachtungen geteilt wird.";
+                } else if (questionId === 'q3') {
+                    explanationElement.textContent = "Das Stängel-Blatt-Diagramm ist ein spezielles Diagramm für numerische Daten, das sie in z.B. in Stängel (Zehnerstelle) und Blätter (Einerstelle) unterteilt.";
+                } else if (questionId === 'q4') {
+                    explanationElement.textContent = "Nominale Variablen sind Kategorien ohne natürliche Reihenfolge, wie Farben.";
+                } else if (questionId === 'q5') {
+                    explanationElement.textContent = "Ein metrisches Merkmal hat numerische Werte, wie die Körpergröße in Zentimetern.";
+                }
+            }
+            resultElement.style.display = "block";
+        }
+
+        function resetQuiz() {
+            var results = document.querySelectorAll('.result');
+            var explanations = document.querySelectorAll('.explanation');
+            var answers = document.querySelectorAll('.answer');
+            results.forEach(function(result) {
+                result.style.display = 'none';
+            });
+            explanations.forEach(function(explanation) {
+                explanation.textContent = '';
+            });
+            answers.forEach(function(answer) {
+                answer.classList.remove('selected');
+            });
+        }
+    </script>
+</body>
+</html>
