@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wahrscheinlichkeiten-Test</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .description, .question {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 10px;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+        }
+        .options input[type="checkbox"] {
+            display: none;
+        }
+        .options input[type="checkbox"] + label {
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+        }
+        .options input[type="checkbox"] + label:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+            background: #fff;
+        }
+        .options input[type="checkbox"]:checked + label:before {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        .options input[type="checkbox"]:checked + label:after {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 2px;
+            width: 6px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 15px;
+            font-size: 1em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Wahrscheinlichkeiten-Test</h2>
+    <p class="description">In einer Unterrichtsstunde sind 15 Schülerinnen und 10 Schüler anwesend. Die Lehrperson wählt für Überprüfungen nacheinander zufällig drei verschiedene Personen aus dieser Schulklasse aus. Jeder Prüfling wird nur einmal befragt.</p>
+    <p class="question">Kreuzen Sie die beiden zutreffenden Aussagen an!</p>
+    <ul class="options">
+        <li><input type="checkbox" id="option1" name="option" value="1"><label for="option1"> Die Wahrscheinlichkeit, dass die Lehrperson drei Schülerinnen auswählt, beträgt \( \frac{15}{25} \cdot \frac{14}{25} \cdot \frac{13}{25} \).</label></li>
+        <li><input type="checkbox" id="option2" name="option" value="2"><label for="option2"> Die Wahrscheinlichkeit, dass die Lehrperson als erste Person einen Schüler auswählt, beträgt \( \frac{10}{25} \).</label></li>
+        <li><input type="checkbox" id="option3" name="option" value="3"><label for="option3"> Die Wahrscheinlichkeit, dass die Lehrperson bei der Wahl als zweite Person eine Schülerin auswählt, beträgt \( \frac{24}{25} \).</label></li>
+        <li><input type="checkbox" id="option4" name="option" value="4"><label for="option4"> Die Wahrscheinlichkeit, dass die Lehrperson drei Schüler auswählt, beträgt \( \frac{10}{25} \cdot \frac{9}{24} \cdot \frac{8}{23} \).</label></li>
+        <li><input type="checkbox" id="option5" name="option" value="5"><label for="option5"> Die Wahrscheinlichkeit, dass unter den ausgewählten Personen genau zwei Schülerinnen sind, beträgt \( \frac{15}{25} \cdot \frac{14}{24} \cdot \frac{23}{23} \).</label></li>
+    </ul>
+    <button class="btn" onclick="checkAnswers()" disabled id="submitBtn">Überprüfen</button>
+    <p class="message" id="message"></p>
+</div>
+
+<script>
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const submitBtn = document.getElementById('submitBtn');
+    const message = document.getElementById('message');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            submitBtn.disabled = checkedBoxes.length !== 2;
+        });
+    });
+
+    function checkAnswers() {
+        const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+        const correctAnswers = ["2", "4"];
+        const selectedAnswers = Array.from(checkedBoxes).map(cb => cb.value);
+        if (JSON.stringify(selectedAnswers.sort()) === JSON.stringify(correctAnswers)) {
+            message.textContent = "Richtig! Sie haben die richtigen Antworten ausgewählt.";
+            message.style.color = "green";
+        } else {
+            message.textContent = "Falsch! Bitte versuchen Sie es erneut.";
+            message.style.color = "red";
+        }
+    }
+</script>
+
+</body>
+</html>
