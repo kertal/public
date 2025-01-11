@@ -5,5 +5,7 @@ Some public stuff of kertal inc
 - [Kostenfunktion](./kostenfunktion.html)
 - [Statistik](./statistik.html)
 - [Wahrscheinlichkeit](./wahrscheinlichkeit.html)
+- [Vektoren in R3](./1_1367_vektoren_in_r3.html)
+
 
 
