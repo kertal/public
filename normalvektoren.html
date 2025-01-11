@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiple-Choice-Test: Normalvektoren</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+    }
+
+    .question {
+      margin: 20px 0;
+    }
+
+    label {
+      display: block;
+      padding: 10px;
+      background: #f9f9f9;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    label:hover {
+      background: #e0f7fa;
+    }
+
+    input[type="checkbox"] {
+      display: none;
+    }
+
+    input[type="checkbox"]:checked + label {
+      background: #c8e6c9;
+      border-color: #4CAF50;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .result {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .result.correct {
+      color: #4CAF50;
+    }
+
+    .result.incorrect {
+      color: #f44336;
+    }
+
+    .explanation {
+      display: none;
+      margin-top: 10px;
+      font-size: 0.9em;
+      background: #fff3e0;
+      padding: 10px;
+      border-left: 4px solid #ff9800;
+    }
+
+    .math {
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Normalvektoren</h1>
+  <div class="question">
+    <p><strong>Aufgabe:</strong></p>
+    <p class="math">
+      Gegeben ist der Vektor \(\vec{a} = \begin{pmatrix} -1 \\ 3 \\ 5 \end{pmatrix}\).<br>
+      Kreuzen Sie die beiden Vektoren an, die auf \(\vec{a}\) normal stehen.
+    </p>
+    <form id="quizForm">
+      <div>
+        <input type="checkbox" id="option1" name="option">
+        <label for="option1">\(\begin{pmatrix} 2 \\ -1 \\ 1 \end{pmatrix}\)</label>
+        <div class="explanation" id="explanation1">
+          Dieser Vektor ist korrekt, da \(\vec{a} \cdot \begin{pmatrix} 2 \\ -1 \\ 1 \end{pmatrix} = 0\).
+        </div>
+      </div>
+      <div>
+        <input type="checkbox" id="option2" name="option">
+        <label for="option2">\(\begin{pmatrix} 0 \\ 0 \\ -5 \end{pmatrix}\)</label>
+        <div class="explanation" id="explanation2">
+          Dieser Vektor ist falsch, da \(\vec{a} \cdot \begin{pmatrix} 0 \\ 0 \\ -5 \end{pmatrix} \neq 0\).
+        </div>
+      </div>
+      <div>
+        <input type="checkbox" id="option3" name="option">
+        <label for="option3">\(\begin{pmatrix} 0 \\ 5 \\ -3 \end{pmatrix}\)</label>
+        <div class="explanation" id="explanation3">
+          Dieser Vektor ist korrekt, da \(\vec{a} \cdot \begin{pmatrix} 0 \\ 5 \\ -3 \end{pmatrix} = 0\).
+        </div>
+      </div>
+      <div>
+        <input type="checkbox" id="option4" name="option">
+        <label for="option4">\(\begin{pmatrix} 5 \\ 0 \\ -1 \end{pmatrix}\)</label>
+        <div class="explanation" id="explanation4">
+          Dieser Vektor ist falsch, da \(\vec{a} \cdot \begin{pmatrix} 5 \\ 0 \\ -1 \end{pmatrix} \neq 0\).
+        </div>
+      </div>
+      <div>
+        <input type="checkbox" id="option5" name="option">
+        <label for="option5">\(\begin{pmatrix} -1 \\ 3 \\ 0 \end{pmatrix}\)</label>
+        <div class="explanation" id="explanation5">
+          Dieser Vektor ist falsch, da \(\vec{a} \cdot \begin{pmatrix} -1 \\ 3 \\ 0 \end{pmatrix} \neq 0\).
+        </div>
+      </div>
+      <button type="button" onclick="checkAnswers()">Antworten überprüfen</button>
+    </form>
+    <div id="result" class="result"></div>
+  </div>
+</div>
+
+<script>
+  function checkAnswers() {
+    const correctAnswers = ["option1", "option3"];
+    const explanations = {
+      "option1": "explanation1",
+      "option2": "explanation2",
+      "option3": "explanation3",
+      "option4": "explanation4",
+      "option5": "explanation5"
+    };
+
+    const selected = Array.from(document.querySelectorAll('input[name="option"]:checked')).map(input => input.id);
+    const resultDiv = document.getElementById('result');
+
+    let isCorrect = true;
+    for (const option of Object.keys(explanations)) {
+      const explanation = document.getElementById(explanations[option]);
+      if (selected.includes(option) && !correctAnswers.includes(option)) {
+        explanation.style.display = 'block';
+        isCorrect = false;
+      } else {
+        explanation.style.display = 'none';
+      }
+    }
+
+    if (selected.length === 2 && selected.every(option => correctAnswers.includes(option))) {
+      resultDiv.textContent = "Richtig! Gut gemacht!";
+      resultDiv.className = "result correct";
+    } else {
+      resultDiv.textContent = "Leider falsch. Bitte überprüfen Sie die Erklärungen.";
+      resultDiv.className = "result incorrect";
+    }
+  }
+</script>
+</body>
+</html>
