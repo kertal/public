@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple-Choice-Test: Vektoren in R³</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        .question {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        label:hover {
+            background: #e0f7fa;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="checkbox"]:checked + label {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 10px;
+            font-size: 0.9em;
+            background: #fff3e0;
+            padding: 10px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .math {
+            font-size: 1.2em;
+        }
+
+        .quizFormAnswer {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Vektoren in \(\mathbb{R}^3\)</h1>
+    <div class="question">
+        <p><strong>Aufgabe:</strong></p>
+        <p class="math">
+            Gegeben sind die drei Vektoren \(\mathbf{a} = (a_1, a_2, a_3)\), \(\mathbf{b} = (b_1, b_2, b_3)\) und \(\mathbf{n} = (n_1, n_2, n_3)\) in \(\mathbb{R}^3\), die sich vom Nullvektor unterscheiden.<br>
+            Es gilt:
+        <ul>
+            <li>Der Vektor \(\mathbf{n}\) steht sowohl auf den Vektor \(\mathbf{a}\) als auch auf den Vektor \(\mathbf{b}\) normal.</li>
+            <li>Die Vektoren \(\mathbf{a}\) und \(\mathbf{b}\) stehen nicht aufeinander normal.</li>
+            <li>Die Vektoren \(\mathbf{a}\) und \(\mathbf{b}\) sind nicht zueinander parallel.</li>
+        </ul>
+        <p>
+        Kreuzen Sie die beiden Aussagen an, die auf jeden Fall zutreffen.
+        </p>
+        <form id="quizForm">
+            <div class="quizFormAnswer">
+                <input type="checkbox" id="option1" name="option">
+                <label for="option1">\(a \cdot b = b \cdot n\)</label>
+                <div class="explanation" id="explanation1">
+                    \(a \cdot b = b \cdot n\) ist falsch, da \(n\) normal auf \(a\) und \(b\) steht. Das Skalarprodukt von \(b\) und \(n\) ist daher immer null.
+                </div>
+            </div>
+            <div class="quizFormAnswer">
+                <input type="checkbox" id="option2" name="option">
+                <label for="option2">\((a + b) \cdot n = 0\)</label>
+                <div class="explanation" id="explanation2">
+                    \((a + b) \cdot n = 0\) ist korrekt, da \(n\) normal auf \(a\) und \(b\) steht, somit auch auf deren Summe.
+                </div>
+            </div>
+            <div class="quizFormAnswer">
+                <input type="checkbox" id="option3" name="option">
+                <label for="option3">\(a_1 \cdot n_1 + a_2 \cdot n_2 + a_3 \cdot n_3 = 0\)</label>
+                <div class="explanation" id="explanation3">
+                    \(a_1 \cdot n_1 + a_2 \cdot n_2 + a_3 \cdot n_3 = 0\) ist korrekt, da dies der Ausdruck für das Skalarprodukt \(a \cdot n\) ist, welches null ergibt.
+                </div>
+            </div>
+            <div class="quizFormAnswer">
+                <input type="checkbox" id="option4" name="option">
+                <label for="option4">Es gibt eine Zahl \(k \in \mathbb{R}\), sodass gilt: \(a + b = k \cdot n\)</label>
+                <div class="explanation" id="explanation4">
+                    Es gibt keine allgemeine Zahl \(k\), sodass \(a + b = k \cdot n\), da \(a + b\) im Allgemeinen nicht parallel zu \(n\) ist.
+                </div>
+            </div>
+            <div class="quizFormAnswer">
+                <input type="checkbox" id="option5" name="option">
+                <label for="option5">Es gibt eine Zahl \(k \in \mathbb{R}\), sodass gilt: \(a = k \cdot b\)</label>
+                <div class="explanation" id="explanation5">
+                    \(a = k \cdot b\) ist falsch, da \(a\) und \(b\) weder parallel noch orthogonal sind.
+                </div>
+            </div>
+            <button type="button" onclick="checkAnswers()">Antworten überprüfen</button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+</div>
+
+<script>
+    function checkAnswers() {
+        const correctAnswers = ["option2", "option3"];
+        const explanations = {
+            "option1": "explanation1",
+            "option2": "explanation2",
+            "option3": "explanation3",
+            "option4": "explanation4",
+            "option5": "explanation5"
+        };
+
+        const selected = Array.from(document.querySelectorAll('input[name="option"]:checked')).map(input => input.id);
+        const resultDiv = document.getElementById('result');
+
+        let isCorrect = true;
+        for (const option of Object.keys(explanations)) {
+            const explanation = document.getElementById(explanations[option]);
+            if (selected.includes(option)) {
+                explanation.style.display = 'block';
+                isCorrect = false;
+            } else {
+                explanation.style.display = 'none';
+            }
+        }
+
+        if (selected.length === 2 && selected.every(option => correctAnswers.includes(option))) {
+            resultDiv.textContent = "Richtig! Gut gemacht!";
+            resultDiv.className = "result correct";
+        } else {
+            resultDiv.textContent = "Leider falsch. Bitte überprüfen Sie die Erklärungen.";
+            resultDiv.className = "result incorrect";
+        }
+    }
+</script>
+</body>
+</html>
