@@ -49,11 +49,6 @@
             background: #e0f7fa;
         }
 
-        .option.selected {
-            background: #c8e6c9;
-            border-color: #4CAF50;
-        }
-
         button {
             display: block;
             width: 100%;
@@ -75,14 +70,6 @@
             margin-top: 20px;
             text-align: center;
             font-weight: bold;
-        }
-
-        .result.correct {
-            color: #4CAF50;
-        }
-
-        .result.incorrect {
-            color: #f44336;
         }
 
         .math {
@@ -109,27 +96,41 @@
     <h1>Urlaubskosten</h1>
     <div class="question">
         <p class="math">
-            Luis war vor einem Jahr auf Urlaub. Die Kosten für den Flug betrugen 180 € und für das Hotel 360 €. Inzwischen ist alles um 5 % teurer geworden. Welcher Vektor gibt die neuen Preise an, wenn die erste Koordinate den Flugpreis und die zweite Koordinate den Hotelpreis angibt? Kreuze die beiden zutreffenden Vektoren an. <strong>[2 aus 5]</strong>
+            Luis war vor einem Jahr auf Urlaub. Die Kosten für den Flug betrugen 180 € und für das Hotel 360 €.
+            Inzwischen ist alles um 5 % teurer geworden. Welcher Vektor gibt die neuen Preise an, wenn die erste
+            Koordinate den Flugpreis und die zweite Koordinate den Hotelpreis angibt? Kreuze die beiden zutreffenden
+            Vektoren an. <strong>[2 aus 5]</strong>
         </p>
-        <div class="option" onclick="toggleSelection(this, 'option1')">
-            <span>\(150 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\)</span>
-            <div class="explanation">Dieser Vektor ist falsch, da die Multiplikation mit 150 keinen Bezug zu den Preissteigerungen hat.</div>
-        </div>
-        <div class="option" onclick="toggleSelection(this, 'option2')">
-            <span>\(1,05 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\)</span>
-            <div class="explanation">Dieser Vektor ist korrekt, da die Preise um 5 % gestiegen sind: \(1,05 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\).</div>
-        </div>
-        <div class="option" onclick="toggleSelection(this, 'option3')">
-            <span>\(\begin{pmatrix} 270 \\ 540 \end{pmatrix}\)</span>
-            <div class="explanation">Dieser Vektor ist falsch, da die Werte zu hoch angesetzt sind und keine Preissteigerung von 5 % darstellen.</div>
-        </div>
-        <div class="option" onclick="toggleSelection(this, 'option4')">
-            <span>\(\begin{pmatrix} 189 \\ 378 \end{pmatrix}\)</span>
-            <div class="explanation">Dieser Vektor ist korrekt, da er die exakten neuen Preise für Flug und Hotel nach einer Steigerung um 5 % angibt.</div>
-        </div>
-        <div class="option" onclick="toggleSelection(this, 'option5')">
-            <span>\(\begin{pmatrix} 378 \\ 189 \end{pmatrix}\)</span>
-            <div class="explanation">Dieser Vektor ist falsch, da die Reihenfolge der Koordinaten vertauscht ist.</div>
+        <div id="answers" hidden>
+            <div class="option" onclick="toggleSelection(this, 'option1')">
+                <span>\(150 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\)</span>
+                <div class="explanation">Dieser Vektor ist falsch, da die Multiplikation mit 150 keinen Bezug zu den
+                    Preissteigerungen hat.
+                </div>
+            </div>
+            <div class="option" onclick="toggleSelection(this, 'option2')">
+                <span>\(1,05 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\)</span>
+                <div class="explanation">Dieser Vektor ist korrekt, da die Preise um 5 % gestiegen sind: \(1,05 \cdot
+                    \begin{pmatrix} 180 \\ 360 \end{pmatrix}\).
+                </div>
+            </div>
+            <div class="option" onclick="toggleSelection(this, 'option3')">
+                <span>\(\begin{pmatrix} 270 \\ 540 \end{pmatrix}\)</span>
+                <div class="explanation">Dieser Vektor ist falsch, da die Werte zu hoch angesetzt sind und keine
+                    Preissteigerung von 5 % darstellen.
+                </div>
+            </div>
+            <div class="option" onclick="toggleSelection(this, 'option4')">
+                <span>\(\begin{pmatrix} 189 \\ 378 \end{pmatrix}\)</span>
+                <div class="explanation">Dieser Vektor ist korrekt, da er die exakten neuen Preise für Flug und Hotel
+                    nach einer Steigerung um 5 % angibt.
+                </div>
+            </div>
+            <div class="option" onclick="toggleSelection(this, 'option5')">
+                <span>\(\begin{pmatrix} 378 \\ 189 \end{pmatrix}\)</span>
+                <div class="explanation">Dieser Vektor ist falsch, da die Reihenfolge der Koordinaten vertauscht ist.
+                </div>
+            </div>
         </div>
         <button type="button" onclick="checkAnswers()">Antworten überprüfen</button>
         <div id="result" class="result"></div>
@@ -137,7 +138,7 @@
 </div>
 
 <script>
-    function toggleSelection(element, id) {
+    function toggleSelection(element) {
         const isSelected = element.classList.contains('selected');
         if (isSelected) {
             element.classList.remove('selected');
@@ -177,6 +178,17 @@
             resultDiv.className = 'result incorrect';
         }
     }
+  document.addEventListener('DOMContentLoaded', () => {
+    const answersDiv = document.getElementById('answers');
+    const options = Array.from(answersDiv.children);
+
+    // Shuffle the options array
+    options.sort(() => Math.random() - 0.5);
+
+    // Append the shuffled options back to the answersDiv
+    options.forEach(option => answersDiv.appendChild(option));
+    answersDiv.hidden = false;
+});
 </script>
 </body>
 </html>
