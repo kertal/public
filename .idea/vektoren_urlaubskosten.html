@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple-Choice-Test: Urlaubskosten</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        .question {
+            margin: 20px 0;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .option:hover {
+            background: #e0f7fa;
+        }
+
+        .option.selected {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .result.correct {
+            color: #4CAF50;
+        }
+
+        .result.incorrect {
+            color: #f44336;
+        }
+
+        .math {
+            font-size: 1.2em;
+        }
+
+        .explanation {
+            display: none;
+            font-size: 0.9em;
+            background: #fff3e0;
+            padding: 10px;
+            border-left: 4px solid #ff9800;
+            margin-top: 10px;
+        }
+
+        .option .explanation {
+            display: none;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Urlaubskosten</h1>
+    <div class="question">
+        <p class="math">
+            Luis war vor einem Jahr auf Urlaub. Die Kosten für den Flug betrugen 180 € und für das Hotel 360 €. Inzwischen ist alles um 5 % teurer geworden. Welcher Vektor gibt die neuen Preise an, wenn die erste Koordinate den Flugpreis und die zweite Koordinate den Hotelpreis angibt? Kreuze die beiden zutreffenden Vektoren an. <strong>[2 aus 5]</strong>
+        </p>
+        <div class="option" onclick="toggleSelection(this, 'option1')">
+            <span>\(150 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\)</span>
+            <div class="explanation">Dieser Vektor ist falsch, da die Multiplikation mit 150 keinen Bezug zu den Preissteigerungen hat.</div>
+        </div>
+        <div class="option" onclick="toggleSelection(this, 'option2')">
+            <span>\(1,05 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\)</span>
+            <div class="explanation">Dieser Vektor ist korrekt, da die Preise um 5 % gestiegen sind: \(1,05 \cdot \begin{pmatrix} 180 \\ 360 \end{pmatrix}\).</div>
+        </div>
+        <div class="option" onclick="toggleSelection(this, 'option3')">
+            <span>\(\begin{pmatrix} 270 \\ 540 \end{pmatrix}\)</span>
+            <div class="explanation">Dieser Vektor ist falsch, da die Werte zu hoch angesetzt sind und keine Preissteigerung von 5 % darstellen.</div>
+        </div>
+        <div class="option" onclick="toggleSelection(this, 'option4')">
+            <span>\(\begin{pmatrix} 189 \\ 378 \end{pmatrix}\)</span>
+            <div class="explanation">Dieser Vektor ist korrekt, da er die exakten neuen Preise für Flug und Hotel nach einer Steigerung um 5 % angibt.</div>
+        </div>
+        <div class="option" onclick="toggleSelection(this, 'option5')">
+            <span>\(\begin{pmatrix} 378 \\ 189 \end{pmatrix}\)</span>
+            <div class="explanation">Dieser Vektor ist falsch, da die Reihenfolge der Koordinaten vertauscht ist.</div>
+        </div>
+        <button type="button" onclick="checkAnswers()">Antworten überprüfen</button>
+        <div id="result" class="result"></div>
+    </div>
+</div>
+
+<script>
+    function toggleSelection(element, id) {
+        const isSelected = element.classList.contains('selected');
+        if (isSelected) {
+            element.classList.remove('selected');
+        } else {
+            element.classList.add('selected');
+        }
+    }
+
+    function checkAnswers() {
+        const correctAnswers = ['option2', 'option4'];
+        const options = document.querySelectorAll('.option');
+        const resultDiv = document.getElementById('result');
+
+        let selectedOptions = [];
+        options.forEach((option, index) => {
+            if (option.classList.contains('selected')) {
+                selectedOptions.push(`option${index + 1}`);
+            }
+        });
+
+        let allCorrect = true;
+        options.forEach((option, index) => {
+            const explanation = option.querySelector('.explanation');
+            if (selectedOptions.includes(`option${index + 1}`) && !correctAnswers.includes(`option${index + 1}`)) {
+                explanation.style.display = 'block';
+                allCorrect = false;
+            } else {
+                explanation.style.display = 'none';
+            }
+        });
+
+        if (selectedOptions.length === 2 && selectedOptions.every(opt => correctAnswers.includes(opt))) {
+            resultDiv.textContent = 'Richtig! Gut gemacht!';
+            resultDiv.className = 'result correct';
+        } else {
+            resultDiv.textContent = allCorrect ? 'Bitte wählen Sie genau zwei Antworten aus.' : 'Leider falsch. Überprüfen Sie die Erklärungen.';
+            resultDiv.className = 'result incorrect';
+        }
+    }
+</script>
+</body>
+</html>
