@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple-Choice-Test: Parallele Geraden</title>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .question {
+            margin: 20px 0;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .option:hover {
+            background: #e0f7fa;
+        }
+        .option input {
+            margin-right: 10px;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .result.correct {
+            color: #4CAF50;
+        }
+        .result.incorrect {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+<h1>Parallele Geraden</h1>
+<div class="question">
+    <p>Gegeben sind die Gleichungen der Geraden \( g \) und \( h \):</p>
+    <p>
+        \( g: y = -\frac{x}{4} + 8 \) <br>
+        \( h: X = \begin{pmatrix} 4 \\ 3 \end{pmatrix} + s \cdot \begin{pmatrix} 4 \\ -1 \end{pmatrix}, \; s \in \mathbb{R} \)
+    </p>
+    <p>Welche 2 Aussagen treffen zu</p>
+</div>
+<div class="options">
+    <label class="option">
+        <input type="radio" name="answer" value="1">
+        Die Geraden sind parallel. Die Steigung von h ist \( -\frac{4}{1} \).
+    </label>
+    <label class="option">
+        <input type="radio" name="answer" value="2">
+        Die Geraden sind parallel. Die Steigung von h ist \( -\frac{1}{4} \).
+    </label>
+    <label class="option">
+        <input type="radio" name="answer" value="3">
+        Die Geraden sind parallel. Die Steigung von g ist -4.
+    </label>
+    <label class="option">
+        <input type="radio" name="answer" value="4">
+        Die Geraden liegen normal zueinander.
+    </label>
+    <label class="option">
+        <input type="radio" name="answer" value="5">
+        Die Geraden liegen im Bett und sind faul.
+    </label>
+</div>
+<button onclick="checkAnswer()">Antwort überprüfen</button>
+<div id="result" class="result"></div>
+<script>
+    function checkAnswer() {
+        const resultDiv = document.getElementById('result');
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if (!selected) {
+            resultDiv.textContent = "Bitte wählen Sie eine Antwort aus.";
+            resultDiv.className = "result incorrect";
+            return;
+        }
+
+        const correctAnswer = "2";
+        if (selected.value === correctAnswer) {
+            resultDiv.innerHTML = "Richtig! Beide Geraden haben die gleiche Steigung.";
+            resultDiv.className = "result correct";
+        } else {
+            resultDiv.innerHTML = "Falsch.Sorry.";
+            resultDiv.className = "result incorrect";
+        }
+    }
+</script>
+</body>
+</html>
