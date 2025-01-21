@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mehratomige Ionen Quiz</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        color: #4caf50;
+      }
+      .question {
+        margin: 20px 0;
+      }
+      .option {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        padding: 10px;
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      .option:hover {
+        background: #e0f7fa;
+      }
+      .option input {
+        margin-right: 10px;
+      }
+      .result {
+        margin-top: 20px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .result.correct {
+        color: #4caf50;
+      }
+      .result.incorrect {
+        color: #f44336;
+      }
+      button {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      sup,
+      sub {
+        position: relative;
+        vertical-align: baseline;
+        top: -0.4em;
+      }
+      sub {
+        top: 0.4em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mehratomige Ionen Quiz</h1>
+    <div id="quiz"></div>
+    <button onclick="checkAnswers()">Antworten überprüfen</button>
+    <div id="result" class="result"></div>
+
+    <script>
+      const questions = [
+        {
+          question: "Welches Ion ist das Ammonium-Ion?",
+          correct: "NH<sub>4</sub><sup>+</sup>",
+          options: [
+            "NH<sub>4</sub><sup>+</sup>",
+            "OH<sup>-</sup>",
+            "CO<sub>3</sub><sup>2-</sup>",
+          ],
+        },
+        {
+          question: "Welches Ion ist das Hydroxid-Ion?",
+          correct: "OH<sup>-</sup>",
+          options: [
+            "NO<sub>3</sub><sup>-</sup>",
+            "OH<sup>-</sup>",
+            "PO<sub>4</sub><sup>3-</sup>",
+          ],
+        },
+        {
+          question: "Welches Ion ist das Sulfat-Ion?",
+          correct: "SO<sub>4</sub><sup>2-</sup>",
+          options: [
+            "SO<sub>4</sub><sup>2-</sup>",
+            "NH<sub>4</sub><sup>+</sup>",
+            "NO<sub>3</sub><sup>-</sup>",
+          ],
+        },
+        {
+          question: "Welches Ion ist das Nitrat-Ion?",
+          correct: "NO<sub>3</sub><sup>-</sup>",
+          options: [
+            "CO<sub>3</sub><sup>2-</sup>",
+            "NO<sub>3</sub><sup>-</sup>",
+            "SO<sub>4</sub><sup>2-</sup>",
+          ],
+        },
+        {
+          question: "Welches Ion ist das Phosphat-Ion?",
+          correct: "PO<sub>4</sub><sup>3-</sup>",
+          options: [
+            "PO<sub>4</sub><sup>3-</sup>",
+            "CO<sub>3</sub><sup>2-</sup>",
+            "NH<sub>4</sub><sup>+</sup>",
+          ],
+        },
+      ];
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      function renderQuiz() {
+        shuffle(questions);
+        const quizContainer = document.getElementById("quiz");
+        quizContainer.innerHTML = "";
+
+        questions.forEach((q, index) => {
+          quizContainer.innerHTML += `<div class="question">
+                    <p>${q.question}</p>
+                    ${q.options
+                      .map(
+                        (opt) => `
+                        <label class="option">
+                            <input type="radio" name="q${index}" value="${opt}"> ${opt}
+                        </label>
+                    `
+                      )
+                      .join("")}
+                </div>`;
+        });
+      }
+
+      function checkAnswers() {
+        let correct = 0;
+        questions.forEach((q, index) => {
+          const selected = document.querySelector(
+            `input[name="q${index}"]:checked`
+          );
+          if (selected && selected.value === q.correct) {
+            correct++;
+          }
+        });
+
+        const resultDiv = document.getElementById("result");
+        if (correct === questions.length) {
+          resultDiv.textContent =
+            "Herzlichen Glückwunsch! Alle Antworten sind richtig!";
+          resultDiv.className = "result correct";
+        } else {
+          resultDiv.textContent = `Sie haben ${correct} von ${questions.length} Fragen richtig beantwortet.`;
+          resultDiv.className = "result incorrect";
+        }
+      }
+
+      renderQuiz();
+    </script>
+  </body>
+</html>
