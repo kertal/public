@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elementarteilchen Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .nuklid {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .result.correct {
+            color: #4CAF50;
+        }
+        .result.incorrect {
+            color: #f44336;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+<h1>Elementarteilchen Quiz</h1>
+<p>Füllen Sie die fehlenden Werte in der Tabelle aus:</p>
+
+<table>
+    <tr>
+        <th>Protonen</th>
+        <th>Neutronen</th>
+        <th>Elektronen</th>
+        <th>Nuklid</th>
+    </tr>
+    <tr>
+        <td>24</td>
+        <td>29</td>
+        <td><input type="number" id="electrons1"></td>
+        <td class="nuklid"><sup>53</sup>Cr<sup>3+</sup></td>
+    </tr>
+    <tr>
+        <td><input type="number" id="protons2"></td>
+        <td><input type="number" id="neutrons2"></td>
+        <td>28</td>
+        <td class="nuklid"><sup>70</sup>Ga<sup>3+</sup></td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>8</td>
+        <td><input type="number" id="electrons3"></td>
+        <td class="nuklid"><sup>14</sup>C</td>
+    </tr>
+    <tr>
+        <td>11</td>
+        <td>12</td>
+        <td><input type="number" id="electrons4"></td>
+        <td class="nuklid"><sup>23</sup>Na<sup>+</sup></td>
+    </tr>
+    <tr>
+        <td><input type="number" id="protons5"></td>
+        <td>18</td>
+        <td>18</td>
+        <td class="nuklid"><sup>34</sup>S<sup>2-</sup></td>
+    </tr>
+</table>
+
+<button onclick="checkAnswers()">Antworten überprüfen</button>
+<div id="result" class="result"></div>
+
+<script>
+    function checkAnswers() {
+        const answers = {
+            electrons1: "21",
+            protons2: "31",
+            neutrons2: "39",
+            electrons3: "6",
+            electrons4: "10",
+            protons5: "16"
+        };
+
+        let correct = 0;
+        let total = Object.keys(answers).length;
+
+        for (let key in answers) {
+            const userInput = document.getElementById(key).value.trim();
+            if (userInput === answers[key]) {
+                correct++;
+            }
+        }
+
+        const resultDiv = document.getElementById('result');
+        if (correct === total) {
+            resultDiv.textContent = "Herzlichen Glückwunsch! Alle Antworten sind richtig!";
+            resultDiv.className = "result correct";
+        } else {
+            resultDiv.textContent = `Sie haben ${correct} von ${total} Fragen richtig beantwortet. Bitte versuchen Sie es erneut!`;
+            resultDiv.className = "result incorrect";
+        }
+    }
+</script>
+</body>
+</html>
