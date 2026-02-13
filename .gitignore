@@ -1,0 +1,5 @@
+# Environment secrets
+.env
+
+# Downloaded knowledge base output
+knowledge-base/
