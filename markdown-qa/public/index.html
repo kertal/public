@@ -11,9 +11,6 @@
       --sidebar-text: #e0e0e0;
       --sidebar-hover: #16213e;
       --sidebar-active: #0f3460;
-      --chat-bg: #ffffff;
-      --user-msg: #e3f2fd;
-      --assistant-msg: #f5f5f5;
       --primary: #1565c0;
       --primary-hover: #0d47a1;
       --text: #212121;
@@ -51,16 +48,8 @@
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .sidebar-header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .sidebar-header p {
-      font-size: 12px;
-      opacity: 0.6;
-    }
+    .sidebar-header h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .sidebar-header p { font-size: 12px; opacity: 0.6; }
 
     .new-session-btn {
       margin: 16px 20px;
@@ -82,55 +71,6 @@
       overflow-y: auto;
       padding: 8px;
     }
-
-    .session-item {
-      padding: 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-bottom: 4px;
-      transition: background 0.15s;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .session-item:hover { background: var(--sidebar-hover); }
-    .session-item.active { background: var(--sidebar-active); }
-
-    .session-item-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .session-item-title {
-      font-size: 14px;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .session-item-date {
-      font-size: 11px;
-      opacity: 0.5;
-      margin-top: 2px;
-    }
-
-    .session-item-delete {
-      opacity: 0;
-      background: none;
-      border: none;
-      color: var(--sidebar-text);
-      cursor: pointer;
-      padding: 4px;
-      font-size: 16px;
-      line-height: 1;
-      border-radius: 4px;
-      transition: opacity 0.15s, color 0.15s;
-    }
-
-    .session-item:hover .session-item-delete { opacity: 0.6; }
-    .session-item-delete:hover { opacity: 1 !important; color: var(--danger); }
 
     .sidebar-footer {
       padding: 16px 20px;
@@ -159,18 +99,9 @@
       text-align: center;
     }
 
-    .welcome h2 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    .welcome p {
-      color: var(--text-light);
-      max-width: 500px;
-      line-height: 1.6;
-      margin-bottom: 8px;
-    }
+    .welcome[hidden] { display: none; }
+    .welcome h2 { font-size: 28px; font-weight: 600; margin-bottom: 12px; }
+    .welcome p { color: var(--text-light); max-width: 500px; line-height: 1.6; margin-bottom: 8px; }
 
     .welcome-files {
       margin-top: 24px;
@@ -183,32 +114,19 @@
       width: 100%;
     }
 
-    .welcome-files h3 {
-      font-size: 14px;
-      margin-bottom: 12px;
-      color: var(--text-light);
-    }
-
-    .welcome-files ul {
-      list-style: none;
-      font-size: 13px;
-      font-family: var(--mono);
-    }
-
-    .welcome-files li {
-      padding: 4px 0;
-      color: var(--primary);
-    }
+    .welcome-files h3 { font-size: 14px; margin-bottom: 12px; color: var(--text-light); }
+    .welcome-files ul { list-style: none; font-size: 13px; font-family: var(--mono); }
+    .welcome-files li { padding: 4px 0; color: var(--primary); }
 
     /* Chat area */
     .chat-container {
       flex: 1;
-      display: none;
+      display: flex;
       flex-direction: column;
       height: 100vh;
     }
 
-    .chat-container.active { display: flex; }
+    .chat-container[hidden] { display: none; }
 
     .chat-header {
       padding: 16px 24px;
@@ -219,171 +137,18 @@
       gap: 12px;
     }
 
-    .chat-header-title {
-      font-size: 16px;
-      font-weight: 600;
-      flex: 1;
-    }
-
+    .chat-header-title { font-size: 16px; font-weight: 600; flex: 1; }
     .chat-header-title[contenteditable]:focus {
       outline: 2px solid var(--primary);
       outline-offset: 2px;
       border-radius: 4px;
     }
 
-    .status-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4caf50;
-    }
-
+    .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #4caf50; }
     .status-indicator.offline { background: #ff9800; }
     .status-indicator.error { background: var(--danger); }
 
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
-
-    .message {
-      max-width: 800px;
-      margin: 0 auto 20px;
-      display: flex;
-      gap: 12px;
-    }
-
-    .message-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .message.user .message-avatar {
-      background: var(--primary);
-      color: white;
-    }
-
-    .message.assistant .message-avatar {
-      background: #7c4dff;
-      color: white;
-    }
-
-    .message-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .message-role {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-light);
-    }
-
-    .message-text {
-      font-size: 15px;
-      line-height: 1.7;
-      word-wrap: break-word;
-    }
-
-    .message-text p { margin-bottom: 12px; }
-    .message-text p:last-child { margin-bottom: 0; }
-
-    .message-text pre {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 16px;
-      border-radius: 8px;
-      overflow-x: auto;
-      margin: 12px 0;
-      font-family: var(--mono);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .message-text code {
-      background: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 13px;
-    }
-
-    .message-text pre code {
-      background: none;
-      padding: 0;
-    }
-
-    .message-text ul, .message-text ol {
-      margin: 8px 0 8px 20px;
-    }
-
-    .message-text li { margin-bottom: 4px; }
-
-    .message-text strong { font-weight: 600; }
-
-    .message-text blockquote {
-      border-left: 3px solid var(--primary);
-      padding-left: 16px;
-      margin: 12px 0;
-      color: var(--text-light);
-    }
-
-    .message-text h1, .message-text h2, .message-text h3 {
-      margin: 16px 0 8px;
-    }
-
-    .message-text h1 { font-size: 20px; }
-    .message-text h2 { font-size: 18px; }
-    .message-text h3 { font-size: 16px; }
-
-    .message-text table {
-      border-collapse: collapse;
-      margin: 12px 0;
-      width: 100%;
-    }
-
-    .message-text th, .message-text td {
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      text-align: left;
-    }
-
-    .message-text th {
-      background: var(--bg);
-      font-weight: 600;
-    }
-
-    .streaming-cursor {
-      display: inline-block;
-      width: 8px;
-      height: 18px;
-      background: var(--primary);
-      animation: blink 1s infinite;
-      vertical-align: text-bottom;
-      margin-left: 2px;
-    }
-
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-
-    .message-usage {
-      font-size: 11px;
-      color: var(--text-light);
-      margin-top: 8px;
-    }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 24px; }
 
     /* Input area */
     .chat-input-area {
@@ -416,11 +181,7 @@
     }
 
     .chat-input:focus { border-color: var(--primary); }
-
-    .chat-input:disabled {
-      background: var(--bg);
-      cursor: not-allowed;
-    }
+    .chat-input:disabled { background: var(--bg); cursor: not-allowed; }
 
     .send-btn {
       padding: 12px 20px;
@@ -442,11 +203,9 @@
     @media (max-width: 768px) {
       .sidebar { width: 60px; min-width: 60px; }
       .sidebar-header h1, .sidebar-header p,
-      .session-item-info, .sidebar-footer,
+      .sidebar-footer,
       .new-session-btn span { display: none; }
       .new-session-btn { margin: 12px 8px; padding: 10px; text-align: center; }
-      .session-item { padding: 8px; justify-content: center; }
-      .session-item-delete { display: none; }
       .chat-messages { padding: 16px; }
       .chat-input-area { padding: 12px; }
     }
@@ -454,20 +213,166 @@
 </head>
 <body>
 
+  <!-- ========== Templates ========== -->
+
+  <template id="tmpl-session-item">
+    <style>
+      :host {
+        display: flex;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 4px;
+        transition: background 0.15s;
+        align-items: flex-start;
+      }
+      :host(:hover) { background: var(--sidebar-hover); }
+      :host([active]) { background: var(--sidebar-active); }
+      .info { flex: 1; min-width: 0; }
+      .title {
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--sidebar-text);
+      }
+      .meta {
+        font-size: 11px;
+        opacity: 0.5;
+        margin-top: 2px;
+        color: var(--sidebar-text);
+      }
+      button {
+        opacity: 0;
+        background: none;
+        border: none;
+        color: var(--sidebar-text);
+        cursor: pointer;
+        padding: 4px;
+        font-size: 16px;
+        line-height: 1;
+        border-radius: 4px;
+        transition: opacity 0.15s, color 0.15s;
+      }
+      :host(:hover) button { opacity: 0.6; }
+      button:hover { opacity: 1 !important; color: var(--danger); }
+    </style>
+    <div class="info">
+      <div class="title"></div>
+      <div class="meta"></div>
+    </div>
+    <button title="Löschen">&times;</button>
+  </template>
+
+  <template id="tmpl-chat-message">
+    <style>
+      :host {
+        display: flex;
+        max-width: 800px;
+        margin: 0 auto 20px;
+        gap: 12px;
+      }
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        flex-shrink: 0;
+        color: white;
+      }
+      :host([role="user"]) .avatar { background: var(--primary); }
+      :host([role="assistant"]) .avatar { background: #7c4dff; }
+      .content { flex: 1; min-width: 0; }
+      .role {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-light);
+      }
+      .text { font-size: 15px; line-height: 1.7; word-wrap: break-word; }
+      .text p { margin-bottom: 12px; }
+      .text p:last-child { margin-bottom: 0; }
+      .text pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 12px 0;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .text code {
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .text pre code { background: none; padding: 0; }
+      .text ul, .text ol { margin: 8px 0 8px 20px; }
+      .text li { margin-bottom: 4px; }
+      .text strong { font-weight: 600; }
+      .text blockquote {
+        border-left: 3px solid var(--primary);
+        padding-left: 16px;
+        margin: 12px 0;
+        color: var(--text-light);
+      }
+      .text h1, .text h2, .text h3 { margin: 16px 0 8px; }
+      .text h1 { font-size: 20px; }
+      .text h2 { font-size: 18px; }
+      .text h3 { font-size: 16px; }
+      .text table { border-collapse: collapse; margin: 12px 0; width: 100%; }
+      .text th, .text td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+      .text th { background: var(--bg); font-weight: 600; }
+      .usage { font-size: 11px; color: var(--text-light); margin-top: 8px; }
+      .cursor {
+        display: inline-block;
+        width: 8px;
+        height: 18px;
+        background: var(--primary);
+        animation: blink 1s infinite;
+        vertical-align: text-bottom;
+        margin-left: 2px;
+      }
+      @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+      }
+    </style>
+    <div class="avatar"></div>
+    <div class="content">
+      <div class="role"></div>
+      <div class="text"></div>
+      <div class="usage"></div>
+    </div>
+  </template>
+
+  <!-- ========== App Shell ========== -->
+
   <aside class="sidebar">
     <div class="sidebar-header">
       <h1>Repo Q&A</h1>
       <p>Fragen zum Repository</p>
     </div>
-    <button class="new-session-btn" onclick="createNewSession()">
+    <button class="new-session-btn" id="newSessionBtn">
       + <span>Neue Session</span>
     </button>
     <div class="session-list" id="sessionList"></div>
-    <div class="sidebar-footer">Local-first &middot; Sessions in IndexedDB gespeichert</div>
+    <div class="sidebar-footer">Local-first &middot; Sessions in IndexedDB</div>
   </aside>
 
   <main class="main">
-    <div class="welcome" id="welcomeScreen">
+    <section class="welcome" id="welcomeScreen">
       <h2>Repository Q&A</h2>
       <p>Stelle Fragen zu den Inhalten dieses Repositories. Gemini AI beantwortet sie basierend auf den verfügbaren Dateien.</p>
       <p>Erstelle eine neue Session, um loszulegen.</p>
@@ -475,478 +380,483 @@
         <h3>Verfügbare Dateien:</h3>
         <ul id="fileList"><li>Lade...</li></ul>
       </div>
-    </div>
+    </section>
 
-    <div class="chat-container" id="chatContainer">
-      <div class="chat-header">
+    <section class="chat-container" id="chatContainer" hidden>
+      <header class="chat-header">
         <div class="status-indicator" id="statusIndicator"></div>
         <div class="chat-header-title" id="chatTitle" contenteditable="true" spellcheck="false"></div>
-      </div>
+      </header>
       <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-area">
+      <footer class="chat-input-area">
         <div class="chat-input-wrapper">
           <textarea class="chat-input" id="chatInput" placeholder="Stelle eine Frage zum Repository..." rows="1"></textarea>
-          <button class="send-btn" id="sendBtn" onclick="sendMessage()">Senden</button>
+          <button class="send-btn" id="sendBtn">Senden</button>
         </div>
-      </div>
-    </div>
+      </footer>
+    </section>
   </main>
 
   <script>
-    // --- IndexedDB Storage ---
-    const DB_NAME = 'repo-qa';
-    const DB_VERSION = 1;
-    const STORE_NAME = 'sessions';
-    let db = null;
+    // ========== IndexedDB Store ==========
 
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-            store.createIndex('updatedAt', 'updatedAt', { unique: false });
-          }
-        };
-        request.onsuccess = (e) => {
-          db = e.target.result;
-          resolve(db);
-        };
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
+    class SessionStore {
+      #db = null;
 
-    function dbGetAll() {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.getAll();
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
-
-    function dbGet(id) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.get(id);
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
-
-    function dbPut(session) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.put(session);
-        request.onsuccess = () => resolve();
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
-
-    function dbDelete(id) {
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        const request = store.delete(id);
-        request.onsuccess = () => resolve();
-        request.onerror = (e) => reject(e.target.error);
-      });
-    }
-
-    // --- State ---
-    let currentSessionId = null;
-    let isStreaming = false;
-
-    // --- Session Management ---
-
-    async function createNewSession() {
-      const id = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-      const session = {
-        id,
-        title: 'Neue Session',
-        messages: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      await dbPut(session);
-      await switchToSession(id);
-      await renderSessionList();
-      document.getElementById('chatInput').focus();
-    }
-
-    async function switchToSession(id) {
-      const session = await dbGet(id);
-      if (!session) return;
-
-      currentSessionId = id;
-      document.getElementById('welcomeScreen').style.display = 'none';
-      const chat = document.getElementById('chatContainer');
-      chat.classList.add('active');
-
-      document.getElementById('chatTitle').textContent = session.title;
-      renderMessages(session.messages);
-      await renderSessionList();
-      scrollToBottom();
-    }
-
-    async function showWelcome() {
-      currentSessionId = null;
-      document.getElementById('welcomeScreen').style.display = 'flex';
-      document.getElementById('chatContainer').classList.remove('active');
-      await renderSessionList();
-    }
-
-    async function deleteSessionById(id) {
-      await dbDelete(id);
-      if (currentSessionId === id) {
-        currentSessionId = null;
-        showWelcome();
+      async open() {
+        this.#db = await new Promise((resolve, reject) => {
+          const req = indexedDB.open('repo-qa', 1);
+          req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains('sessions')) {
+              db.createObjectStore('sessions', { keyPath: 'id' })
+                .createIndex('updatedAt', 'updatedAt');
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
       }
-      await renderSessionList();
-    }
 
-    // --- Rendering ---
-
-    async function renderSessionList() {
-      const sessions = await dbGetAll();
-      const list = document.getElementById('sessionList');
-      const sorted = sessions.sort((a, b) =>
-        new Date(b.updatedAt) - new Date(a.updatedAt)
-      );
-
-      list.innerHTML = sorted.map(s => `
-        <div class="session-item ${s.id === currentSessionId ? 'active' : ''}"
-             onclick="switchToSession('${s.id}')">
-          <div class="session-item-info">
-            <div class="session-item-title">${escapeHtml(s.title)}</div>
-            <div class="session-item-date">${formatDate(s.updatedAt)} &middot; ${s.messages.length} Nachrichten</div>
-          </div>
-          <button class="session-item-delete" onclick="event.stopPropagation(); confirmDelete('${s.id}')" title="Löschen">&times;</button>
-        </div>
-      `).join('');
-    }
-
-    function confirmDelete(id) {
-      if (confirm('Session wirklich löschen?')) {
-        deleteSessionById(id);
+      #exec(mode, fn) {
+        return new Promise((resolve, reject) => {
+          const store = this.#db.transaction('sessions', mode).objectStore('sessions');
+          const req = fn(store);
+          req.onsuccess = () => resolve(req.result ?? null);
+          req.onerror = () => reject(req.error);
+        });
       }
+
+      getAll()  { return this.#exec('readonly', s => s.getAll()); }
+      get(id)   { return this.#exec('readonly', s => s.get(id)); }
+      put(data) { return this.#exec('readwrite', s => s.put(data)); }
+      delete(id){ return this.#exec('readwrite', s => s.delete(id)); }
     }
 
-    function renderMessages(messages) {
-      const container = document.getElementById('chatMessages');
-      container.innerHTML = messages.map(m => createMessageHtml(m)).join('');
-    }
+    // ========== Markdown Renderer ==========
 
-    function createMessageHtml(msg) {
-      const avatar = msg.role === 'user' ? 'Du' : 'AI';
-      const roleLabel = msg.role === 'user' ? 'Du' : 'Gemini';
-      const usageHtml = msg.usage
-        ? `<div class="message-usage">${msg.usage.totalChars} Zeichen generiert</div>`
-        : '';
+    const MD = {
+      BLOCK_TAGS: new Set(['h1','h2','h3','pre','ul','ol','blockquote']),
 
-      return `
-        <div class="message ${msg.role}">
-          <div class="message-avatar">${avatar}</div>
-          <div class="message-content">
-            <div class="message-role">${roleLabel}</div>
-            <div class="message-text">${renderMarkdown(msg.content)}</div>
-            ${usageHtml}
-          </div>
-        </div>
-      `;
-    }
+      escapeHtml(text) {
+        return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      },
 
-    // --- Markdown rendering (lightweight) ---
+      render(text) {
+        if (!text) return '';
+        let html = this.escapeHtml(text);
 
-    function renderMarkdown(text) {
-      if (!text) return '';
-      let html = escapeHtml(text);
+        // Fenced code blocks
+        html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+          `<pre><code class="language-${lang}">${code.trim()}</code></pre>`);
 
-      // Code blocks
-      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
-        `<pre><code class="language-${lang}">${code.trim()}</code></pre>`
-      );
+        // Inline code (must come after fenced blocks)
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-      // Inline code
-      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // Bold before italic
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-      // Bold
-      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Headings
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
 
-      // Italic
-      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        // Blockquotes
+        html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
 
-      // Headers
-      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        // Lists
+        html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+        html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+        html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
-      // Blockquotes
-      html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+        // Paragraphs: wrap remaining text blocks
+        html = html.split(/\n{2,}/).map(block => {
+          const trimmed = block.trim();
+          if (!trimmed) return '';
+          // Don't wrap blocks that already start with a block-level tag
+          const match = trimmed.match(/^<(\w+)/);
+          if (match && this.BLOCK_TAGS.has(match[1])) return trimmed;
+          return `<p>${trimmed}</p>`;
+        }).join('\n');
 
-      // Unordered lists
-      html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
-      html = html.replace(/(<li>.*<\/li>\n?)+/g, match => `<ul>${match}</ul>`);
+        return html;
+      }
+    };
 
-      // Ordered lists
-      html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-
-      // Line breaks into paragraphs
-      html = html.replace(/\n\n/g, '</p><p>');
-      html = '<p>' + html + '</p>';
-
-      // Clean up empty paragraphs
-      html = html.replace(/<p>\s*<\/p>/g, '');
-      html = html.replace(/<p>(<h[123]>)/g, '$1');
-      html = html.replace(/(<\/h[123]>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<pre>)/g, '$1');
-      html = html.replace(/(<\/pre>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<ul>)/g, '$1');
-      html = html.replace(/(<\/ul>)<\/p>/g, '$1');
-      html = html.replace(/<p>(<blockquote>)/g, '$1');
-      html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
-
-      return html;
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
+    // ========== Relative Date Formatter ==========
 
     function formatDate(iso) {
-      const d = new Date(iso);
-      const now = new Date();
-      const diff = now - d;
-      if (diff < 60000) return 'Gerade eben';
-      if (diff < 3600000) return `vor ${Math.floor(diff / 60000)} Min.`;
-      if (diff < 86400000) return `vor ${Math.floor(diff / 3600000)} Std.`;
-      return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const ms = Date.now() - new Date(iso);
+      if (ms < 60_000) return 'Gerade eben';
+      if (ms < 3_600_000) return `vor ${Math.floor(ms / 60_000)} Min.`;
+      if (ms < 86_400_000) return `vor ${Math.floor(ms / 3_600_000)} Std.`;
+      return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
-    // --- Chat ---
+    // ========== Web Components ==========
 
-    async function sendMessage() {
-      if (isStreaming || !currentSessionId) return;
+    class SessionItem extends HTMLElement {
+      static observedAttributes = ['active'];
 
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
+      #data = null;
 
-      input.value = '';
-      input.style.height = 'auto';
-
-      const session = await dbGet(currentSessionId);
-      if (!session) return;
-
-      // Add user message
-      session.messages.push({ role: 'user', content: text });
-      session.updatedAt = new Date().toISOString();
-
-      // Auto-title on first message
-      if (session.messages.length === 1) {
-        session.title = text.length > 60 ? text.slice(0, 57) + '...' : text;
-        document.getElementById('chatTitle').textContent = session.title;
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.append(
+          document.getElementById('tmpl-session-item').content.cloneNode(true)
+        );
       }
 
-      await dbPut(session);
-      renderMessages(session.messages);
-      await renderSessionList();
-      scrollToBottom();
+      connectedCallback() {
+        this.addEventListener('click', () =>
+          this.dispatchEvent(new CustomEvent('session-select', { detail: this.#data.id, bubbles: true }))
+        );
+        this.shadowRoot.querySelector('button').addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (confirm('Session wirklich löschen?')) {
+            this.dispatchEvent(new CustomEvent('session-delete', { detail: this.#data.id, bubbles: true }));
+          }
+        });
+      }
 
-      // Start streaming response
-      isStreaming = true;
-      updateUI();
+      set data(session) {
+        this.#data = session;
+        this.shadowRoot.querySelector('.title').textContent = session.title;
+        this.shadowRoot.querySelector('.meta').textContent =
+          `${formatDate(session.updatedAt)} · ${session.messages.length} Nachrichten`;
+      }
 
-      const messagesDiv = document.getElementById('chatMessages');
-      const assistantMsg = document.createElement('div');
-      assistantMsg.className = 'message assistant';
-      assistantMsg.innerHTML = `
-        <div class="message-avatar">AI</div>
-        <div class="message-content">
-          <div class="message-role">Gemini</div>
-          <div class="message-text"><span class="streaming-cursor"></span></div>
-        </div>
-      `;
-      messagesDiv.appendChild(assistantMsg);
-      scrollToBottom();
+      attributeChangedCallback(name) {
+        // Attribute reflection handled by CSS :host([active])
+      }
+    }
 
-      const textEl = assistantMsg.querySelector('.message-text');
-      let fullText = '';
+    class ChatMessage extends HTMLElement {
+      static ROLE_MAP = { user: { avatar: 'Du', label: 'Du' }, assistant: { avatar: 'AI', label: 'Gemini' } };
 
-      try {
-        setStatus('streaming');
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.append(
+          document.getElementById('tmpl-chat-message').content.cloneNode(true)
+        );
+        this.#els = {
+          avatar: this.shadowRoot.querySelector('.avatar'),
+          role: this.shadowRoot.querySelector('.role'),
+          text: this.shadowRoot.querySelector('.text'),
+          usage: this.shadowRoot.querySelector('.usage'),
+        };
+      }
 
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: session.messages.map(m => ({ role: m.role, content: m.content })),
-            sessionContext: session.title,
-          }),
+      #els;
+
+      set data({ role, content, usage }) {
+        this.setAttribute('role', role);
+        const meta = ChatMessage.ROLE_MAP[role];
+        this.#els.avatar.textContent = meta.avatar;
+        this.#els.role.textContent = meta.label;
+        this.setContent(content);
+        this.setUsage(usage);
+      }
+
+      setContent(text) {
+        this.#els.text.innerHTML = text ? MD.render(text) : '';
+      }
+
+      appendDelta(text) {
+        // Used during streaming - re-render full accumulated text
+        this.#els.text.innerHTML = MD.render(text) + '<span class="cursor"></span>';
+      }
+
+      showCursor() {
+        this.#els.text.innerHTML = '<span class="cursor"></span>';
+      }
+
+      setUsage(usage) {
+        this.#els.usage.textContent = usage?.totalChars ? `${usage.totalChars} Zeichen generiert` : '';
+      }
+
+      setError(message) {
+        this.#els.text.innerHTML = `<p style="color: var(--danger)">${MD.escapeHtml(message)}</p>`;
+      }
+    }
+
+    customElements.define('session-item', SessionItem);
+    customElements.define('chat-message', ChatMessage);
+
+    // ========== App Controller ==========
+
+    class QAApp {
+      #store = new SessionStore();
+      #currentId = null;
+      #streaming = false;
+
+      // Cached DOM refs
+      #el = {
+        welcome:    document.getElementById('welcomeScreen'),
+        chat:       document.getElementById('chatContainer'),
+        messages:   document.getElementById('chatMessages'),
+        title:      document.getElementById('chatTitle'),
+        input:      document.getElementById('chatInput'),
+        sendBtn:    document.getElementById('sendBtn'),
+        status:     document.getElementById('statusIndicator'),
+        sessionList:document.getElementById('sessionList'),
+        fileList:   document.getElementById('fileList'),
+      };
+
+      async init() {
+        await this.#store.open();
+        this.#bindEvents();
+        await this.#renderSessionList();
+        this.#loadFiles();
+      }
+
+      #bindEvents() {
+        document.getElementById('newSessionBtn').addEventListener('click', () => this.#createSession());
+
+        this.#el.sendBtn.addEventListener('click', () => this.#sendMessage());
+
+        this.#el.input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.#sendMessage(); }
         });
 
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.error || 'API request failed');
+        this.#el.input.addEventListener('input', () => {
+          this.#el.input.style.height = 'auto';
+          this.#el.input.style.height = Math.min(this.#el.input.scrollHeight, 200) + 'px';
+        });
+
+        this.#el.title.addEventListener('blur', () => this.#saveTitle());
+        this.#el.title.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); this.#el.title.blur(); }
+        });
+
+        // Event delegation for session items
+        this.#el.sessionList.addEventListener('session-select', (e) => this.#switchToSession(e.detail));
+        this.#el.sessionList.addEventListener('session-delete', (e) => this.#deleteSession(e.detail));
+      }
+
+      // --- Session CRUD ---
+
+      async #createSession() {
+        const session = {
+          id: `s_${Date.now()}_${crypto.randomUUID().slice(0, 6)}`,
+          title: 'Neue Session',
+          messages: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await this.#store.put(session);
+        await this.#switchToSession(session.id);
+        this.#el.input.focus();
+      }
+
+      async #switchToSession(id) {
+        const session = await this.#store.get(id);
+        if (!session) return;
+        this.#currentId = id;
+        this.#el.welcome.hidden = true;
+        this.#el.chat.hidden = false;
+        this.#el.title.textContent = session.title;
+        this.#renderMessages(session.messages);
+        await this.#renderSessionList();
+        this.#scrollToBottom();
+      }
+
+      async #deleteSession(id) {
+        await this.#store.delete(id);
+        if (this.#currentId === id) this.#showWelcome();
+        await this.#renderSessionList();
+      }
+
+      #showWelcome() {
+        this.#currentId = null;
+        this.#el.welcome.hidden = false;
+        this.#el.chat.hidden = true;
+      }
+
+      async #saveTitle() {
+        if (!this.#currentId) return;
+        const session = await this.#store.get(this.#currentId);
+        if (!session) return;
+        const newTitle = this.#el.title.textContent.trim();
+        if (newTitle && newTitle !== session.title) {
+          session.title = newTitle;
+          await this.#store.put(session);
+          await this.#renderSessionList();
+        }
+      }
+
+      // --- Rendering ---
+
+      async #renderSessionList() {
+        const sessions = await this.#store.getAll();
+        sessions.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+        this.#el.sessionList.replaceChildren(
+          ...sessions.map(s => {
+            const el = document.createElement('session-item');
+            el.data = s;
+            if (s.id === this.#currentId) el.setAttribute('active', '');
+            return el;
+          })
+        );
+      }
+
+      #renderMessages(messages) {
+        this.#el.messages.replaceChildren(
+          ...messages.map(m => {
+            const el = document.createElement('chat-message');
+            el.data = m;
+            return el;
+          })
+        );
+      }
+
+      // --- Chat / Streaming ---
+
+      async #sendMessage() {
+        if (this.#streaming || !this.#currentId) return;
+        const text = this.#el.input.value.trim();
+        if (!text) return;
+
+        this.#el.input.value = '';
+        this.#el.input.style.height = 'auto';
+
+        const session = await this.#store.get(this.#currentId);
+        if (!session) return;
+
+        session.messages.push({ role: 'user', content: text });
+        session.updatedAt = new Date().toISOString();
+
+        if (session.messages.length === 1) {
+          session.title = text.length > 60 ? text.slice(0, 57) + '...' : text;
+          this.#el.title.textContent = session.title;
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let usage = null;
+        await this.#store.put(session);
+        this.#renderMessages(session.messages);
+        await this.#renderSessionList();
+        this.#scrollToBottom();
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        // Create streaming placeholder
+        this.#streaming = true;
+        this.#updateInputState();
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop();
+        const msgEl = document.createElement('chat-message');
+        msgEl.setAttribute('role', 'assistant');
+        msgEl.data = { role: 'assistant', content: '' };
+        msgEl.showCursor();
+        this.#el.messages.appendChild(msgEl);
+        this.#scrollToBottom();
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            try {
+        let fullText = '';
+
+        try {
+          this.#setStatus('streaming');
+
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              messages: session.messages.map(({ role, content }) => ({ role, content })),
+              sessionContext: session.title,
+            }),
+          });
+
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'API request failed');
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let usage = null;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue;
               const data = JSON.parse(line.slice(6));
               if (data.type === 'delta') {
                 fullText += data.text;
-                textEl.innerHTML = renderMarkdown(fullText) + '<span class="streaming-cursor"></span>';
-                scrollToBottom();
+                msgEl.appendDelta(fullText);
+                this.#scrollToBottom();
               } else if (data.type === 'done') {
                 usage = data.usage;
               } else if (data.type === 'error') {
                 throw new Error(data.error);
               }
-            } catch (e) {
-              if (e.message !== 'Unexpected end of JSON input') throw e;
             }
+          }
+
+          msgEl.setContent(fullText);
+          msgEl.setUsage(usage);
+
+          const updated = await this.#store.get(this.#currentId);
+          updated.messages.push({ role: 'assistant', content: fullText, usage });
+          updated.updatedAt = new Date().toISOString();
+          await this.#store.put(updated);
+          await this.#renderSessionList();
+          this.#setStatus('online');
+
+        } catch (err) {
+          msgEl.setError(`Fehler: ${err.message}`);
+          this.#setStatus('error');
+
+          const updated = await this.#store.get(this.#currentId);
+          if (updated) {
+            updated.messages.push({ role: 'assistant', content: `Fehler: ${err.message}` });
+            updated.updatedAt = new Date().toISOString();
+            await this.#store.put(updated);
           }
         }
 
-        // Finalize
-        textEl.innerHTML = renderMarkdown(fullText);
-        if (usage) {
-          const usageEl = document.createElement('div');
-          usageEl.className = 'message-usage';
-          usageEl.textContent = `${usage.totalChars} Zeichen generiert`;
-          assistantMsg.querySelector('.message-content').appendChild(usageEl);
+        this.#streaming = false;
+        this.#updateInputState();
+        this.#scrollToBottom();
+      }
+
+      // --- UI helpers ---
+
+      #updateInputState() {
+        this.#el.input.disabled = this.#streaming;
+        this.#el.sendBtn.disabled = this.#streaming;
+        this.#el.sendBtn.textContent = this.#streaming ? 'Läuft...' : 'Senden';
+      }
+
+      #setStatus(state) {
+        this.#el.status.className = 'status-indicator' + (state === 'offline' ? ' offline' : state === 'error' ? ' error' : '');
+      }
+
+      #scrollToBottom() {
+        requestAnimationFrame(() => { this.#el.messages.scrollTop = this.#el.messages.scrollHeight; });
+      }
+
+      async #loadFiles() {
+        try {
+          const { files } = await (await fetch('/api/files')).json();
+          this.#el.fileList.replaceChildren(
+            ...files.map(f => { const li = document.createElement('li'); li.textContent = f.path; return li; })
+          );
+          this.#setStatus('online');
+        } catch {
+          this.#el.fileList.innerHTML = '<li>Offline - keine Verbindung zum Server</li>';
+          this.#setStatus('offline');
         }
-
-        // Save assistant message
-        const updatedSession = await dbGet(currentSessionId);
-        updatedSession.messages.push({ role: 'assistant', content: fullText, usage });
-        updatedSession.updatedAt = new Date().toISOString();
-        await dbPut(updatedSession);
-        await renderSessionList();
-        setStatus('online');
-
-      } catch (err) {
-        textEl.innerHTML = `<p style="color: var(--danger)">Fehler: ${escapeHtml(err.message)}</p>`;
-        setStatus('error');
-
-        // Save error as message so it's visible when revisiting
-        const updatedSession = await dbGet(currentSessionId);
-        if (updatedSession) {
-          updatedSession.messages.push({ role: 'assistant', content: `Fehler: ${err.message}` });
-          updatedSession.updatedAt = new Date().toISOString();
-          await dbPut(updatedSession);
-        }
-      }
-
-      isStreaming = false;
-      updateUI();
-      scrollToBottom();
-    }
-
-    function updateUI() {
-      const input = document.getElementById('chatInput');
-      const btn = document.getElementById('sendBtn');
-      input.disabled = isStreaming;
-      btn.disabled = isStreaming;
-      btn.textContent = isStreaming ? 'Läuft...' : 'Senden';
-    }
-
-    function setStatus(state) {
-      const el = document.getElementById('statusIndicator');
-      el.className = 'status-indicator';
-      if (state === 'offline') el.classList.add('offline');
-      if (state === 'error') el.classList.add('error');
-    }
-
-    function scrollToBottom() {
-      const el = document.getElementById('chatMessages');
-      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-    }
-
-    // --- Input handling ---
-
-    const chatInput = document.getElementById('chatInput');
-
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    chatInput.addEventListener('input', () => {
-      chatInput.style.height = 'auto';
-      chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
-    });
-
-    // Session title editing
-    document.getElementById('chatTitle').addEventListener('blur', async (e) => {
-      if (!currentSessionId) return;
-      const session = await dbGet(currentSessionId);
-      if (!session) return;
-      const newTitle = e.target.textContent.trim();
-      if (newTitle && newTitle !== session.title) {
-        session.title = newTitle;
-        await dbPut(session);
-        await renderSessionList();
-      }
-    });
-
-    document.getElementById('chatTitle').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        e.target.blur();
-      }
-    });
-
-    // --- Init ---
-
-    async function loadFiles() {
-      try {
-        const res = await fetch('/api/files');
-        const data = await res.json();
-        const ul = document.getElementById('fileList');
-        ul.innerHTML = data.files.map(f => `<li>${escapeHtml(f.path)}</li>`).join('');
-        setStatus('online');
-      } catch {
-        document.getElementById('fileList').innerHTML = '<li>Offline - keine Verbindung zum Server</li>';
-        setStatus('offline');
       }
     }
 
-    async function init() {
-      await openDB();
-      await renderSessionList();
-      loadFiles();
-
-      // Check for API health
-      fetch('/api/health')
-        .then(r => r.json())
-        .then(() => setStatus('online'))
-        .catch(() => setStatus('offline'));
-    }
-
-    init();
+    // ========== Boot ==========
+    new QAApp().init();
   </script>
 
 </body>

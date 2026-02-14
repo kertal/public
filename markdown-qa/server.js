@@ -5,108 +5,113 @@ const { GoogleGenAI } = require('@google/genai');
 
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 
-const app = express();
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
 const REPO_ROOT = path.resolve(__dirname, config.repoRoot);
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'markdown-qa']);
+const ALLOWED_EXTS = new Set(config.allowedFileExtensions);
+const VALID_ROLES = new Set(['user', 'assistant']);
+const CONTEXT_CACHE_TTL = 60_000;
 
 // --- Restrictive file access ---
 
-function isAllowedFile(filePath) {
-  const resolved = path.resolve(REPO_ROOT, filePath);
-  if (!resolved.startsWith(REPO_ROOT)) return false;
-  const ext = path.extname(resolved).toLowerCase();
-  if (!config.allowedFileExtensions.includes(ext)) return false;
-  if (resolved.includes('node_modules')) return false;
-  if (resolved.includes('.git')) return false;
-  return true;
+function isAllowedPath(relPath) {
+  const resolved = path.resolve(REPO_ROOT, relPath);
+  if (!resolved.startsWith(REPO_ROOT + path.sep) && resolved !== REPO_ROOT) return false;
+  if (resolved.split(path.sep).some(seg => SKIP_DIRS.has(seg))) return false;
+  return ALLOWED_EXTS.has(path.extname(resolved).toLowerCase());
 }
 
 function indexRepoFiles() {
   const files = [];
-  function walk(dir) {
+  const walk = (dir) => {
     let entries;
     try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
     catch { return; }
     for (const entry of entries) {
+      if (entry.name.startsWith('.') || SKIP_DIRS.has(entry.name)) continue;
       const full = path.join(dir, entry.name);
-      if (entry.name.startsWith('.')) continue;
-      if (entry.name === 'node_modules') continue;
-      if (entry.name === 'markdown-qa') continue;
       if (entry.isDirectory()) {
         walk(full);
       } else {
         const rel = path.relative(REPO_ROOT, full);
-        if (isAllowedFile(rel)) {
-          const stat = fs.statSync(full);
-          if (stat.size <= config.maxFileSizeBytes) {
-            files.push({ path: rel, size: stat.size });
-          }
-        }
+        if (!isAllowedPath(rel)) continue;
+        try {
+          const { size } = fs.statSync(full);
+          if (size <= config.maxFileSizeBytes) files.push({ path: rel, size });
+        } catch { /* skip unreadable */ }
       }
     }
-  }
+  };
   walk(REPO_ROOT);
   return files;
 }
 
-function readRepoFile(relPath) {
-  if (!isAllowedFile(relPath)) return null;
-  const full = path.resolve(REPO_ROOT, relPath);
-  try {
-    const content = fs.readFileSync(full, 'utf-8');
-    return content;
-  } catch {
-    return null;
-  }
-}
+// --- Cached repo context ---
 
-function buildRepoContext() {
+let contextCache = { text: '', files: [], timestamp: 0 };
+
+function getRepoContext() {
+  if (Date.now() - contextCache.timestamp < CONTEXT_CACHE_TTL) return contextCache;
+
   const files = indexRepoFiles();
-  const parts = [];
-  for (const file of files) {
-    const content = readRepoFile(file.path);
-    if (content) {
-      parts.push(`--- File: ${file.path} ---\n${content}\n`);
-    }
-  }
-  return parts.join('\n');
+  const text = files
+    .map(f => {
+      try { return `--- File: ${f.path} ---\n${fs.readFileSync(path.resolve(REPO_ROOT, f.path), 'utf-8')}\n`; }
+      catch { return null; }
+    })
+    .filter(Boolean)
+    .join('\n');
+
+  contextCache = { text, files, timestamp: Date.now() };
+  return contextCache;
 }
 
-// --- API Routes ---
+// --- Lazy Gemini client ---
 
-// List available repo files
+let ai = null;
+function getAI() {
+  if (ai) return ai;
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY not configured. Set the GEMINI_API_KEY environment variable.');
+  ai = new GoogleGenAI({ apiKey });
+  return ai;
+}
+
+// --- Validation ---
+
+function validateChatBody(body) {
+  const { messages } = body;
+  if (!Array.isArray(messages) || messages.length === 0) return 'messages array is required';
+  for (const msg of messages) {
+    if (typeof msg.content !== 'string') return 'Only text messages are allowed';
+    if (!VALID_ROLES.has(msg.role)) return 'Invalid message role';
+  }
+  return null;
+}
+
+// --- Express app ---
+
+const app = express();
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/api/files', (_req, res) => {
-  const files = indexRepoFiles();
-  res.json({ files });
+  res.json({ files: getRepoContext().files });
 });
 
-// Chat endpoint with streaming (SSE)
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', files: getRepoContext().files.length });
+});
+
 app.post('/api/chat', async (req, res) => {
+  const error = validateChatBody(req.body);
+  if (error) return res.status(400).json({ error });
+
+  let client;
+  try { client = getAI(); }
+  catch (err) { return res.status(500).json({ error: err.message }); }
+
   const { messages, sessionContext } = req.body;
-
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: 'messages array is required' });
-  }
-
-  // Validate messages contain only text
-  for (const msg of messages) {
-    if (typeof msg.content !== 'string') {
-      return res.status(400).json({ error: 'Only text messages are allowed' });
-    }
-    if (!['user', 'assistant'].includes(msg.role)) {
-      return res.status(400).json({ error: 'Invalid message role' });
-    }
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured. Set the GEMINI_API_KEY environment variable.' });
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
-  const repoContext = buildRepoContext();
+  const { text: repoContext } = getRepoContext();
 
   const systemInstruction = `Du bist ein hilfreicher Assistent, der Fragen zu den Inhalten eines Repositories beantwortet.
 
@@ -124,14 +129,11 @@ Regeln:
 - Du darfst keine externen URLs aufrufen oder Informationen aus externen Quellen verwenden, außer diese sind explizit in der Whitelist: ${JSON.stringify(config.whitelistedUrls)}
 ${sessionContext ? `\nKontext dieser Session: ${sessionContext}` : ''}`;
 
-  // Convert messages from {role, content} to Gemini format {role, parts}
-  // Gemini uses 'user' and 'model' (not 'assistant')
   const geminiContents = messages.map(m => ({
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.content }],
   }));
 
-  // Set up SSE
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -139,30 +141,22 @@ ${sessionContext ? `\nKontext dieser Session: ${sessionContext}` : ''}`;
   });
 
   try {
-    const response = await ai.models.generateContentStream({
+    const response = await client.models.generateContentStream({
       model: config.gemini.model,
       contents: geminiContents,
-      config: {
-        systemInstruction,
-        maxOutputTokens: config.gemini.maxOutputTokens,
-      },
+      config: { systemInstruction, maxOutputTokens: config.gemini.maxOutputTokens },
     });
 
-    let totalText = '';
+    let totalChars = 0;
     for await (const chunk of response) {
       const text = chunk.text;
       if (text) {
-        totalText += text;
+        totalChars += text.length;
         res.write(`data: ${JSON.stringify({ type: 'delta', text })}\n\n`);
       }
     }
 
-    res.write(`data: ${JSON.stringify({
-      type: 'done',
-      usage: {
-        totalChars: totalText.length,
-      }
-    })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done', usage: { totalChars } })}\n\n`);
   } catch (err) {
     res.write(`data: ${JSON.stringify({ type: 'error', error: err.message })}\n\n`);
   }
@@ -170,19 +164,13 @@ ${sessionContext ? `\nKontext dieser Session: ${sessionContext}` : ''}`;
   res.end();
 });
 
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', files: indexRepoFiles().length });
-});
-
-// Serve frontend for all other routes
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = config.port;
 app.listen(PORT, () => {
-  const files = indexRepoFiles();
+  const { files } = getRepoContext();
   console.log(`Markdown QA Server running on http://localhost:${PORT}`);
   console.log(`Repository root: ${REPO_ROOT}`);
   console.log(`Indexed ${files.length} files: ${files.map(f => f.path).join(', ')}`);
