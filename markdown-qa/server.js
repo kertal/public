@@ -6,9 +6,10 @@ const { spawn } = require('child_process');
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 
 const REPO_ROOT = path.resolve(__dirname, config.repoRoot);
+const MAX_CONCURRENT = 3;
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '200kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Build prompt from conversation history + context ---
@@ -35,6 +36,24 @@ function buildPrompt(messages, sessionContext) {
   return parts.join('\n\n');
 }
 
+// --- Validate incoming message structure ---
+
+function validateMessages(messages) {
+  const VALID_ROLES = new Set(['user', 'assistant']);
+
+  for (const msg of messages) {
+    if (!msg || typeof msg !== 'object') return 'each message must be an object';
+    if (!VALID_ROLES.has(msg.role)) return `invalid role: "${msg.role}"`;
+    if (typeof msg.content !== 'string') return 'message content must be a string';
+    if (msg.content.length === 0) return 'message content must not be empty';
+  }
+  return null;
+}
+
+// --- Concurrency tracking ---
+
+let activeProcesses = 0;
+
 // --- Spawn CLI and stream output as SSE ---
 
 app.post('/api/chat', (req, res) => {
@@ -42,6 +61,19 @@ app.post('/api/chat', (req, res) => {
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array is required' });
+  }
+
+  const validationError = validateMessages(messages);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  if (sessionContext !== undefined && typeof sessionContext !== 'string') {
+    return res.status(400).json({ error: 'sessionContext must be a string' });
+  }
+
+  if (activeProcesses >= MAX_CONCURRENT) {
+    return res.status(429).json({ error: 'Too many concurrent requests. Try again shortly.' });
   }
 
   const prompt = buildPrompt(messages, sessionContext);
@@ -53,7 +85,10 @@ app.post('/api/chat', (req, res) => {
     'Connection': 'keep-alive',
   });
 
-  const child = spawn(command, [...args, prompt], {
+  activeProcesses++;
+
+  // '--' signals end-of-flags so the prompt is never parsed as a CLI option
+  const child = spawn(command, [...args, '--', prompt], {
     cwd: REPO_ROOT,
     env: { ...process.env, ...env },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -71,15 +106,20 @@ app.post('/api/chat', (req, res) => {
   child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
 
   child.on('close', (code) => {
+    activeProcesses--;
     if (code !== 0 && stderr) {
-      res.write(`data: ${JSON.stringify({ type: 'error', error: stderr.trim() })}\n\n`);
+      // Only send a generic error message; log full stderr server-side
+      console.error(`CLI stderr (exit ${code}):`, stderr.trim());
+      res.write(`data: ${JSON.stringify({ type: 'error', error: `CLI exited with code ${code}` })}\n\n`);
     }
     res.write(`data: ${JSON.stringify({ type: 'done', usage: { totalChars } })}\n\n`);
     res.end();
   });
 
   child.on('error', (err) => {
-    res.write(`data: ${JSON.stringify({ type: 'error', error: `Failed to start "${command}": ${err.message}` })}\n\n`);
+    activeProcesses--;
+    console.error('CLI spawn error:', err.message);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: `Failed to start CLI` })}\n\n`);
     res.end();
   });
 
@@ -98,8 +138,9 @@ app.get('*', (_req, res) => {
 });
 
 const PORT = config.port;
-app.listen(PORT, () => {
-  console.log(`Markdown QA Server running on http://localhost:${PORT}`);
+const HOST = '127.0.0.1';
+app.listen(PORT, HOST, () => {
+  console.log(`Markdown QA Server running on http://${HOST}:${PORT}`);
   console.log(`Repository root: ${REPO_ROOT}`);
   console.log(`CLI backend: ${config.cli.command} ${config.cli.args.join(' ')}`);
 });
