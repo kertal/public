@@ -1,14 +1,13 @@
 {
   "name": "markdown-qa",
   "version": "1.0.0",
-  "description": "Local-first QA app for repository content powered by Gemini AI",
+  "description": "Local-first QA app for repository content, powered by any CLI backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
   "dependencies": {
-    "@google/genai": "^1.41.0",
     "express": "^4.21.0"
   }
 }
