@@ -511,10 +511,11 @@
         // Blockquotes
         html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
 
-        // Lists
+        // Lists — ordered first (so they don't get caught by the unordered wrapper)
+        html = html.replace(/((?:^\d+\. .+$\n?)+)/gm, (block) =>
+          '<ol>' + block.replace(/^\d+\. (.+)$/gm, '<li>$1</li>') + '</ol>');
         html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
         html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
-        html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
         // Paragraphs
         html = html.split(/\n{2,}/).map(block => {
@@ -542,8 +543,6 @@
     // ========== Web Components ==========
 
     class SessionItem extends HTMLElement {
-      static observedAttributes = ['active'];
-
       #data = null;
 
       constructor() {
@@ -573,8 +572,6 @@
         this.shadowRoot.querySelector('.meta').textContent =
           `${formatDate(session.updatedAt)} · ${session.messages.length} Nachr.${ctx}`;
       }
-
-      attributeChangedCallback() {}
     }
 
     class ChatMessage extends HTMLElement {
@@ -714,7 +711,6 @@
           title: 'Neue Session',
           context: '',
           messages: [],
-          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
         await this.#store.put(session);
@@ -795,10 +791,13 @@
         const text = this.#el.input.value.trim();
         if (!text) return;
 
+        // Capture session ID so it stays correct even if user switches sessions
+        const sessionId = this.#currentId;
+
         this.#el.input.value = '';
         this.#el.input.style.height = 'auto';
 
-        const session = await this.#store.get(this.#currentId);
+        const session = await this.#store.get(sessionId);
         if (!session) return;
 
         session.messages.push({ role: 'user', content: text });
@@ -814,7 +813,6 @@
         await this.#renderSessionList();
         this.#scrollToBottom();
 
-        // Create streaming placeholder
         this.#streaming = true;
         this.#updateInputState();
 
@@ -875,7 +873,7 @@
           msgEl.setContent(fullText);
           msgEl.setUsage(usage);
 
-          const updated = await this.#store.get(this.#currentId);
+          const updated = await this.#store.get(sessionId);
           updated.messages.push({ role: 'assistant', content: fullText, usage });
           updated.updatedAt = new Date().toISOString();
           await this.#store.put(updated);
@@ -885,13 +883,7 @@
         } catch (err) {
           msgEl.setError(`Fehler: ${err.message}`);
           this.#setStatus('error');
-
-          const updated = await this.#store.get(this.#currentId);
-          if (updated) {
-            updated.messages.push({ role: 'assistant', content: `Fehler: ${err.message}` });
-            updated.updatedAt = new Date().toISOString();
-            await this.#store.put(updated);
-          }
+          // Don't persist error messages — they would pollute conversation history
         }
 
         this.#streaming = false;

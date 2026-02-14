@@ -7,6 +7,7 @@ const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), '
 
 const REPO_ROOT = path.resolve(__dirname, config.repoRoot);
 const MAX_CONCURRENT = 3;
+let activeProcesses = 0;
 
 const app = express();
 app.use(express.json({ limit: '200kb' }));
@@ -50,10 +51,6 @@ function validateMessages(messages) {
   return null;
 }
 
-// --- Concurrency tracking ---
-
-let activeProcesses = 0;
-
 // --- Spawn CLI and stream output as SSE ---
 
 app.post('/api/chat', (req, res) => {
@@ -86,6 +83,13 @@ app.post('/api/chat', (req, res) => {
   });
 
   activeProcesses++;
+  let finished = false;
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    activeProcesses--;
+  }
 
   // '--' signals end-of-flags so the prompt is never parsed as a CLI option
   const child = spawn(command, [...args, '--', prompt], {
@@ -106,9 +110,8 @@ app.post('/api/chat', (req, res) => {
   child.stderr.on('data', (chunk) => { stderr += chunk.toString(); });
 
   child.on('close', (code) => {
-    activeProcesses--;
+    finish();
     if (code !== 0 && stderr) {
-      // Only send a generic error message; log full stderr server-side
       console.error(`CLI stderr (exit ${code}):`, stderr.trim());
       res.write(`data: ${JSON.stringify({ type: 'error', error: `CLI exited with code ${code}` })}\n\n`);
     }
@@ -117,9 +120,10 @@ app.post('/api/chat', (req, res) => {
   });
 
   child.on('error', (err) => {
-    activeProcesses--;
+    finish();
     console.error('CLI spawn error:', err.message);
-    res.write(`data: ${JSON.stringify({ type: 'error', error: `Failed to start CLI` })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: 'Failed to start CLI' })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done', usage: { totalChars: 0 } })}\n\n`);
     res.end();
   });
 
