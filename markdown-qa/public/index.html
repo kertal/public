@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repository Q&A</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --sidebar-bg: #1a1a2e;
+      --sidebar-text: #e0e0e0;
+      --sidebar-hover: #16213e;
+      --sidebar-active: #0f3460;
+      --chat-bg: #ffffff;
+      --user-msg: #e3f2fd;
+      --assistant-msg: #f5f5f5;
+      --primary: #1565c0;
+      --primary-hover: #0d47a1;
+      --text: #212121;
+      --text-light: #757575;
+      --border: #e0e0e0;
+      --danger: #c62828;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      min-width: 280px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+
+    .new-session-btn {
+      margin: 16px 20px;
+      padding: 10px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: var(--font);
+      transition: background 0.2s;
+    }
+
+    .new-session-btn:hover { background: var(--primary-hover); }
+
+    .session-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .session-item {
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      transition: background 0.15s;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .session-item:hover { background: var(--sidebar-hover); }
+    .session-item.active { background: var(--sidebar-active); }
+
+    .session-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .session-item-title {
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-item-date {
+      font-size: 11px;
+      opacity: 0.5;
+      margin-top: 2px;
+    }
+
+    .session-item-delete {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--sidebar-text);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 16px;
+      line-height: 1;
+      border-radius: 4px;
+      transition: opacity 0.15s, color 0.15s;
+    }
+
+    .session-item:hover .session-item-delete { opacity: 0.6; }
+    .session-item-delete:hover { opacity: 1 !important; color: var(--danger); }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 11px;
+      opacity: 0.4;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      min-width: 0;
+    }
+
+    /* Welcome screen */
+    .welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .welcome h2 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .welcome p {
+      color: var(--text-light);
+      max-width: 500px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .welcome-files {
+      margin-top: 24px;
+      text-align: left;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .welcome-files h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--text-light);
+    }
+
+    .welcome-files ul {
+      list-style: none;
+      font-size: 13px;
+      font-family: var(--mono);
+    }
+
+    .welcome-files li {
+      padding: 4px 0;
+      color: var(--primary);
+    }
+
+    /* Chat area */
+    .chat-container {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .chat-container.active { display: flex; }
+
+    .chat-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-header-title {
+      font-size: 16px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .chat-header-title[contenteditable]:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4caf50;
+    }
+
+    .status-indicator.offline { background: #ff9800; }
+    .status-indicator.error { background: var(--danger); }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .message {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+      background: var(--primary);
+      color: white;
+    }
+
+    .message.assistant .message-avatar {
+      background: #7c4dff;
+      color: white;
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-role {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+    }
+
+    .message-text {
+      font-size: 15px;
+      line-height: 1.7;
+      word-wrap: break-word;
+    }
+
+    .message-text p { margin-bottom: 12px; }
+    .message-text p:last-child { margin-bottom: 0; }
+
+    .message-text pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .message-text code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .message-text pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .message-text ul, .message-text ol {
+      margin: 8px 0 8px 20px;
+    }
+
+    .message-text li { margin-bottom: 4px; }
+
+    .message-text strong { font-weight: 600; }
+
+    .message-text blockquote {
+      border-left: 3px solid var(--primary);
+      padding-left: 16px;
+      margin: 12px 0;
+      color: var(--text-light);
+    }
+
+    .message-text h1, .message-text h2, .message-text h3 {
+      margin: 16px 0 8px;
+    }
+
+    .message-text h1 { font-size: 20px; }
+    .message-text h2 { font-size: 18px; }
+    .message-text h3 { font-size: 16px; }
+
+    .message-text table {
+      border-collapse: collapse;
+      margin: 12px 0;
+      width: 100%;
+    }
+
+    .message-text th, .message-text td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .message-text th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+
+    .streaming-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 18px;
+      background: var(--primary);
+      animation: blink 1s infinite;
+      vertical-align: text-bottom;
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .message-usage {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+
+    /* Input area */
+    .chat-input-area {
+      padding: 16px 24px 24px;
+      background: white;
+      border-top: 1px solid var(--border);
+    }
+
+    .chat-input-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: var(--font);
+      resize: none;
+      min-height: 48px;
+      max-height: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+
+    .chat-input:focus { border-color: var(--primary); }
+
+    .chat-input:disabled {
+      background: var(--bg);
+      cursor: not-allowed;
+    }
+
+    .send-btn {
+      padding: 12px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      font-family: var(--font);
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .send-btn:hover { background: var(--primary-hover); }
+    .send-btn:disabled { background: #bdbdbd; cursor: not-allowed; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; min-width: 60px; }
+      .sidebar-header h1, .sidebar-header p,
+      .session-item-info, .sidebar-footer,
+      .new-session-btn span { display: none; }
+      .new-session-btn { margin: 12px 8px; padding: 10px; text-align: center; }
+      .session-item { padding: 8px; justify-content: center; }
+      .session-item-delete { display: none; }
+      .chat-messages { padding: 16px; }
+      .chat-input-area { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>Repo Q&A</h1>
+      <p>Fragen zum Repository</p>
+    </div>
+    <button class="new-session-btn" onclick="createNewSession()">
+      + <span>Neue Session</span>
+    </button>
+    <div class="session-list" id="sessionList"></div>
+    <div class="sidebar-footer">Local-first &middot; Sessions im Browser gespeichert</div>
+  </aside>
+
+  <main class="main">
+    <div class="welcome" id="welcomeScreen">
+      <h2>Repository Q&A</h2>
+      <p>Stelle Fragen zu den Inhalten dieses Repositories. Claude AI beantwortet sie basierend auf den verfügbaren Dateien.</p>
+      <p>Erstelle eine neue Session, um loszulegen.</p>
+      <div class="welcome-files">
+        <h3>Verfügbare Dateien:</h3>
+        <ul id="fileList"><li>Lade...</li></ul>
+      </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+      <div class="chat-header">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <div class="chat-header-title" id="chatTitle" contenteditable="true" spellcheck="false"></div>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+          <textarea class="chat-input" id="chatInput" placeholder="Stelle eine Frage zum Repository..." rows="1"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">Senden</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- Storage ---
+    const STORAGE_KEY = 'repo-qa-sessions';
+
+    function loadSessions() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch { return {}; }
+    }
+
+    function saveSessions(sessions) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    }
+
+    function getSession(id) {
+      return loadSessions()[id] || null;
+    }
+
+    function saveSession(session) {
+      const sessions = loadSessions();
+      sessions[session.id] = session;
+      saveSessions(sessions);
+    }
+
+    function deleteSession(id) {
+      const sessions = loadSessions();
+      delete sessions[id];
+      saveSessions(sessions);
+      if (currentSessionId === id) {
+        currentSessionId = null;
+        showWelcome();
+      }
+      renderSessionList();
+    }
+
+    // --- State ---
+    let currentSessionId = null;
+    let isStreaming = false;
+
+    // --- Session Management ---
+
+    function createNewSession() {
+      const id = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      const session = {
+        id,
+        title: 'Neue Session',
+        messages: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      saveSession(session);
+      switchToSession(id);
+      renderSessionList();
+      document.getElementById('chatInput').focus();
+    }
+
+    function switchToSession(id) {
+      const session = getSession(id);
+      if (!session) return;
+
+      currentSessionId = id;
+      document.getElementById('welcomeScreen').style.display = 'none';
+      const chat = document.getElementById('chatContainer');
+      chat.classList.add('active');
+
+      document.getElementById('chatTitle').textContent = session.title;
+      renderMessages(session.messages);
+      renderSessionList();
+      scrollToBottom();
+    }
+
+    function showWelcome() {
+      currentSessionId = null;
+      document.getElementById('welcomeScreen').style.display = 'flex';
+      document.getElementById('chatContainer').classList.remove('active');
+      renderSessionList();
+    }
+
+    // --- Rendering ---
+
+    function renderSessionList() {
+      const sessions = loadSessions();
+      const list = document.getElementById('sessionList');
+      const sorted = Object.values(sessions).sort((a, b) =>
+        new Date(b.updatedAt) - new Date(a.updatedAt)
+      );
+
+      list.innerHTML = sorted.map(s => `
+        <div class="session-item ${s.id === currentSessionId ? 'active' : ''}"
+             onclick="switchToSession('${s.id}')">
+          <div class="session-item-info">
+            <div class="session-item-title">${escapeHtml(s.title)}</div>
+            <div class="session-item-date">${formatDate(s.updatedAt)} &middot; ${s.messages.length} Nachrichten</div>
+          </div>
+          <button class="session-item-delete" onclick="event.stopPropagation(); confirmDelete('${s.id}')" title="Löschen">&times;</button>
+        </div>
+      `).join('');
+    }
+
+    function confirmDelete(id) {
+      if (confirm('Session wirklich löschen?')) {
+        deleteSession(id);
+      }
+    }
+
+    function renderMessages(messages) {
+      const container = document.getElementById('chatMessages');
+      container.innerHTML = messages.map(m => createMessageHtml(m)).join('');
+    }
+
+    function createMessageHtml(msg) {
+      const avatar = msg.role === 'user' ? 'Du' : 'AI';
+      const roleLabel = msg.role === 'user' ? 'Du' : 'Claude';
+      const usageHtml = msg.usage
+        ? `<div class="message-usage">Tokens: ${msg.usage.input_tokens} in / ${msg.usage.output_tokens} out</div>`
+        : '';
+
+      return `
+        <div class="message ${msg.role}">
+          <div class="message-avatar">${avatar}</div>
+          <div class="message-content">
+            <div class="message-role">${roleLabel}</div>
+            <div class="message-text">${renderMarkdown(msg.content)}</div>
+            ${usageHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- Markdown rendering (lightweight) ---
+
+    function renderMarkdown(text) {
+      if (!text) return '';
+      let html = escapeHtml(text);
+
+      // Code blocks
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+        `<pre><code class="language-${lang}">${code.trim()}</code></pre>`
+      );
+
+      // Inline code
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      // Bold
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+      // Italic
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+      // Headers
+      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+      // Blockquotes
+      html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+      // Unordered lists
+      html = html.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>\n?)+/g, match => `<ul>${match}</ul>`);
+
+      // Ordered lists
+      html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+      // Line breaks into paragraphs
+      html = html.replace(/\n\n/g, '</p><p>');
+      html = '<p>' + html + '</p>';
+
+      // Clean up empty paragraphs
+      html = html.replace(/<p>\s*<\/p>/g, '');
+      html = html.replace(/<p>(<h[123]>)/g, '$1');
+      html = html.replace(/(<\/h[123]>)<\/p>/g, '$1');
+      html = html.replace(/<p>(<pre>)/g, '$1');
+      html = html.replace(/(<\/pre>)<\/p>/g, '$1');
+      html = html.replace(/<p>(<ul>)/g, '$1');
+      html = html.replace(/(<\/ul>)<\/p>/g, '$1');
+      html = html.replace(/<p>(<blockquote>)/g, '$1');
+      html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
+
+      return html;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      const now = new Date();
+      const diff = now - d;
+      if (diff < 60000) return 'Gerade eben';
+      if (diff < 3600000) return `vor ${Math.floor(diff / 60000)} Min.`;
+      if (diff < 86400000) return `vor ${Math.floor(diff / 3600000)} Std.`;
+      return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    // --- Chat ---
+
+    async function sendMessage() {
+      if (isStreaming || !currentSessionId) return;
+
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      const session = getSession(currentSessionId);
+      if (!session) return;
+
+      // Add user message
+      session.messages.push({ role: 'user', content: text });
+      session.updatedAt = new Date().toISOString();
+
+      // Auto-title on first message
+      if (session.messages.length === 1) {
+        session.title = text.length > 60 ? text.slice(0, 57) + '...' : text;
+        document.getElementById('chatTitle').textContent = session.title;
+      }
+
+      saveSession(session);
+      renderMessages(session.messages);
+      renderSessionList();
+      scrollToBottom();
+
+      // Start streaming response
+      isStreaming = true;
+      updateUI();
+
+      const messagesDiv = document.getElementById('chatMessages');
+      const assistantMsg = document.createElement('div');
+      assistantMsg.className = 'message assistant';
+      assistantMsg.innerHTML = `
+        <div class="message-avatar">AI</div>
+        <div class="message-content">
+          <div class="message-role">Claude</div>
+          <div class="message-text"><span class="streaming-cursor"></span></div>
+        </div>
+      `;
+      messagesDiv.appendChild(assistantMsg);
+      scrollToBottom();
+
+      const textEl = assistantMsg.querySelector('.message-text');
+      let fullText = '';
+
+      try {
+        setStatus('streaming');
+
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: session.messages.map(m => ({ role: m.role, content: m.content })),
+            sessionContext: session.title,
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'API request failed');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let usage = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.type === 'delta') {
+                fullText += data.text;
+                textEl.innerHTML = renderMarkdown(fullText) + '<span class="streaming-cursor"></span>';
+                scrollToBottom();
+              } else if (data.type === 'done') {
+                usage = data.usage;
+              } else if (data.type === 'error') {
+                throw new Error(data.error);
+              }
+            } catch (e) {
+              if (e.message !== 'Unexpected end of JSON input') throw e;
+            }
+          }
+        }
+
+        // Finalize
+        textEl.innerHTML = renderMarkdown(fullText);
+        if (usage) {
+          const usageEl = document.createElement('div');
+          usageEl.className = 'message-usage';
+          usageEl.textContent = `Tokens: ${usage.input_tokens} in / ${usage.output_tokens} out`;
+          assistantMsg.querySelector('.message-content').appendChild(usageEl);
+        }
+
+        // Save assistant message
+        session.messages.push({ role: 'assistant', content: fullText, usage });
+        session.updatedAt = new Date().toISOString();
+        saveSession(session);
+        renderSessionList();
+        setStatus('online');
+
+      } catch (err) {
+        textEl.innerHTML = `<p style="color: var(--danger)">Fehler: ${escapeHtml(err.message)}</p>`;
+        setStatus('error');
+
+        // Save error as message so it's visible when revisiting
+        session.messages.push({ role: 'assistant', content: `Fehler: ${err.message}` });
+        session.updatedAt = new Date().toISOString();
+        saveSession(session);
+      }
+
+      isStreaming = false;
+      updateUI();
+      scrollToBottom();
+    }
+
+    function updateUI() {
+      const input = document.getElementById('chatInput');
+      const btn = document.getElementById('sendBtn');
+      input.disabled = isStreaming;
+      btn.disabled = isStreaming;
+      btn.textContent = isStreaming ? 'Läuft...' : 'Senden';
+    }
+
+    function setStatus(state) {
+      const el = document.getElementById('statusIndicator');
+      el.className = 'status-indicator';
+      if (state === 'offline') el.classList.add('offline');
+      if (state === 'error') el.classList.add('error');
+    }
+
+    function scrollToBottom() {
+      const el = document.getElementById('chatMessages');
+      requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+    }
+
+    // --- Input handling ---
+
+    const chatInput = document.getElementById('chatInput');
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 200) + 'px';
+    });
+
+    // Session title editing
+    document.getElementById('chatTitle').addEventListener('blur', (e) => {
+      if (!currentSessionId) return;
+      const session = getSession(currentSessionId);
+      if (!session) return;
+      const newTitle = e.target.textContent.trim();
+      if (newTitle && newTitle !== session.title) {
+        session.title = newTitle;
+        saveSession(session);
+        renderSessionList();
+      }
+    });
+
+    document.getElementById('chatTitle').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.target.blur();
+      }
+    });
+
+    // --- Init ---
+
+    async function loadFiles() {
+      try {
+        const res = await fetch('/api/files');
+        const data = await res.json();
+        const ul = document.getElementById('fileList');
+        ul.innerHTML = data.files.map(f => `<li>${escapeHtml(f.path)}</li>`).join('');
+        setStatus('online');
+      } catch {
+        document.getElementById('fileList').innerHTML = '<li>Offline - keine Verbindung zum Server</li>';
+        setStatus('offline');
+      }
+    }
+
+    function init() {
+      renderSessionList();
+      loadFiles();
+
+      // Check for API health
+      fetch('/api/health')
+        .then(r => r.json())
+        .then(() => setStatus('online'))
+        .catch(() => setStatus('offline'));
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
