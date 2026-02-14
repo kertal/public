@@ -1,14 +1,14 @@
 {
   "name": "markdown-qa",
   "version": "1.0.0",
-  "description": "Local-first QA app for repository content powered by Claude AI",
+  "description": "Local-first QA app for repository content powered by Gemini AI",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@google/genai": "^1.41.0",
     "express": "^4.21.0"
   }
 }

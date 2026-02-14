@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenAI } = require('@google/genai');
 
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf-8'));
 
@@ -100,15 +100,15 @@ app.post('/api/chat', async (req, res) => {
     }
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY not configured. Set the GEMINI_API_KEY environment variable.' });
   }
 
-  const client = new Anthropic({ apiKey });
+  const ai = new GoogleGenAI({ apiKey });
   const repoContext = buildRepoContext();
 
-  const systemPrompt = `Du bist ein hilfreicher Assistent, der Fragen zu den Inhalten eines Repositories beantwortet.
+  const systemInstruction = `Du bist ein hilfreicher Assistent, der Fragen zu den Inhalten eines Repositories beantwortet.
 
 Du hast Zugriff auf folgende Dateien aus dem Repository:
 
@@ -124,6 +124,13 @@ Regeln:
 - Du darfst keine externen URLs aufrufen oder Informationen aus externen Quellen verwenden, außer diese sind explizit in der Whitelist: ${JSON.stringify(config.whitelistedUrls)}
 ${sessionContext ? `\nKontext dieser Session: ${sessionContext}` : ''}`;
 
+  // Convert messages from {role, content} to Gemini format {role, parts}
+  // Gemini uses 'user' and 'model' (not 'assistant')
+  const geminiContents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+
   // Set up SSE
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -132,25 +139,28 @@ ${sessionContext ? `\nKontext dieser Session: ${sessionContext}` : ''}`;
   });
 
   try {
-    const stream = await client.messages.stream({
-      model: config.claude.model,
-      max_tokens: config.claude.maxTokens,
-      system: systemPrompt,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
+    const response = await ai.models.generateContentStream({
+      model: config.gemini.model,
+      contents: geminiContents,
+      config: {
+        systemInstruction,
+        maxOutputTokens: config.gemini.maxOutputTokens,
+      },
     });
 
-    for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-        res.write(`data: ${JSON.stringify({ type: 'delta', text: event.delta.text })}\n\n`);
+    let totalText = '';
+    for await (const chunk of response) {
+      const text = chunk.text;
+      if (text) {
+        totalText += text;
+        res.write(`data: ${JSON.stringify({ type: 'delta', text })}\n\n`);
       }
     }
 
-    const finalMessage = await stream.finalMessage();
     res.write(`data: ${JSON.stringify({
       type: 'done',
       usage: {
-        input_tokens: finalMessage.usage.input_tokens,
-        output_tokens: finalMessage.usage.output_tokens,
+        totalChars: totalText.length,
       }
     })}\n\n`);
   } catch (err) {

@@ -463,13 +463,13 @@
       + <span>Neue Session</span>
     </button>
     <div class="session-list" id="sessionList"></div>
-    <div class="sidebar-footer">Local-first &middot; Sessions im Browser gespeichert</div>
+    <div class="sidebar-footer">Local-first &middot; Sessions in IndexedDB gespeichert</div>
   </aside>
 
   <main class="main">
     <div class="welcome" id="welcomeScreen">
       <h2>Repository Q&A</h2>
-      <p>Stelle Fragen zu den Inhalten dieses Repositories. Claude AI beantwortet sie basierend auf den verfügbaren Dateien.</p>
+      <p>Stelle Fragen zu den Inhalten dieses Repositories. Gemini AI beantwortet sie basierend auf den verfügbaren Dateien.</p>
       <p>Erstelle eine neue Session, um loszulegen.</p>
       <div class="welcome-files">
         <h3>Verfügbare Dateien:</h3>
@@ -493,38 +493,68 @@
   </main>
 
   <script>
-    // --- Storage ---
-    const STORAGE_KEY = 'repo-qa-sessions';
+    // --- IndexedDB Storage ---
+    const DB_NAME = 'repo-qa';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'sessions';
+    let db = null;
 
-    function loadSessions() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-      } catch { return {}; }
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+            store.createIndex('updatedAt', 'updatedAt', { unique: false });
+          }
+        };
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve(db);
+        };
+        request.onerror = (e) => reject(e.target.error);
+      });
     }
 
-    function saveSessions(sessions) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    function dbGetAll() {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = (e) => reject(e.target.error);
+      });
     }
 
-    function getSession(id) {
-      return loadSessions()[id] || null;
+    function dbGet(id) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = (e) => reject(e.target.error);
+      });
     }
 
-    function saveSession(session) {
-      const sessions = loadSessions();
-      sessions[session.id] = session;
-      saveSessions(sessions);
+    function dbPut(session) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.put(session);
+        request.onsuccess = () => resolve();
+        request.onerror = (e) => reject(e.target.error);
+      });
     }
 
-    function deleteSession(id) {
-      const sessions = loadSessions();
-      delete sessions[id];
-      saveSessions(sessions);
-      if (currentSessionId === id) {
-        currentSessionId = null;
-        showWelcome();
-      }
-      renderSessionList();
+    function dbDelete(id) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = (e) => reject(e.target.error);
+      });
     }
 
     // --- State ---
@@ -533,7 +563,7 @@
 
     // --- Session Management ---
 
-    function createNewSession() {
+    async function createNewSession() {
       const id = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
       const session = {
         id,
@@ -542,14 +572,14 @@
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      saveSession(session);
-      switchToSession(id);
-      renderSessionList();
+      await dbPut(session);
+      await switchToSession(id);
+      await renderSessionList();
       document.getElementById('chatInput').focus();
     }
 
-    function switchToSession(id) {
-      const session = getSession(id);
+    async function switchToSession(id) {
+      const session = await dbGet(id);
       if (!session) return;
 
       currentSessionId = id;
@@ -559,23 +589,32 @@
 
       document.getElementById('chatTitle').textContent = session.title;
       renderMessages(session.messages);
-      renderSessionList();
+      await renderSessionList();
       scrollToBottom();
     }
 
-    function showWelcome() {
+    async function showWelcome() {
       currentSessionId = null;
       document.getElementById('welcomeScreen').style.display = 'flex';
       document.getElementById('chatContainer').classList.remove('active');
-      renderSessionList();
+      await renderSessionList();
+    }
+
+    async function deleteSessionById(id) {
+      await dbDelete(id);
+      if (currentSessionId === id) {
+        currentSessionId = null;
+        showWelcome();
+      }
+      await renderSessionList();
     }
 
     // --- Rendering ---
 
-    function renderSessionList() {
-      const sessions = loadSessions();
+    async function renderSessionList() {
+      const sessions = await dbGetAll();
       const list = document.getElementById('sessionList');
-      const sorted = Object.values(sessions).sort((a, b) =>
+      const sorted = sessions.sort((a, b) =>
         new Date(b.updatedAt) - new Date(a.updatedAt)
       );
 
@@ -593,7 +632,7 @@
 
     function confirmDelete(id) {
       if (confirm('Session wirklich löschen?')) {
-        deleteSession(id);
+        deleteSessionById(id);
       }
     }
 
@@ -604,9 +643,9 @@
 
     function createMessageHtml(msg) {
       const avatar = msg.role === 'user' ? 'Du' : 'AI';
-      const roleLabel = msg.role === 'user' ? 'Du' : 'Claude';
+      const roleLabel = msg.role === 'user' ? 'Du' : 'Gemini';
       const usageHtml = msg.usage
-        ? `<div class="message-usage">Tokens: ${msg.usage.input_tokens} in / ${msg.usage.output_tokens} out</div>`
+        ? `<div class="message-usage">${msg.usage.totalChars} Zeichen generiert</div>`
         : '';
 
       return `
@@ -702,7 +741,7 @@
       input.value = '';
       input.style.height = 'auto';
 
-      const session = getSession(currentSessionId);
+      const session = await dbGet(currentSessionId);
       if (!session) return;
 
       // Add user message
@@ -715,9 +754,9 @@
         document.getElementById('chatTitle').textContent = session.title;
       }
 
-      saveSession(session);
+      await dbPut(session);
       renderMessages(session.messages);
-      renderSessionList();
+      await renderSessionList();
       scrollToBottom();
 
       // Start streaming response
@@ -730,7 +769,7 @@
       assistantMsg.innerHTML = `
         <div class="message-avatar">AI</div>
         <div class="message-content">
-          <div class="message-role">Claude</div>
+          <div class="message-role">Gemini</div>
           <div class="message-text"><span class="streaming-cursor"></span></div>
         </div>
       `;
@@ -794,15 +833,16 @@
         if (usage) {
           const usageEl = document.createElement('div');
           usageEl.className = 'message-usage';
-          usageEl.textContent = `Tokens: ${usage.input_tokens} in / ${usage.output_tokens} out`;
+          usageEl.textContent = `${usage.totalChars} Zeichen generiert`;
           assistantMsg.querySelector('.message-content').appendChild(usageEl);
         }
 
         // Save assistant message
-        session.messages.push({ role: 'assistant', content: fullText, usage });
-        session.updatedAt = new Date().toISOString();
-        saveSession(session);
-        renderSessionList();
+        const updatedSession = await dbGet(currentSessionId);
+        updatedSession.messages.push({ role: 'assistant', content: fullText, usage });
+        updatedSession.updatedAt = new Date().toISOString();
+        await dbPut(updatedSession);
+        await renderSessionList();
         setStatus('online');
 
       } catch (err) {
@@ -810,9 +850,12 @@
         setStatus('error');
 
         // Save error as message so it's visible when revisiting
-        session.messages.push({ role: 'assistant', content: `Fehler: ${err.message}` });
-        session.updatedAt = new Date().toISOString();
-        saveSession(session);
+        const updatedSession = await dbGet(currentSessionId);
+        if (updatedSession) {
+          updatedSession.messages.push({ role: 'assistant', content: `Fehler: ${err.message}` });
+          updatedSession.updatedAt = new Date().toISOString();
+          await dbPut(updatedSession);
+        }
       }
 
       isStreaming = false;
@@ -857,15 +900,15 @@
     });
 
     // Session title editing
-    document.getElementById('chatTitle').addEventListener('blur', (e) => {
+    document.getElementById('chatTitle').addEventListener('blur', async (e) => {
       if (!currentSessionId) return;
-      const session = getSession(currentSessionId);
+      const session = await dbGet(currentSessionId);
       if (!session) return;
       const newTitle = e.target.textContent.trim();
       if (newTitle && newTitle !== session.title) {
         session.title = newTitle;
-        saveSession(session);
-        renderSessionList();
+        await dbPut(session);
+        await renderSessionList();
       }
     });
 
@@ -891,8 +934,9 @@
       }
     }
 
-    function init() {
-      renderSessionList();
+    async function init() {
+      await openDB();
+      await renderSessionList();
       loadFiles();
 
       // Check for API health

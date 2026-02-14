@@ -4,8 +4,8 @@
   "allowedFileExtensions": [".md", ".html", ".txt"],
   "maxFileSizeBytes": 102400,
   "whitelistedUrls": [],
-  "claude": {
-    "model": "claude-sonnet-4-20250514",
-    "maxTokens": 4096
+  "gemini": {
+    "model": "gemini-2.5-flash",
+    "maxOutputTokens": 4096
   }
 }
