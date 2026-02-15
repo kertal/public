@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>English Grammar Quiz – 8th Grade Austria</title>
+<!--
+  ============================================================
+  HOW TO USE
+  ============================================================
+  1. Save this file as index.html (or any .html name).
+  2. Open it directly in any modern browser – no server needed.
+  3. Enter your name & class, then press Start.
+  4. Answer 40 questions (shuffled each attempt).
+  5. Review results, export JSON/CSV, retry incorrect, or print.
+  6. All attempts are saved in localStorage – no data leaves your device.
+  ============================================================
+-->
+<style>
+/* ── CSS Reset & Variables ─────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f7fa;--fg:#1a1a2e;--card:#fff;--accent:#2563eb;--accent-hover:#1d4ed8;
+  --correct:#16a34a;--incorrect:#dc2626;--border:#d1d5db;--radius:12px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);--font-main:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --max-w:640px;--gap:16px;
+}
+.high-contrast{
+  --bg:#000;--fg:#fff;--card:#111;--accent:#5eead4;--accent-hover:#99f6e4;
+  --correct:#4ade80;--incorrect:#f87171;--border:#555;--shadow:0 2px 8px rgba(255,255,255,.12);
+}
+html{font-size:16px;font-family:var(--font-main);background:var(--bg);color:var(--fg)}
+body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:var(--gap)}
+a{color:var(--accent)}
+
+/* ── Shared UI ─────────────────────────────────────────── */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;width:100%;max-width:var(--max-w)}
+button,.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font:inherit;font-weight:600;font-size:1rem;border:none;border-radius:var(--radius);
+  padding:14px 24px;cursor:pointer;min-height:48px;min-width:48px;
+  background:var(--accent);color:#fff;transition:background .15s;
+}
+button:hover,.btn:hover{background:var(--accent-hover)}
+button:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.secondary{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+button.secondary:hover{background:var(--accent);color:#fff}
+button.small{padding:10px 16px;font-size:.875rem}
+input[type="text"],input[type="number"],select{
+  font:inherit;padding:12px 16px;border:2px solid var(--border);border-radius:var(--radius);
+  width:100%;min-height:48px;background:var(--card);color:var(--fg);
+}
+input:focus,select:focus{border-color:var(--accent);outline:none}
+label{display:block;font-weight:600;margin-bottom:6px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* ── Progress Bar ──────────────────────────────────────── */
+.progress-wrap{width:100%;max-width:var(--max-w);margin-bottom:12px}
+.progress-bar{height:10px;border-radius:99px;background:var(--border);overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);transition:width .3s}
+.progress-text{font-size:.8rem;margin-top:4px;text-align:center}
+
+/* ── Choice buttons ────────────────────────────────────── */
+.choices{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.choice-btn{
+  text-align:left;background:var(--card);color:var(--fg);border:2px solid var(--border);
+  border-radius:var(--radius);padding:14px 18px;font-weight:500;font-size:1rem;
+  cursor:pointer;transition:border-color .15s,background .15s;min-height:52px;
+}
+.choice-btn:hover{border-color:var(--accent);background:rgba(37,99,235,.06)}
+.choice-btn.correct-choice{border-color:var(--correct);background:rgba(22,163,74,.1);color:var(--correct)}
+.choice-btn.incorrect-choice{border-color:var(--incorrect);background:rgba(220,38,38,.1);color:var(--incorrect)}
+.choice-btn[disabled]{cursor:default;opacity:.85}
+
+/* ── Explanation box ───────────────────────────────────── */
+.explanation{
+  margin-top:14px;padding:14px;border-radius:var(--radius);font-size:.95rem;
+  border-left:4px solid var(--accent);background:rgba(37,99,235,.06);
+}
+
+/* ── Tags ──────────────────────────────────────────────── */
+.tag{display:inline-block;font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600;margin-right:6px;margin-bottom:4px}
+.tag.topic{background:rgba(37,99,235,.12);color:var(--accent)}
+.tag.easy{background:rgba(22,163,74,.12);color:var(--correct)}
+.tag.medium{background:rgba(234,179,8,.15);color:#a16207}
+.tag.hard{background:rgba(220,38,38,.12);color:var(--incorrect)}
+
+/* ── Results table ─────────────────────────────────────── */
+.results-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}
+.results-table th,.results-table td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.results-table th{font-weight:700}
+
+/* ── Toolbar ───────────────────────────────────────────── */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;justify-content:center}
+
+/* ── Review list ───────────────────────────────────────── */
+.review-item{border-bottom:1px solid var(--border);padding:16px 0}
+.review-item:last-child{border-bottom:none}
+
+/* ── Timer ─────────────────────────────────────────────── */
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:1rem}
+
+/* ── Top bar ───────────────────────────────────────────── */
+.top-bar{
+  width:100%;max-width:var(--max-w);display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;
+}
+
+/* ── Misc ──────────────────────────────────────────────── */
+h1{font-size:1.5rem;margin-bottom:8px}
+h2{font-size:1.25rem;margin-bottom:12px}
+h3{font-size:1.1rem;margin-bottom:8px}
+p{line-height:1.6}
+.mb{margin-bottom:var(--gap)}
+.mt{margin-top:var(--gap)}
+.text-center{text-align:center}
+.gap-sm{display:flex;flex-direction:column;gap:10px}
+
+/* ── Print ─────────────────────────────────────────────── */
+@media print{
+  body{padding:0}
+  button,.btn,.toolbar,.top-bar{display:none!important}
+  .card{box-shadow:none;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ Templates ═══════════════════════════════════════ -->
+
+<template id="tpl-start">
+  <div class="card">
+    <h1 class="text-center">English Grammar Quiz</h1>
+    <p class="text-center mb">8th Grade – Austrian Curriculum</p>
+    <div class="gap-sm">
+      <div>
+        <label for="inp-name">Your Name</label>
+        <input type="text" id="inp-name" placeholder="e.g. Maria Gruber" autocomplete="name" required>
+      </div>
+      <div>
+        <label for="inp-class">Class</label>
+        <input type="text" id="inp-class" placeholder="e.g. 4B" autocomplete="off">
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+        <input type="checkbox" id="chk-timer" style="width:22px;height:22px">
+        <label for="chk-timer" style="margin:0;font-weight:400">Enable timer</label>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="chk-contrast" style="width:22px;height:22px">
+        <label for="chk-contrast" style="margin:0;font-weight:400">High contrast mode</label>
+      </div>
+      <button id="btn-start" style="margin-top:8px;width:100%">Start Quiz</button>
+      <hr style="border:none;border-top:1px solid var(--border);margin:8px 0">
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Import previous attempts (JSON)</summary>
+        <input type="file" id="inp-import" accept=".json" style="margin-top:8px">
+        <p id="import-msg" style="font-size:.85rem;margin-top:6px"></p>
+      </details>
+      <details>
+        <summary style="cursor:pointer;font-weight:600">Past attempts</summary>
+        <div id="past-attempts" style="margin-top:8px;font-size:.9rem"></div>
+      </details>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-question">
+  <div class="top-bar">
+    <span class="q-counter" aria-live="polite"></span>
+    <span class="timer" aria-live="off"></span>
+    <button class="small secondary" id="btn-hc-toggle" aria-label="Toggle high contrast">HC</button>
+  </div>
+  <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div class="progress-text"></div>
+  </div>
+  <div class="card">
+    <div class="tags-row" style="margin-bottom:8px"></div>
+    <h2 class="q-prompt"></h2>
+    <div class="choices" role="radiogroup" aria-label="Answer choices"></div>
+    <div class="text-input-area" style="display:none;margin-top:16px">
+      <label for="inp-answer">Your answer:</label>
+      <input type="text" id="inp-answer" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button id="btn-submit-text" class="mt" style="width:100%">Submit</button>
+    </div>
+    <div class="explanation" style="display:none" aria-live="polite"></div>
+    <button id="btn-next" style="display:none;width:100%;margin-top:12px">Next</button>
+  </div>
+</template>
+
+<template id="tpl-results">
+  <div class="card">
+    <h1 class="text-center">Quiz Results</h1>
+    <div class="result-header text-center mb"></div>
+    <div class="score-display text-center" style="font-size:2.5rem;font-weight:800;margin:12px 0"></div>
+    <div class="score-sub text-center mb"></div>
+    <h3>Breakdown by Topic</h3>
+    <table class="results-table">
+      <thead><tr><th>Topic</th><th>Correct</th><th>Total</th><th>%</th></tr></thead>
+      <tbody class="breakdown-body"></tbody>
+    </table>
+    <div class="toolbar">
+      <button id="btn-review" class="small secondary">Review Incorrect</button>
+      <button id="btn-retry" class="small secondary">Retry Incorrect</button>
+      <button id="btn-new" class="small secondary">New Attempt</button>
+      <button id="btn-export-json" class="small secondary">Export JSON</button>
+      <button id="btn-export-csv" class="small secondary">Export CSV</button>
+      <button id="btn-print" class="small secondary">Print</button>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-review">
+  <div class="card">
+    <h1>Review Incorrect Answers</h1>
+    <div class="review-list"></div>
+    <button id="btn-back-results" class="mt" style="width:100%">Back to Results</button>
+  </div>
+</template>
+
+<!-- ═══ Question Data ═══════════════════════════════════ -->
+<script>
+"use strict";
+
+/* ── Questions array: 40 questions ────────────────────── */
+const QUESTIONS = [
+  // ── Present Simple vs Present Progressive (8) ──────────
+  {id:1,topic:"Present Simple vs Progressive",difficulty:"easy",type:"mc",
+    prompt:"She ___ (drink) coffee every morning.",
+    choices:["drinks","is drinking","has drunk","drank"],answer:"drinks",
+    explanation:"Habitual actions use the Present Simple. 'Every morning' signals a routine."},
+  {id:2,topic:"Present Simple vs Progressive",difficulty:"easy",type:"mc",
+    prompt:"Look! The children ___ (play) in the garden right now.",
+    choices:["play","plays","are playing","have played"],answer:"are playing",
+    explanation:"'Right now' indicates an action happening at this moment → Present Progressive."},
+  {id:3,topic:"Present Simple vs Progressive",difficulty:"medium",type:"mc",
+    prompt:"I ___ (not/believe) in ghosts.",
+    choices:["am not believing","don't believe","doesn't believe","haven't believed"],answer:"don't believe",
+    explanation:"'Believe' is a stative verb and is not normally used in the progressive form."},
+  {id:4,topic:"Present Simple vs Progressive",difficulty:"medium",type:"mc",
+    prompt:"Be quiet! The baby ___ (sleep).",
+    choices:["sleeps","is sleeping","has slept","sleep"],answer:"is sleeping",
+    explanation:"An action in progress right now (signalled by 'Be quiet!') requires Present Progressive."},
+  {id:5,topic:"Present Simple vs Progressive",difficulty:"medium",type:"mc",
+    prompt:"Water ___ (boil) at 100 degrees Celsius.",
+    choices:["is boiling","boils","has boiled","boiling"],answer:"boils",
+    explanation:"General scientific facts use Present Simple, regardless of time."},
+  {id:6,topic:"Present Simple vs Progressive",difficulty:"hard",type:"mc",
+    prompt:"He ___ (think) about changing his job these days.",
+    choices:["thinks","is thinking","has thought","thought"],answer:"is thinking",
+    explanation:"'Think about' (= consider) can be used in the progressive. 'These days' signals a temporary situation."},
+  {id:7,topic:"Present Simple vs Progressive",difficulty:"easy",type:"mc",
+    prompt:"The train ___ (leave) at 8:15 every day.",
+    choices:["is leaving","leaves","has left","leaving"],answer:"leaves",
+    explanation:"Timetables and schedules use Present Simple even for future events."},
+  {id:8,topic:"Present Simple vs Progressive",difficulty:"hard",type:"mc",
+    prompt:"This soup ___ (taste) delicious!",
+    choices:["is tasting","tastes","has tasted","tasting"],answer:"tastes",
+    explanation:"'Taste' as a linking verb (= has a flavour) is stative and takes Present Simple."},
+
+  // ── Past Simple (6) ────────────────────────────────────
+  {id:9,topic:"Past Simple",difficulty:"easy",type:"mc",
+    prompt:"We ___ (visit) our grandparents last weekend.",
+    choices:["visited","have visited","were visiting","visit"],answer:"visited",
+    explanation:"'Last weekend' is a finished time → Past Simple. 'Visit' is regular: visit → visited."},
+  {id:10,topic:"Past Simple",difficulty:"easy",type:"mc",
+    prompt:"She ___ (go) to London two years ago.",
+    choices:["goed","has gone","went","was going"],answer:"went",
+    explanation:"'Two years ago' = finished time → Past Simple. 'Go' is irregular: go → went."},
+  {id:11,topic:"Past Simple",difficulty:"medium",type:"mc",
+    prompt:"They ___ (not/enjoy) the film yesterday.",
+    choices:["didn't enjoy","haven't enjoyed","weren't enjoying","don't enjoy"],answer:"didn't enjoy",
+    explanation:"Negatives in Past Simple use 'didn't + base form'. 'Yesterday' confirms past time."},
+  {id:12,topic:"Past Simple",difficulty:"medium",type:"mc",
+    prompt:"___ you ___ (see) the match on Saturday?",
+    choices:["Did … see","Have … seen","Were … seeing","Do … see"],answer:"Did … see",
+    explanation:"Past Simple questions: Did + subject + base form. 'On Saturday' = specific past time."},
+  {id:13,topic:"Past Simple",difficulty:"hard",type:"mc",
+    prompt:"The Romans ___ (build) roads across Europe.",
+    choices:["built","have built","were building","builded"],answer:"built",
+    explanation:"Historical facts about finished periods use Past Simple. 'Build' is irregular: build → built."},
+  {id:14,topic:"Past Simple",difficulty:"medium",type:"mc",
+    prompt:"I ___ (catch) a cold last Monday and stayed home all week.",
+    choices:["caught","have caught","was catching","catched"],answer:"caught",
+    explanation:"'Last Monday' = finished time → Past Simple. 'Catch' is irregular: catch → caught."},
+
+  // ── Present Perfect (6) ────────────────────────────────
+  {id:15,topic:"Present Perfect",difficulty:"easy",type:"mc",
+    prompt:"I have ___ (just/finish) my homework.",
+    choices:["just finished","just finish","just finishing","finished just"],answer:"just finished",
+    explanation:"'Just' + Present Perfect shows something completed very recently: have/has + just + past participle."},
+  {id:16,topic:"Present Perfect",difficulty:"easy",type:"mc",
+    prompt:"Have you ___ (ever/be) to Paris?",
+    choices:["ever been","ever was","ever being","ever go"],answer:"ever been",
+    explanation:"'Ever' is used in Present Perfect questions about life experience. Be → been."},
+  {id:17,topic:"Present Perfect",difficulty:"medium",type:"mc",
+    prompt:"She hasn't called me ___.",
+    choices:["yet","already","just","since"],answer:"yet",
+    explanation:"'Yet' is used in negative sentences and questions with Present Perfect to mean 'up to now'."},
+  {id:18,topic:"Present Perfect",difficulty:"medium",type:"mc",
+    prompt:"They have ___ (already/eat) lunch, so they're not hungry.",
+    choices:["already eaten","already eat","already ate","eaten already"],answer:"already eaten",
+    explanation:"'Already' + Present Perfect indicates something happened sooner than expected. Eat → eaten."},
+  {id:19,topic:"Present Perfect",difficulty:"hard",type:"mc",
+    prompt:"I ___ (never/see) such a beautiful sunset.",
+    choices:["have never seen","never saw","am never seeing","had never seen"],answer:"have never seen",
+    explanation:"'Never' + Present Perfect expresses lack of experience up to now. See → seen."},
+  {id:20,topic:"Present Perfect",difficulty:"hard",type:"mc",
+    prompt:"Oh no! I ___ (lose) my keys! Can you help me look?",
+    choices:["have lost","lost","am losing","had lost"],answer:"have lost",
+    explanation:"Present Perfect for a past action with a present result — the keys are still missing now."},
+
+  // ── Past Progressive vs Past Simple (6) ────────────────
+  {id:21,topic:"Past Progressive vs Past Simple",difficulty:"easy",type:"mc",
+    prompt:"While I ___ (walk) home, it started to rain.",
+    choices:["was walking","walked","had walked","am walking"],answer:"was walking",
+    explanation:"The longer background action uses Past Progressive; the shorter interrupting action uses Past Simple."},
+  {id:22,topic:"Past Progressive vs Past Simple",difficulty:"easy",type:"mc",
+    prompt:"She ___ (read) a book when the phone rang.",
+    choices:["was reading","read","has read","is reading"],answer:"was reading",
+    explanation:"'When + Past Simple' interrupts an ongoing action in Past Progressive."},
+  {id:23,topic:"Past Progressive vs Past Simple",difficulty:"medium",type:"mc",
+    prompt:"They ___ (dance) all night at the party last Friday.",
+    choices:["were dancing","danced","had danced","have danced"],answer:"were dancing",
+    explanation:"'All night' emphasises the duration/continuity of the action → Past Progressive."},
+  {id:24,topic:"Past Progressive vs Past Simple",difficulty:"medium",type:"mc",
+    prompt:"While Tom ___ (cook), Lisa ___ (set) the table.",
+    choices:["was cooking … was setting","cooked … set","was cooking … set","cooked … was setting"],answer:"was cooking … was setting",
+    explanation:"Two actions happening at the same time in the past both use Past Progressive (while … , …)."},
+  {id:25,topic:"Past Progressive vs Past Simple",difficulty:"hard",type:"mc",
+    prompt:"I ___ (see) an old friend while I ___ (shop) in town.",
+    choices:["saw … was shopping","was seeing … shopped","saw … shopped","was seeing … was shopping"],answer:"saw … was shopping",
+    explanation:"Short completed action (saw) interrupts a longer ongoing action (was shopping)."},
+  {id:26,topic:"Past Progressive vs Past Simple",difficulty:"hard",type:"mc",
+    prompt:"At 8pm last night, we ___ (watch) a documentary.",
+    choices:["were watching","watched","had watched","have watched"],answer:"were watching",
+    explanation:"A specific time in the past ('At 8pm last night') asks what was in progress → Past Progressive."},
+
+  // ── Past Perfect (4) ───────────────────────────────────
+  {id:27,topic:"Past Perfect",difficulty:"medium",type:"mc",
+    prompt:"After she ___ (finish) her work, she went for a walk.",
+    choices:["had finished","finished","has finished","was finishing"],answer:"had finished",
+    explanation:"Past Perfect shows the earlier of two past actions. She finished first, then went for a walk."},
+  {id:28,topic:"Past Perfect",difficulty:"medium",type:"mc",
+    prompt:"By the time we arrived, the film ___ (already/start).",
+    choices:["had already started","already started","has already started","was already starting"],answer:"had already started",
+    explanation:"'By the time + Past Simple' signals an earlier completed action → Past Perfect."},
+  {id:29,topic:"Past Perfect",difficulty:"hard",type:"mc",
+    prompt:"I didn't recognise her because she ___ (change) her hair.",
+    choices:["had changed","changed","has changed","was changing"],answer:"had changed",
+    explanation:"The hair change happened before the moment of not recognising → Past Perfect for the earlier event."},
+  {id:30,topic:"Past Perfect",difficulty:"hard",type:"mc",
+    prompt:"They were tired because they ___ (not/sleep) well the night before.",
+    choices:["hadn't slept","didn't sleep","haven't slept","weren't sleeping"],answer:"hadn't slept",
+    explanation:"The bad sleep happened before they felt tired → Past Perfect for the earlier event."},
+
+  // ── Irregular Verbs (10: mixed MC and type-in) ─────────
+  {id:31,topic:"Irregular Verbs",difficulty:"easy",type:"mc",
+    prompt:"What is the Past Simple of 'begin'?",
+    choices:["began","begun","beginned","begined"],answer:"began",
+    explanation:"begin → began (Past Simple) → begun (Past Participle). It follows the i–a–u pattern."},
+  {id:32,topic:"Irregular Verbs",difficulty:"easy",type:"mc",
+    prompt:"What is the Past Participle of 'write'?",
+    choices:["written","wrote","writed","wroten"],answer:"written",
+    explanation:"write → wrote → written. The past participle 'written' is used with have/has/had."},
+  {id:33,topic:"Irregular Verbs",difficulty:"easy",type:"mc",
+    prompt:"Choose the correct forms: speak → ___ → ___",
+    choices:["spoke → spoken","speaked → speaken","spoke → spoke","spoken → spoke"],answer:"spoke → spoken",
+    explanation:"speak → spoke (Past Simple) → spoken (Past Participle)."},
+  {id:34,topic:"Irregular Verbs",difficulty:"medium",type:"mc",
+    prompt:"What is the Past Simple of 'forget'?",
+    choices:["forgot","forgotten","forgetted","forgat"],answer:"forgot",
+    explanation:"forget → forgot → forgotten. The Past Simple form is 'forgot'."},
+  {id:35,topic:"Irregular Verbs",difficulty:"medium",type:"mc",
+    prompt:"Which set of forms is correct?",
+    choices:["fly → flew → flown","fly → flied → flown","fly → flew → flied","fly → flown → flew"],answer:"fly → flew → flown",
+    explanation:"fly → flew (Past Simple) → flown (Past Participle)."},
+  {id:36,topic:"Irregular Verbs",difficulty:"easy",type:"text",
+    prompt:"Type the Past Simple form of 'swim'.",
+    choices:null,answer:"swam",
+    explanation:"swim → swam → swum. The Past Simple is 'swam'."},
+  {id:37,topic:"Irregular Verbs",difficulty:"medium",type:"text",
+    prompt:"Type the Past Participle of 'break'.",
+    choices:null,answer:"broken",
+    explanation:"break → broke → broken. The Past Participle 'broken' is used with have/has/had."},
+  {id:38,topic:"Irregular Verbs",difficulty:"hard",type:"text",
+    prompt:"Type the Past Simple form of 'throw'.",
+    choices:null,answer:"threw",
+    explanation:"throw → threw → thrown. Don't confuse with 'through' (the preposition)!"},
+  {id:39,topic:"Irregular Verbs",difficulty:"hard",type:"text",
+    prompt:"Type the Past Participle of 'choose'.",
+    choices:null,answer:"chosen",
+    explanation:"choose → chose → chosen. Note the spelling: chosen (not choosen)."},
+  {id:40,topic:"Irregular Verbs",difficulty:"medium",type:"text",
+    prompt:"Type the Past Simple form of 'wear'.",
+    choices:null,answer:"wore",
+    explanation:"wear → wore → worn. The Past Simple is 'wore'."}
+];
+
+/* ── Utility helpers ──────────────────────────────────── */
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function $(sel,ctx=document){return ctx.querySelector(sel)}
+function $$(sel,ctx=document){return[...ctx.querySelectorAll(sel)]}
+function ce(tag,attrs={},text=""){const el=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>{if(k==="className")el.className=v;else el.setAttribute(k,v)});if(text)el.textContent=text;return el}
+function downloadBlob(content,filename,mime){const a=ce("a");a.href=URL.createObjectURL(new Blob([content],{type:mime}));a.download=filename;document.body.appendChild(a);a.click();a.remove()}
+function formatTime(ms){const s=Math.floor(ms/1000);const m=Math.floor(s/60);return`${m}:${String(s%60).padStart(2,"0")}`}
+
+/* ── LocalStorage helpers ─────────────────────────────── */
+const STORAGE_KEY="eng_grammar_quiz";
+const STATE_KEY="eng_grammar_state";
+function loadAttempts(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]}catch{return[]}}
+function saveAttempts(a){localStorage.setItem(STORAGE_KEY,JSON.stringify(a))}
+function loadState(){try{return JSON.parse(localStorage.getItem(STATE_KEY))}catch{return null}}
+function saveState(s){localStorage.setItem(STATE_KEY,JSON.stringify(s))}
+function clearState(){localStorage.removeItem(STATE_KEY)}
+
+/* ── Web Components ───────────────────────────────────── */
+
+/* ──────────────────────────────────────────────────────
+   <quiz-app>  — root orchestrator
+   ────────────────────────────────────────────────────── */
+class QuizApp extends HTMLElement{
+  connectedCallback(){
+    this.style.display="contents";
+    // Check for in-progress quiz
+    const saved=loadState();
+    if(saved&&saved.answers&&saved.questionOrder){
+      this.showQuestion(saved);
+    }else{
+      this.showStart();
+    }
+  }
+  showStart(){this.innerHTML="";this.appendChild(ce("quiz-start"))}
+  showQuestion(state){this.innerHTML="";const q=ce("quiz-question");this.appendChild(q);q.init(state)}
+  showResults(result){this.innerHTML="";const r=ce("quiz-results");this.appendChild(r);r.init(result)}
+  showReview(result){this.innerHTML="";const r=ce("quiz-review");this.appendChild(r);r.init(result)}
+}
+customElements.define("quiz-app",QuizApp);
+
+/* ──────────────────────────────────────────────────────
+   <quiz-start>  — name/class entry + import
+   ────────────────────────────────────────────────────── */
+class QuizStart extends HTMLElement{
+  connectedCallback(){
+    const tpl=document.getElementById("tpl-start").content.cloneNode(true);
+    this.appendChild(tpl);
+    // High contrast restore
+    if(localStorage.getItem("hc")==="1"){document.documentElement.classList.add("high-contrast");$("#chk-contrast",this).checked=true}
+    // Events
+    $("#btn-start",this).addEventListener("click",()=>this.start());
+    $("#chk-contrast",this).addEventListener("change",e=>{
+      document.documentElement.classList.toggle("high-contrast",e.target.checked);
+      localStorage.setItem("hc",e.target.checked?"1":"0");
+    });
+    $("#inp-import",this).addEventListener("change",e=>this.importJSON(e));
+    this.renderPast();
+  }
+  start(){
+    const name=$("#inp-name",this).value.trim();
+    const cls=$("#inp-class",this).value.trim();
+    if(!name){$("#inp-name",this).focus();return}
+    const timerOn=$("#chk-timer",this).checked;
+    // Build shuffled question order with shuffled choices
+    const order=shuffle(QUESTIONS.map(q=>q.id));
+    const choiceMap={};
+    QUESTIONS.forEach(q=>{if(q.choices)choiceMap[q.id]=shuffle(q.choices)});
+    const state={studentName:name,studentClass:cls,timerOn,questionOrder:order,choiceMap,current:0,answers:{},startTime:Date.now()};
+    saveState(state);
+    this.closest("quiz-app").showQuestion(state);
+  }
+  importJSON(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        const arr=Array.isArray(data)?data:[data];
+        const existing=loadAttempts();
+        // Dedupe by date
+        const dates=new Set(existing.map(a=>a.date));
+        let added=0;
+        arr.forEach(a=>{if(a.date&&!dates.has(a.date)){existing.push(a);added++}});
+        saveAttempts(existing);
+        $("#import-msg",this).textContent=`Imported ${added} attempt(s).`;
+        this.renderPast();
+      }catch{$("#import-msg",this).textContent="Invalid JSON file."}
+    };
+    reader.readAsText(file);
+  }
+  renderPast(){
+    const el=$("#past-attempts",this);
+    const attempts=loadAttempts();
+    if(!attempts.length){el.textContent="No past attempts found.";return}
+    el.innerHTML="";
+    attempts.slice(-10).reverse().forEach(a=>{
+      const d=ce("div",{style:"padding:6px 0;border-bottom:1px solid var(--border)"});
+      d.textContent=`${a.studentName} (${a.studentClass||"–"}) — ${a.score}/${a.total} — ${new Date(a.date).toLocaleString()}`;
+      el.appendChild(d);
+    });
+  }
+}
+customElements.define("quiz-start",QuizStart);
+
+/* ──────────────────────────────────────────────────────
+   <quiz-question>  — shows one question at a time
+   ────────────────────────────────────────────────────── */
+class QuizQuestion extends HTMLElement{
+  init(state){
+    this.state=state;
+    this.timerInterval=null;
+    const tpl=document.getElementById("tpl-question").content.cloneNode(true);
+    this.appendChild(tpl);
+    // High contrast toggle
+    $("#btn-hc-toggle",this).addEventListener("click",()=>{
+      document.documentElement.classList.toggle("high-contrast");
+      localStorage.setItem("hc",document.documentElement.classList.contains("high-contrast")?"1":"0");
+    });
+    if(state.timerOn)this.startTimer();
+    this.render();
+  }
+  startTimer(){
+    const el=$(".timer",this);
+    const update=()=>{el.textContent=formatTime(Date.now()-this.state.startTime)};
+    update();
+    this.timerInterval=setInterval(update,1000);
+  }
+  render(){
+    const s=this.state;
+    const total=s.questionOrder.length;
+    const idx=s.current;
+    if(idx>=total){this.finish();return}
+    const qId=s.questionOrder[idx];
+    const q=QUESTIONS.find(x=>x.id===qId);
+    const pct=Math.round((idx/total)*100);
+    // Update progress
+    $(".progress-fill",this).style.width=pct+"%";
+    $(".progress-wrap",this).setAttribute("aria-valuenow",pct);
+    $(".progress-text",this).textContent=`Question ${idx+1} of ${total}`;
+    $(".q-counter",this).textContent=`${idx+1}/${total}`;
+    // Tags
+    const tagsRow=$(".tags-row",this);
+    tagsRow.innerHTML="";
+    tagsRow.appendChild(ce("span",{className:"tag topic"},q.topic));
+    tagsRow.appendChild(ce("span",{className:`tag ${q.difficulty}`},q.difficulty));
+    // Prompt
+    $(".q-prompt",this).textContent=q.prompt;
+    // Explanation & next hidden
+    const explEl=$(".explanation",this);
+    explEl.style.display="none";
+    explEl.textContent="";
+    const nextBtn=$("#btn-next",this);
+    nextBtn.style.display="none";
+    nextBtn.onclick=()=>{s.current++;saveState(s);this.render()};
+    // Already answered? (resume support)
+    const prevAnswer=s.answers[qId];
+    if(q.type==="mc"){
+      $(".text-input-area",this).style.display="none";
+      const choicesEl=$(".choices",this);
+      choicesEl.innerHTML="";
+      choicesEl.style.display="flex";
+      const shuffled=s.choiceMap[qId]||q.choices;
+      shuffled.forEach((c,i)=>{
+        const btn=ce("button",{className:"choice-btn",role:"radio","aria-checked":"false"},c);
+        btn.addEventListener("click",()=>this.answerMC(qId,c,choicesEl,explEl,nextBtn,q));
+        if(prevAnswer!==undefined){
+          btn.disabled=true;
+          if(c===q.answer)btn.classList.add("correct-choice");
+          if(c===prevAnswer&&prevAnswer!==q.answer)btn.classList.add("incorrect-choice");
+        }
+        choicesEl.appendChild(btn);
+      });
+      if(prevAnswer!==undefined){explEl.textContent=q.explanation;explEl.style.display="block";nextBtn.style.display="block"}
+    }else{
+      // Text input
+      $(".choices",this).style.display="none";
+      const tia=$(".text-input-area",this);
+      tia.style.display="block";
+      const inp=$("#inp-answer",this);
+      inp.value=prevAnswer||"";
+      inp.disabled=!!prevAnswer;
+      const subBtn=$("#btn-submit-text",this);
+      subBtn.style.display=prevAnswer?"none":"block";
+      subBtn.onclick=()=>this.answerText(qId,inp,subBtn,explEl,nextBtn,q);
+      inp.onkeydown=e=>{if(e.key==="Enter")subBtn.click()};
+      if(prevAnswer!==undefined){
+        inp.style.borderColor=prevAnswer.toLowerCase().trim()===q.answer.toLowerCase()?'var(--correct)':'var(--incorrect)';
+        explEl.textContent=`Correct answer: ${q.answer}. ${q.explanation}`;
+        explEl.style.display="block";nextBtn.style.display="block";
+      }
+    }
+    // Focus management
+    if(!prevAnswer){
+      if(q.type==="text")setTimeout(()=>$("#inp-answer",this).focus(),50);
+      else{const first=$(".choice-btn",this);if(first)setTimeout(()=>first.focus(),50)}
+    }
+  }
+  answerMC(qId,chosen,choicesEl,explEl,nextBtn,q){
+    if(this.state.answers[qId]!==undefined)return;
+    this.state.answers[qId]=chosen;
+    saveState(this.state);
+    $$(".choice-btn",choicesEl).forEach(btn=>{
+      btn.disabled=true;
+      if(btn.textContent===q.answer)btn.classList.add("correct-choice");
+      if(btn.textContent===chosen&&chosen!==q.answer)btn.classList.add("incorrect-choice");
+    });
+    explEl.textContent=q.explanation;explEl.style.display="block";nextBtn.style.display="block";
+    nextBtn.focus();
+  }
+  answerText(qId,inp,subBtn,explEl,nextBtn,q){
+    const val=inp.value.trim();
+    if(!val){inp.focus();return}
+    this.state.answers[qId]=val;
+    saveState(this.state);
+    inp.disabled=true;subBtn.style.display="none";
+    const correct=val.toLowerCase()===q.answer.toLowerCase();
+    inp.style.borderColor=correct?'var(--correct)':'var(--incorrect)';
+    explEl.textContent=correct?q.explanation:`Correct answer: ${q.answer}. ${q.explanation}`;
+    explEl.style.display="block";nextBtn.style.display="block";nextBtn.focus();
+  }
+  finish(){
+    if(this.timerInterval)clearInterval(this.timerInterval);
+    const s=this.state;
+    const elapsed=Date.now()-s.startTime;
+    // Build result
+    let score=0;const total=s.questionOrder.length;
+    const perTopic={};const missed=[];
+    s.questionOrder.forEach(qId=>{
+      const q=QUESTIONS.find(x=>x.id===qId);
+      if(!perTopic[q.topic])perTopic[q.topic]={correct:0,total:0};
+      perTopic[q.topic].total++;
+      const given=s.answers[qId];
+      const isCorrect=given!==undefined&&given.toLowerCase().trim()===q.answer.toLowerCase().trim();
+      if(isCorrect){score++;perTopic[q.topic].correct++}
+      else missed.push({qId,given,correct:q.answer,prompt:q.prompt,explanation:q.explanation,topic:q.topic});
+    });
+    const result={studentName:s.studentName,studentClass:s.studentClass,date:new Date().toISOString(),score,total,pct:Math.round(score/total*100),time:elapsed,timeFormatted:formatTime(elapsed),perTopic,missed,answers:s.answers,questionOrder:s.questionOrder,choiceMap:s.choiceMap,timerOn:s.timerOn};
+    // Save attempt
+    const attempts=loadAttempts();attempts.push(result);saveAttempts(attempts);
+    clearState();
+    this.closest("quiz-app").showResults(result);
+  }
+}
+customElements.define("quiz-question",QuizQuestion);
+
+/* ──────────────────────────────────────────────────────
+   <quiz-results>  — score + breakdown + actions
+   ────────────────────────────────────────────────────── */
+class QuizResults extends HTMLElement{
+  init(result){
+    this.result=result;
+    const tpl=document.getElementById("tpl-results").content.cloneNode(true);
+    this.appendChild(tpl);
+    const r=result;
+    $(".result-header",this).textContent=`${r.studentName}${r.studentClass?" ("+r.studentClass+")":""}  —  ${new Date(r.date).toLocaleString()}`;
+    $(".score-display",this).textContent=`${r.pct}%`;
+    $(".score-sub",this).textContent=`${r.score} / ${r.total} correct  •  Time: ${r.timeFormatted}`;
+    // Breakdown
+    const tbody=$(".breakdown-body",this);
+    Object.entries(r.perTopic).forEach(([topic,d])=>{
+      const tr=ce("tr");
+      tr.appendChild(ce("td",{},topic));
+      tr.appendChild(ce("td",{},String(d.correct)));
+      tr.appendChild(ce("td",{},String(d.total)));
+      tr.appendChild(ce("td",{},Math.round(d.correct/d.total*100)+"%"));
+      tbody.appendChild(tr);
+    });
+    // Buttons
+    $("#btn-review",this).addEventListener("click",()=>this.closest("quiz-app").showReview(r));
+    $("#btn-retry",this).addEventListener("click",()=>this.retryIncorrect());
+    $("#btn-new",this).addEventListener("click",()=>this.closest("quiz-app").showStart());
+    $("#btn-export-json",this).addEventListener("click",()=>this.exportJSON());
+    $("#btn-export-csv",this).addEventListener("click",()=>this.exportCSV());
+    $("#btn-print",this).addEventListener("click",()=>window.print());
+    if(!r.missed.length){
+      $("#btn-review",this).disabled=true;
+      $("#btn-retry",this).disabled=true;
+    }
+  }
+  retryIncorrect(){
+    const r=this.result;
+    const order=shuffle(r.missed.map(m=>m.qId));
+    const choiceMap={};
+    order.forEach(qId=>{const q=QUESTIONS.find(x=>x.id===qId);if(q.choices)choiceMap[qId]=shuffle(q.choices)});
+    const state={studentName:r.studentName,studentClass:r.studentClass,timerOn:r.timerOn,questionOrder:order,choiceMap,current:0,answers:{},startTime:Date.now()};
+    saveState(state);
+    this.closest("quiz-app").showQuestion(state);
+  }
+  exportJSON(){
+    downloadBlob(JSON.stringify(loadAttempts(),null,2),`grammar-quiz-${Date.now()}.json`,"application/json");
+  }
+  exportCSV(){
+    const attempts=loadAttempts();
+    let csv="Name,Class,Date,Score,Total,Percent,Time\n";
+    attempts.forEach(a=>{csv+=`"${a.studentName}","${a.studentClass||""}","${a.date}",${a.score},${a.total},${a.pct},"${a.timeFormatted||""}"\n`});
+    downloadBlob(csv,`grammar-quiz-${Date.now()}.csv`,"text/csv");
+  }
+}
+customElements.define("quiz-results",QuizResults);
+
+/* ──────────────────────────────────────────────────────
+   <quiz-review>  — review incorrect answers
+   ────────────────────────────────────────────────────── */
+class QuizReview extends HTMLElement{
+  init(result){
+    this.result=result;
+    const tpl=document.getElementById("tpl-review").content.cloneNode(true);
+    this.appendChild(tpl);
+    const list=$(".review-list",this);
+    if(!result.missed.length){list.textContent="All answers were correct!";return}
+    result.missed.forEach((m,i)=>{
+      const div=ce("div",{className:"review-item"});
+      const num=ce("strong",{},`${i+1}. `);
+      const prompt=ce("span",{},m.prompt);
+      div.appendChild(num);div.appendChild(prompt);
+      const yourAns=ce("p",{style:"color:var(--incorrect);margin-top:6px"},`Your answer: ${m.given||"(no answer)"}`);
+      const correctAns=ce("p",{style:"color:var(--correct)"},`Correct answer: ${m.correct}`);
+      const expl=ce("div",{className:"explanation"},m.explanation);
+      const tag=ce("span",{className:"tag topic"},m.topic);
+      div.appendChild(yourAns);div.appendChild(correctAns);div.appendChild(expl);div.appendChild(tag);
+      list.appendChild(div);
+    });
+    $("#btn-back-results",this).addEventListener("click",()=>this.closest("quiz-app").showResults(result));
+  }
+}
+customElements.define("quiz-review",QuizReview);
+</script>
+
+<!-- ═══ App root ═════════════════════════════════════════ -->
+<quiz-app></quiz-app>
+
+</body>
+</html>
