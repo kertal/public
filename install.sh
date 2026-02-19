@@ -53,6 +53,8 @@ echo "-- Workspaces --"
 link_file "${CONFIG_SRC}/workspaces/workspace.sh" "${HOME}/.config/workspaces/workspace.sh"
 chmod +x "${HOME}/.config/workspaces/workspace.sh"
 link_file "${CONFIG_SRC}/workspaces/lib/iterm.scpt" "${HOME}/.config/workspaces/lib/iterm.scpt"
+link_file "${CONFIG_SRC}/workspaces/lib/edit-note.sh" "${HOME}/.config/workspaces/lib/edit-note.sh"
+chmod +x "${HOME}/.config/workspaces/lib/edit-note.sh"
 
 # Link project configs (don't overwrite user's existing ones)
 mkdir -p "${HOME}/.config/workspaces/projects"

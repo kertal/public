@@ -8,8 +8,8 @@
 # <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
 
 PROJECTS_DIR="${HOME}/.config/workspaces/projects"
-NOTES_DIR="${HOME}/.config/workspaces/.state"
 WORKSPACE_BIN="${HOME}/bin/workspace"
+EDIT_NOTE_SCRIPT="${HOME}/.config/workspaces/lib/edit-note.sh"
 
 # Get current AeroSpace workspace
 CURRENT_WS=$(aerospace list-workspaces --focused 2>/dev/null || echo "?")
@@ -56,9 +56,11 @@ if [[ -n "$CURRENT_PROJECT" ]]; then
   done < "${PROJECTS_DIR}/${CURRENT_PROJECT}.toml"
 
   if [[ -n "$note_text" ]]; then
-    echo ":note.text: ${note_text} | symbolize=true sfsize=11 color=systemYellow"
-    echo "---"
+    echo ":note.text: ${note_text} | symbolize=true sfsize=11 color=systemYellow bash=${EDIT_NOTE_SCRIPT} param1=${CURRENT_PROJECT} terminal=false refresh=true"
+  else
+    echo ":note.text: Add note... | symbolize=true sfsize=11 color=systemSecondaryLabel bash=${EDIT_NOTE_SCRIPT} param1=${CURRENT_PROJECT} terminal=false refresh=true"
   fi
+  echo "---"
 fi
 
 # ── Project list ─────────────────────────────────────────────
