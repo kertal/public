@@ -344,6 +344,47 @@ Create Raycast script commands in `~/.config/raycast/scripts/`:
 
 This lets you type "Project A" in Raycast to switch workspaces.
 
+### Cmd+Tab and Workspace Switching
+
+macOS Cmd+Tab shows apps from **all** AeroSpace workspaces (since AeroSpace uses a single macOS Space, not native Spaces). No Cmd+Tab replacement (AltTab, Contexts, Witch) currently supports AeroSpace workspace filtering.
+
+#### Recommended: Alt+Tab bindings in AeroSpace
+
+Add these to your `aerospace.toml`:
+
+```toml
+[mode.main.binding]
+# Toggle between last two workspaces (feels like Cmd+Tab between projects)
+alt-tab = 'workspace-back-and-forth'
+
+# Cycle windows within the current workspace
+alt-grave = 'focus --boundaries-action wrap-around-the-workspace dfs-next'
+alt-shift-grave = 'focus --boundaries-action wrap-around-the-workspace dfs-prev'
+```
+
+This gives you two levels of switching:
+- **`alt-tab`**: Flip between your two most recent project workspaces
+- **`alt-backtick`**: Cycle through windows within the current workspace
+
+#### If you want literal Cmd+Tab
+
+macOS intercepts Cmd+Tab at the system level before AeroSpace sees it. To reclaim it, use [Karabiner-Elements](https://karabiner-elements.pqrs.org/) to remap Cmd+Tab to a key AeroSpace can handle:
+
+```json
+{
+  "description": "Remap cmd+tab to alt+tab for AeroSpace",
+  "manipulators": [{
+    "type": "basic",
+    "from": { "key_code": "tab", "modifiers": { "mandatory": ["command"], "optional": ["shift"] } },
+    "to": [{ "key_code": "tab", "modifiers": ["option"] }]
+  }]
+}
+```
+
+Then AeroSpace's `alt-tab = 'workspace-back-and-forth'` binding handles Cmd+Tab presses.
+
+> **Note**: This disables the native macOS app switcher. Most AeroSpace users find `alt-tab` sufficient and skip Karabiner.
+
 ### Phase 5: Git Worktrees for Parallel Claude Work
 
 When working on multiple branches of the same repo simultaneously:
