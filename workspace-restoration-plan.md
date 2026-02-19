@@ -641,6 +641,50 @@ SwiftBar for at-a-glance status + click switching, Raycast for keyboard-driven f
 
 ---
 
+## Per-Workspace Notes
+
+Each project config supports a `[notes]` section with editable text that displays when you switch to a workspace.
+
+### Setting notes via CLI
+
+```bash
+# Set a note
+workspace note frontend "TODO: fix auth bug before deploy"
+
+# View a note
+workspace note frontend
+
+# Clear a note
+workspace note frontend ""
+
+# View all project notes
+workspace notes
+```
+
+### How it works
+
+Notes are stored directly in the project config TOML file under `[notes]`:
+
+```toml
+[notes]
+text = "TODO: fix auth bug before deploy"
+```
+
+When you run `workspace open frontend`, the note is printed:
+
+```
+-> Switching to workspace 1 (frontend)
+   [ok] iTerm2 arrangement 'frontend'
+   [ok] Browser: http://localhost:3000
+=> Workspace 'frontend' active on workspace 1
+
+   Note: TODO: fix auth bug before deploy
+```
+
+The SwiftBar menu bar plugin also shows the current workspace's note, so you always have context visible.
+
+---
+
 ## Extensions and Future Ideas
 
 - **Auto-detect running projects**: Check which `localhost` ports are active and show status
