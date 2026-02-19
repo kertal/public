@@ -437,6 +437,155 @@ alt-2  →  instant switch to API (terminal + browser + layout)
 
 ---
 
+## Phase 6: Menu Bar UI for Workspace Switching
+
+A persistent, clickable UI in the macOS menu bar showing the active workspace and a dropdown to switch between projects.
+
+### Approach Comparison
+
+| Approach | Setup | Persistent Menu Bar | Search/Filter | Language | Extra App |
+|----------|-------|-------------------|---------------|----------|-----------|
+| **SwiftBar plugin** | Low | Yes | No | Bash | SwiftBar |
+| **Raycast extension** | Medium | No (invoke to use) | Yes | TypeScript | Raycast |
+| **Alfred workflow** | Medium | No (invoke to use) | Yes (fuzzy) | Bash | Alfred |
+| **Hammerspoon menubar** | Low-Med | Yes | No | Lua | Hammerspoon |
+| **rumps (Python)** | Low-Med | Yes | No | Python | None |
+| **SwiftUI MenuBarExtra** | High | Yes | Possible | Swift | None |
+
+### Recommended: SwiftBar Plugin (lowest friction)
+
+Install SwiftBar:
+
+```bash
+brew install --cask swiftbar
+```
+
+Create `~/.config/swiftbar/workspaces.5s.sh` (refreshes every 5 seconds):
+
+```bash
+#!/bin/bash
+
+# <swiftbar.hideRunInTerminal>true</swiftbar.hideRunInTerminal>
+
+PROJECTS_DIR="${HOME}/.config/workspaces/projects"
+CURRENT_WS=$(aerospace list-workspaces --focused 2>/dev/null || echo "?")
+
+# Find which project maps to the current workspace
+CURRENT_PROJECT=""
+for f in "${PROJECTS_DIR}"/*.toml; do
+  [[ -f "$f" ]] || continue
+  name=$(basename "$f" .toml)
+  ws=$(grep "^workspace" "$f" | sed 's/.*= *//;s/"//g' | tr -d ' ')
+  if [[ "$ws" == "$CURRENT_WS" ]]; then
+    CURRENT_PROJECT="$name"
+    break
+  fi
+done
+
+# Menu bar title: show current project name
+if [[ -n "$CURRENT_PROJECT" ]]; then
+  echo ":desktopcomputer: ${CURRENT_PROJECT} | symbolize=true sfsize=13"
+else
+  echo ":desktopcomputer: ws:${CURRENT_WS} | symbolize=true sfsize=13"
+fi
+
+echo "---"
+
+# List all projects as menu items
+for f in "${PROJECTS_DIR}"/*.toml; do
+  [[ -f "$f" ]] || continue
+  name=$(basename "$f" .toml)
+  ws=$(grep "^workspace" "$f" | sed 's/.*= *//;s/"//g' | tr -d ' ')
+
+  if [[ "$name" == "$CURRENT_PROJECT" ]]; then
+    echo ":checkmark.circle.fill: ${name} (workspace ${ws}) | symbolize=true color=systemGreen sfsize=13"
+  else
+    echo ":circle: ${name} (workspace ${ws}) | symbolize=true sfsize=13 bash=${HOME}/bin/workspace param1=open param2=${name} terminal=false refresh=true"
+  fi
+done
+
+echo "---"
+echo "Refresh | refresh=true"
+```
+
+```bash
+chmod +x ~/.config/swiftbar/workspaces.5s.sh
+```
+
+This gives you:
+- A menu bar item showing the current project name
+- A dropdown listing all configured projects with a checkmark on the active one
+- Click any project to switch (runs `workspace open <name>` silently)
+- Auto-refreshes every 5 seconds to reflect keyboard-driven switches
+
+### Alternative: Raycast Extension (for search-driven switching)
+
+If you have many projects (6+), a searchable list is better than a dropdown. A Raycast extension provides:
+- Fuzzy search across all workspace names
+- Status indicators (green dot = active)
+- Secondary actions (Cmd+Enter to just switch terminal, Shift+Enter to open browser only)
+
+```typescript
+// src/switch-workspace.tsx — Raycast extension entry point
+import { List, ActionPanel, Action, Icon, Color, showToast, Toast } from "@raycast/api";
+import { execSync } from "child_process";
+import { readdirSync } from "fs";
+import { join, basename } from "path";
+
+export default function Command() {
+  const home = process.env.HOME!;
+  const projectsDir = join(home, ".config/workspaces/projects");
+  let currentWs = "";
+  try {
+    currentWs = execSync("aerospace list-workspaces --focused", { encoding: "utf-8" }).trim();
+  } catch {}
+
+  const projects = readdirSync(projectsDir)
+    .filter((f) => f.endsWith(".toml"))
+    .map((f) => {
+      const name = basename(f, ".toml");
+      const content = require("fs").readFileSync(join(projectsDir, f), "utf-8");
+      const wsMatch = content.match(/^workspace\s*=\s*(\S+)/m);
+      const ws = wsMatch ? wsMatch[1].replace(/"/g, "") : "?";
+      return { name, ws, isActive: ws === currentWs };
+    });
+
+  return (
+    <List searchBarPlaceholder="Switch workspace...">
+      {projects.map((p) => (
+        <List.Item
+          key={p.name}
+          title={p.name}
+          subtitle={`workspace ${p.ws}`}
+          icon={p.isActive
+            ? { source: Icon.CircleFilled, tintColor: Color.Green }
+            : { source: Icon.Circle, tintColor: Color.SecondaryText }}
+          actions={
+            <ActionPanel>
+              <Action
+                title="Switch Workspace"
+                onAction={() => {
+                  execSync(`${home}/bin/workspace open ${p.name}`);
+                  showToast({ style: Toast.Style.Success, title: `Switched to ${p.name}` });
+                }}
+              />
+            </ActionPanel>
+          }
+        />
+      ))}
+    </List>
+  );
+}
+```
+
+Scaffold with `npx create-raycast-extension`, paste this in, and `npm run dev`.
+
+### Both Together (recommended for power users)
+
+SwiftBar for at-a-glance status + click switching, Raycast for keyboard-driven fuzzy search when you have many projects. They complement each other — SwiftBar is always visible, Raycast is always one hotkey away.
+
+---
+
 ## Installation Checklist
 
 1. **Install AeroSpace**: `brew install --cask nikitabobko/tap/aerospace`
@@ -446,7 +595,8 @@ alt-2  →  instant switch to API (terminal + browser + layout)
 5. **Create workspace configs**: `~/.config/workspaces/projects/<name>.toml`
 6. **Install the launcher script**: Copy `workspace.sh` to `~/bin/workspace` and `chmod +x`
 7. **Bind shortcuts**: Wire AeroSpace keybindings to workspace launcher (Phase 4)
-8. **(Optional) Install Raycast**: For command-palette access to workspace switching
+8. **(Optional) Install SwiftBar**: `brew install --cask swiftbar` for menu bar UI
+9. **(Optional) Install Raycast**: For command-palette access to workspace switching
 
 ---
 
