@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminal + Browser Preview</title>
+  <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #1e1e2e;
+      --surface: #181825;
+      --overlay: #313244;
+      --text: #cdd6f4;
+      --subtext: #a6adc8;
+      --accent: #89b4fa;
+      --green: #a6e3a1;
+      --red: #f38ba8;
+      --yellow: #f9e2af;
+      --border: #45475a;
+      --tab-bg: #11111b;
+      --tab-active: #1e1e2e;
+      --toolbar-h: 40px;
+      --divider-w: 5px;
+    }
+
+    body {
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Top Toolbar ===== */
+    #toolbar {
+      height: var(--toolbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 6px;
+      -webkit-app-region: drag;
+    }
+
+    #toolbar button {
+      -webkit-app-region: no-drag;
+      background: var(--overlay);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+
+    #toolbar button:hover { background: var(--border); }
+    #toolbar button.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+    .toolbar-spacer { flex: 1; }
+    .toolbar-title {
+      font-size: 12px;
+      color: var(--subtext);
+      font-weight: 500;
+      -webkit-app-region: drag;
+    }
+
+    /* ===== Main Layout ===== */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ===== Terminal Panel ===== */
+    #terminal-panel {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    #terminal-header {
+      height: 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 12px;
+      color: var(--subtext);
+      gap: 6px;
+    }
+
+    #terminal-header .shell-indicator {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    #terminal-container {
+      flex: 1;
+      padding: 4px;
+      overflow: hidden;
+    }
+
+    /* ===== Divider ===== */
+    #divider {
+      width: var(--divider-w);
+      background: var(--border);
+      cursor: col-resize;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+
+    #divider:hover, #divider.dragging {
+      background: var(--accent);
+    }
+
+    /* ===== Browser Panel ===== */
+    #browser-panel {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    /* Browser tabs bar */
+    #browser-tabs {
+      height: 32px;
+      background: var(--tab-bg);
+      display: flex;
+      align-items: flex-end;
+      padding: 0 4px;
+      gap: 1px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .browser-tab {
+      height: 28px;
+      min-width: 100px;
+      max-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--subtext);
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .browser-tab.active {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .browser-tab:hover { background: var(--overlay); }
+    .browser-tab.active:hover { background: var(--bg); }
+
+    .tab-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .tab-close {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--subtext);
+      flex-shrink: 0;
+    }
+
+    .tab-close:hover { background: var(--red); color: var(--bg); }
+
+    #new-tab-btn {
+      width: 28px;
+      height: 28px;
+      background: none;
+      border: none;
+      color: var(--subtext);
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #new-tab-btn:hover { background: var(--overlay); color: var(--text); }
+
+    /* URL Bar */
+    #url-bar {
+      height: 36px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      width: 28px;
+      height: 28px;
+      background: none;
+      border: none;
+      color: var(--subtext);
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover { background: var(--overlay); color: var(--text); }
+
+    #url-input {
+      flex: 1;
+      height: 26px;
+      background: var(--overlay);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 0 12px;
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    #url-input:focus { border-color: var(--accent); }
+
+    /* Webview container */
+    #webview-container {
+      flex: 1;
+      position: relative;
+      background: #fff;
+    }
+
+    #webview-container webview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ===== Layout modes ===== */
+    body.terminal-only #browser-panel,
+    body.terminal-only #divider { display: none; }
+    body.terminal-only #terminal-panel { flex: 1; }
+
+    body.browser-only #terminal-panel,
+    body.browser-only #divider { display: none; }
+    body.browser-only #browser-panel { flex: 1; }
+
+    body.vertical #main { flex-direction: column; }
+    body.vertical #divider {
+      width: auto;
+      height: var(--divider-w);
+      cursor: row-resize;
+    }
+    body.vertical #terminal-panel,
+    body.vertical #browser-panel { min-height: 100px; min-width: auto; }
+
+    /* ===== Status bar ===== */
+    #statusbar {
+      height: 22px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 11px;
+      color: var(--subtext);
+      gap: 12px;
+    }
+
+    .status-item { display: flex; align-items: center; gap: 4px; }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Toolbar -->
+  <div id="toolbar">
+    <span class="toolbar-title">Terminal + Browser Preview</span>
+    <div class="toolbar-spacer"></div>
+    <button id="btn-layout-split" class="active" title="Split View">
+      <span>&#9646;&#9647;</span> Split
+    </button>
+    <button id="btn-layout-terminal" title="Terminal Only">
+      <span>&#9646;</span> Terminal
+    </button>
+    <button id="btn-layout-browser" title="Browser Only">
+      <span>&#9647;</span> Browser
+    </button>
+    <button id="btn-layout-vertical" title="Toggle Vertical Split">
+      <span>&#9868;</span> Vertical
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main">
+    <!-- Terminal Panel -->
+    <div id="terminal-panel">
+      <div id="terminal-header">
+        <span class="shell-indicator" id="shell-name">bash</span>
+        <span>terminal</span>
+      </div>
+      <div id="terminal-container"></div>
+    </div>
+
+    <!-- Resizable Divider -->
+    <div id="divider"></div>
+
+    <!-- Browser Preview Panel -->
+    <div id="browser-panel">
+      <div id="browser-tabs">
+        <div id="tab-list"></div>
+        <button id="new-tab-btn" title="New Tab">+</button>
+      </div>
+      <div id="url-bar">
+        <button class="nav-btn" id="nav-back" title="Back">&#8592;</button>
+        <button class="nav-btn" id="nav-forward" title="Forward">&#8594;</button>
+        <button class="nav-btn" id="nav-reload" title="Reload">&#8635;</button>
+        <input type="text" id="url-input" placeholder="Enter URL or file path..." spellcheck="false">
+        <button class="nav-btn" id="nav-devtools" title="DevTools">&#128295;</button>
+      </div>
+      <div id="webview-container"></div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div id="statusbar">
+    <div class="status-item">
+      <span class="status-dot" id="pty-status"></span>
+      <span id="pty-label">Connected</span>
+    </div>
+    <div class="status-item" id="webview-status"></div>
+    <div class="toolbar-spacer"></div>
+    <div class="status-item" id="terminal-size"></div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
