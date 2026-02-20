@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Photo → GIF Converter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #1a1a2e;
+    --surface2: #22223a;
+    --accent: #6c63ff;
+    --accent-hover: #5a52e0;
+    --text: #e8e8f0;
+    --text-dim: #9090a8;
+    --border: #2a2a44;
+    --success: #4ecdc4;
+    --danger: #ff6b6b;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--surface);
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+  .drop-zone p { color: var(--text-dim); margin-top: 8px; font-size: 0.85rem; }
+  .drop-zone .icon { font-size: 2.4rem; margin-bottom: 8px; }
+  .drop-zone .browse {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 8px 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .drop-zone .browse:hover { background: var(--accent-hover); }
+
+  /* Card panel */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  /* Video preview */
+  .preview-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .preview-wrap video {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+  }
+
+  /* Trim controls */
+  .trim-section { display: flex; flex-direction: column; gap: 12px; }
+
+  .range-track {
+    position: relative;
+    height: 48px;
+    background: var(--surface2);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+  }
+  .range-track canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .range-overlay {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background: rgba(108, 99, 255, 0.25);
+    border-left: 3px solid var(--accent);
+    border-right: 3px solid var(--accent);
+    pointer-events: none;
+  }
+  .range-handle {
+    position: absolute;
+    top: 0;
+    width: 14px;
+    height: 100%;
+    cursor: ew-resize;
+    z-index: 2;
+  }
+  .range-handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 24px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+  .range-handle.left { left: 0; }
+  .range-handle.right { right: 0; }
+
+  .playhead-line {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: #fff;
+    pointer-events: none;
+    z-index: 3;
+    display: none;
+  }
+
+  .trim-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .trim-info span {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .trim-info .duration { color: var(--success); font-weight: 600; }
+
+  /* Settings row */
+  .settings-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .setting {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .setting label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .setting select, .setting input {
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .setting select:focus, .setting input:focus {
+    border-color: var(--accent);
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; flex: 1; justify-content: center; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-download { background: var(--success); color: #000; flex: 1; justify-content: center; }
+  .btn-download:hover { background: #3dbdb5; }
+
+  /* Progress */
+  .progress-wrap { display: none; flex-direction: column; gap: 6px; }
+  .progress-wrap.active { display: flex; }
+  .progress-bar-outer {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.15s;
+  }
+  .progress-text {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  /* Result */
+  .result-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    align-items: center;
+  }
+  .result-wrap.active { display: flex; }
+  .result-wrap img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .result-meta {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 1.3rem; }
+    .drop-zone { padding: 32px 16px; }
+    .card { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Live Photo &rarr; GIF</h1>
+<p class="subtitle">Convert the video part of an iOS Live Photo to an animated GIF &mdash; entirely in your browser.</p>
+
+<div class="app">
+
+  <!-- Drop Zone -->
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">&#127916;</div>
+    <div><strong>Drop your Live Photo video here</strong></div>
+    <p>Accepts .MOV, .MP4, or .HEVC files from your Live Photo export</p>
+    <button class="browse" id="browseBtn">Choose File</button>
+    <input type="file" id="fileInput" accept="video/*,.mov,.mp4,.m4v" hidden>
+  </div>
+
+  <!-- Editor Panel -->
+  <div class="card hidden" id="editorPanel">
+    <h2>Preview &amp; Trim</h2>
+
+    <div class="preview-wrap">
+      <video id="videoEl" muted playsinline></video>
+    </div>
+
+    <div class="trim-section" style="margin-top: 14px;">
+      <div class="range-track" id="rangeTrack">
+        <canvas id="thumbCanvas"></canvas>
+        <div class="range-overlay" id="rangeOverlay"></div>
+        <div class="range-handle left" id="handleLeft"></div>
+        <div class="range-handle right" id="handleRight"></div>
+        <div class="playhead-line" id="playhead"></div>
+      </div>
+
+      <div class="trim-info">
+        <span>Start: <strong id="trimStartLabel">0.00s</strong></span>
+        <span class="duration">Duration: <strong id="trimDurLabel">0.00s</strong></span>
+        <span>End: <strong id="trimEndLabel">0.00s</strong></span>
+      </div>
+
+      <div class="btn-row" style="margin-top: 2px;">
+        <button class="btn btn-secondary" id="playTrimBtn">&#9654; Preview Trim</button>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <h2>Settings</h2>
+      <div class="settings-row" style="margin-top: 8px;">
+        <div class="setting">
+          <label>FPS</label>
+          <select id="fpsSelect">
+            <option value="10">10</option>
+            <option value="15" selected>15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Max Width (px)</label>
+          <input type="number" id="widthInput" value="480" min="100" max="1920" step="10">
+        </div>
+        <div class="setting">
+          <label>Quality</label>
+          <select id="qualitySelect">
+            <option value="5">Low (smaller file)</option>
+            <option value="10" selected>Medium</option>
+            <option value="15">High</option>
+            <option value="20">Best (larger file)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top: 18px;">
+      <button class="btn btn-primary" id="convertBtn">Convert to GIF</button>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap" style="margin-top: 14px;">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+      <div class="progress-text" id="progressText">Extracting frames...</div>
+    </div>
+  </div>
+
+  <!-- Result Panel -->
+  <div class="card hidden" id="resultPanel">
+    <h2>Your GIF</h2>
+    <div class="result-wrap active">
+      <img id="resultImg" alt="Converted GIF">
+      <div class="result-meta" id="resultMeta"></div>
+      <div class="btn-row" style="width:100%;">
+        <button class="btn btn-download" id="downloadBtn">&#11015; Download GIF</button>
+        <button class="btn btn-secondary" id="resetBtn">New File</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  GIF Encoder — pure JS, GIF89a with LZW compression
+// ============================================================
+class GIFEncoder {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    this.frames = [];
+    this.data = [];
+  }
+
+  // Median-cut colour quantisation — picks up to 256 colours
+  static quantize(pixels, maxColors = 256) {
+    // Build a set of unique colours (sampled for speed)
+    const colorMap = new Map();
+    const step = Math.max(1, Math.floor(pixels.length / (4 * 50000)));
+    for (let i = 0; i < pixels.length; i += 4 * step) {
+      const r = pixels[i] & 0xF8, g = pixels[i+1] & 0xFC, b = pixels[i+2] & 0xF8;
+      const key = (r << 16) | (g << 8) | b;
+      colorMap.set(key, (colorMap.get(key) || 0) + 1);
+    }
+
+    let boxes = [Array.from(colorMap.entries()).map(([k, c]) => [((k >> 16) & 0xFF), ((k >> 8) & 0xFF), (k & 0xFF), c])];
+
+    while (boxes.length < maxColors) {
+      // Find box with largest range on any channel
+      let bestIdx = 0, bestRange = -1, bestCh = 0;
+      for (let i = 0; i < boxes.length; i++) {
+        const box = boxes[i];
+        if (box.length < 2) continue;
+        for (let ch = 0; ch < 3; ch++) {
+          let mn = 255, mx = 0;
+          for (const c of box) { mn = Math.min(mn, c[ch]); mx = Math.max(mx, c[ch]); }
+          const range = mx - mn;
+          if (range > bestRange) { bestRange = range; bestIdx = i; bestCh = ch; }
+        }
+      }
+      if (bestRange <= 0) break;
+      const box = boxes[bestIdx];
+      box.sort((a, b) => a[bestCh] - b[bestCh]);
+      const mid = box.length >> 1;
+      boxes.splice(bestIdx, 1, box.slice(0, mid), box.slice(mid));
+    }
+
+    // Average each box to get palette entry
+    const palette = [];
+    for (const box of boxes) {
+      let rSum = 0, gSum = 0, bSum = 0, total = 0;
+      for (const [r, g, b, c] of box) { rSum += r * c; gSum += g * c; bSum += b * c; total += c; }
+      if (total === 0) { palette.push([0, 0, 0]); continue; }
+      palette.push([Math.round(rSum / total), Math.round(gSum / total), Math.round(bSum / total)]);
+    }
+
+    // Pad to power-of-2 size
+    let bits = 1;
+    while ((1 << bits) < palette.length) bits++;
+    while (palette.length < (1 << bits)) palette.push([0, 0, 0]);
+
+    return { palette, bits };
+  }
+
+  // Map pixels to palette indices with simple closest-colour + basic dither
+  static mapPixels(pixels, w, h, palette) {
+    const n = w * h;
+    const indices = new Uint8Array(n);
+
+    // Build a small cache for speed
+    const cache = new Map();
+
+    const findClosest = (r, g, b) => {
+      const key = ((r & 0xFC) << 16) | ((g & 0xFC) << 8) | (b & 0xFC);
+      if (cache.has(key)) return cache.get(key);
+      let bestD = Infinity, bestI = 0;
+      for (let i = 0; i < palette.length; i++) {
+        const dr = r - palette[i][0], dg = g - palette[i][1], db = b - palette[i][2];
+        const d = dr*dr + dg*dg + db*db;
+        if (d < bestD) { bestD = d; bestI = i; }
+      }
+      cache.set(key, bestI);
+      return bestI;
+    };
+
+    // Floyd-Steinberg dithering
+    const errR = new Float32Array(n);
+    const errG = new Float32Array(n);
+    const errB = new Float32Array(n);
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x;
+        const pi = idx * 4;
+        const r = Math.max(0, Math.min(255, pixels[pi]   + errR[idx]));
+        const g = Math.max(0, Math.min(255, pixels[pi+1] + errG[idx]));
+        const b = Math.max(0, Math.min(255, pixels[pi+2] + errB[idx]));
+
+        const ci = findClosest(r, g, b);
+        indices[idx] = ci;
+
+        const dr = r - palette[ci][0];
+        const dg = g - palette[ci][1];
+        const db = b - palette[ci][2];
+
+        if (x + 1 < w) {
+          errR[idx+1] += dr * 7/16; errG[idx+1] += dg * 7/16; errB[idx+1] += db * 7/16;
+        }
+        if (y + 1 < h) {
+          if (x > 0) {
+            errR[idx+w-1] += dr * 3/16; errG[idx+w-1] += dg * 3/16; errB[idx+w-1] += db * 3/16;
+          }
+          errR[idx+w] += dr * 5/16; errG[idx+w] += dg * 5/16; errB[idx+w] += db * 5/16;
+          if (x + 1 < w) {
+            errR[idx+w+1] += dr * 1/16; errG[idx+w+1] += dg * 1/16; errB[idx+w+1] += db * 1/16;
+          }
+        }
+      }
+    }
+
+    return indices;
+  }
+
+  addFrame(imageData, delay = 100) {
+    this.frames.push({ data: imageData, delay });
+  }
+
+  // LZW compress indices
+  static lzwEncode(indices, minCodeSize) {
+    const clearCode = 1 << minCodeSize;
+    const eoiCode = clearCode + 1;
+    const output = [];
+
+    let codeSize = minCodeSize + 1;
+    let nextCode = eoiCode + 1;
+    const maxCode = 4096;
+
+    // Use a trie for the dictionary
+    let dict = new Map();
+    const initDict = () => {
+      dict.clear();
+      for (let i = 0; i < clearCode; i++) dict.set(String(i), i);
+      codeSize = minCodeSize + 1;
+      nextCode = eoiCode + 1;
+    };
+
+    let buffer = 0;
+    let bufBits = 0;
+    const emit = (code) => {
+      buffer |= (code << bufBits);
+      bufBits += codeSize;
+      while (bufBits >= 8) {
+        output.push(buffer & 0xFF);
+        buffer >>= 8;
+        bufBits -= 8;
+      }
+    };
+
+    initDict();
+    emit(clearCode);
+
+    let w = String(indices[0]);
+    for (let i = 1; i < indices.length; i++) {
+      const k = String(indices[i]);
+      const wk = w + ',' + k;
+      if (dict.has(wk)) {
+        w = wk;
+      } else {
+        emit(dict.get(w));
+        if (nextCode < maxCode) {
+          dict.set(wk, nextCode++);
+          if (nextCode > (1 << codeSize) && codeSize < 12) codeSize++;
+        } else {
+          emit(clearCode);
+          initDict();
+        }
+        w = k;
+      }
+    }
+    emit(dict.get(w));
+    emit(eoiCode);
+
+    if (bufBits > 0) output.push(buffer & 0xFF);
+
+    return output;
+  }
+
+  encode() {
+    const out = this.data;
+    const w = this.width, h = this.height;
+
+    // Use first frame for global palette
+    const firstPixels = this.frames[0].data;
+    const { palette, bits: colorBits } = GIFEncoder.quantize(firstPixels);
+    const colorTableSize = 1 << colorBits;
+
+    // --- Header ---
+    // GIF89a
+    out.push(0x47, 0x49, 0x46, 0x38, 0x39, 0x61);
+
+    // Logical Screen Descriptor
+    out.push(w & 0xFF, (w >> 8) & 0xFF);
+    out.push(h & 0xFF, (h >> 8) & 0xFF);
+    out.push(0x80 | ((colorBits - 1) << 4) | (colorBits - 1)); // packed: GCT flag, color res, sort, GCT size
+    out.push(0); // bg color index
+    out.push(0); // pixel aspect ratio
+
+    // Global Color Table
+    for (let i = 0; i < colorTableSize; i++) {
+      out.push(palette[i][0], palette[i][1], palette[i][2]);
+    }
+
+    // Netscape extension for looping
+    out.push(0x21, 0xFF, 0x0B);
+    // "NETSCAPE2.0"
+    const ns = [0x4E,0x45,0x54,0x53,0x43,0x41,0x50,0x45,0x32,0x2E,0x30];
+    for (const b of ns) out.push(b);
+    out.push(0x03, 0x01, 0x00, 0x00, 0x00); // loop forever
+
+    // --- Frames ---
+    for (const frame of this.frames) {
+      const indices = GIFEncoder.mapPixels(frame.data, w, h, palette);
+
+      // Graphic Control Extension
+      out.push(0x21, 0xF9, 0x04);
+      out.push(0x00); // packed: no transparency, no disposal
+      const d = Math.round(frame.delay / 10); // delay in 1/100s
+      out.push(d & 0xFF, (d >> 8) & 0xFF);
+      out.push(0x00); // transparent color index
+      out.push(0x00); // block terminator
+
+      // Image Descriptor
+      out.push(0x2C);
+      out.push(0, 0, 0, 0); // left, top
+      out.push(w & 0xFF, (w >> 8) & 0xFF);
+      out.push(h & 0xFF, (h >> 8) & 0xFF);
+      out.push(0x00); // no local color table
+
+      // LZW minimum code size
+      const minCodeSize = Math.max(2, colorBits);
+      out.push(minCodeSize);
+
+      // LZW data
+      const lzw = GIFEncoder.lzwEncode(indices, minCodeSize);
+
+      // Sub-blocks (max 255 bytes each)
+      let offset = 0;
+      while (offset < lzw.length) {
+        const chunkSize = Math.min(255, lzw.length - offset);
+        out.push(chunkSize);
+        for (let i = 0; i < chunkSize; i++) out.push(lzw[offset++]);
+      }
+      out.push(0x00); // block terminator
+    }
+
+    // Trailer
+    out.push(0x3B);
+
+    return new Uint8Array(out);
+  }
+}
+
+// ============================================================
+//  App Logic
+// ============================================================
+(() => {
+  const $ = s => document.querySelector(s);
+  const dropZone     = $('#dropZone');
+  const browseBtn    = $('#browseBtn');
+  const fileInput    = $('#fileInput');
+  const editorPanel  = $('#editorPanel');
+  const resultPanel  = $('#resultPanel');
+  const videoEl      = $('#videoEl');
+  const rangeTrack   = $('#rangeTrack');
+  const thumbCanvas  = $('#thumbCanvas');
+  const rangeOverlay = $('#rangeOverlay');
+  const handleLeft   = $('#handleLeft');
+  const handleRight  = $('#handleRight');
+  const playhead     = $('#playhead');
+  const trimStartLbl = $('#trimStartLabel');
+  const trimEndLbl   = $('#trimEndLabel');
+  const trimDurLbl   = $('#trimDurLabel');
+  const playTrimBtn  = $('#playTrimBtn');
+  const fpsSelect    = $('#fpsSelect');
+  const widthInput   = $('#widthInput');
+  const qualitySelect= $('#qualitySelect');
+  const convertBtn   = $('#convertBtn');
+  const progressWrap = $('#progressWrap');
+  const progressBar  = $('#progressBar');
+  const progressText = $('#progressText');
+  const resultImg    = $('#resultImg');
+  const resultMeta   = $('#resultMeta');
+  const downloadBtn  = $('#downloadBtn');
+  const resetBtn     = $('#resetBtn');
+
+  let trimStart = 0, trimEnd = 1; // as fractions 0..1
+  let duration = 0;
+  let videoURL = null;
+  let gifBlob = null;
+  let dragging = null; // 'left' | 'right' | null
+  let isConverting = false;
+
+  // --- File handling ---
+  browseBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadVideo(fileInput.files[0]); });
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('video/')) loadVideo(file);
+  });
+
+  function loadVideo(file) {
+    if (videoURL) URL.revokeObjectURL(videoURL);
+    videoURL = URL.createObjectURL(file);
+    videoEl.src = videoURL;
+
+    videoEl.addEventListener('loadedmetadata', () => {
+      duration = videoEl.duration;
+      trimStart = 0;
+      trimEnd = 1;
+      updateTrimUI();
+      generateThumbnails();
+      dropZone.classList.add('hidden');
+      editorPanel.classList.remove('hidden');
+      resultPanel.classList.add('hidden');
+    }, { once: true });
+  }
+
+  // --- Thumbnail strip ---
+  function generateThumbnails() {
+    const rect = rangeTrack.getBoundingClientRect();
+    const cw = rect.width * devicePixelRatio;
+    const ch = rect.height * devicePixelRatio;
+    thumbCanvas.width = cw;
+    thumbCanvas.height = ch;
+    thumbCanvas.style.width = rect.width + 'px';
+    thumbCanvas.style.height = rect.height + 'px';
+    const ctx = thumbCanvas.getContext('2d');
+
+    const numThumbs = Math.min(Math.ceil(rect.width / 48), 30);
+    let done = 0;
+
+    const tempVideo = document.createElement('video');
+    tempVideo.muted = true;
+    tempVideo.src = videoURL;
+    tempVideo.preload = 'auto';
+
+    tempVideo.addEventListener('loadedmetadata', () => {
+      const drawThumb = (i) => {
+        if (i >= numThumbs) return;
+        const t = (i / numThumbs) * tempVideo.duration;
+        tempVideo.currentTime = t;
+        tempVideo.addEventListener('seeked', () => {
+          const thumbW = cw / numThumbs;
+          ctx.drawImage(tempVideo, i * thumbW, 0, thumbW, ch);
+          drawThumb(i + 1);
+        }, { once: true });
+      };
+      drawThumb(0);
+    });
+  }
+
+  // --- Trim range drag ---
+  function updateTrimUI() {
+    rangeOverlay.style.left = (trimStart * 100) + '%';
+    rangeOverlay.style.width = ((trimEnd - trimStart) * 100) + '%';
+    handleLeft.style.left = (trimStart * 100) + '%';
+    handleRight.style.left = (trimEnd * 100) + '%';
+    handleRight.style.transform = 'translateX(-100%)';
+
+    const ts = trimStart * duration;
+    const te = trimEnd * duration;
+    trimStartLbl.textContent = ts.toFixed(2) + 's';
+    trimEndLbl.textContent = te.toFixed(2) + 's';
+    trimDurLbl.textContent = (te - ts).toFixed(2) + 's';
+  }
+
+  function getFraction(e) {
+    const rect = rangeTrack.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  }
+
+  handleLeft.addEventListener('mousedown', e => { e.stopPropagation(); dragging = 'left'; });
+  handleRight.addEventListener('mousedown', e => { e.stopPropagation(); dragging = 'right'; });
+  handleLeft.addEventListener('touchstart', e => { e.stopPropagation(); dragging = 'left'; }, { passive: true });
+  handleRight.addEventListener('touchstart', e => { e.stopPropagation(); dragging = 'right'; }, { passive: true });
+
+  const onMove = (e) => {
+    if (!dragging) return;
+    const f = getFraction(e);
+    if (dragging === 'left') {
+      trimStart = Math.min(f, trimEnd - 0.01);
+    } else {
+      trimEnd = Math.max(f, trimStart + 0.01);
+    }
+    updateTrimUI();
+  };
+
+  const onUp = () => { dragging = null; };
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchmove', onMove, { passive: true });
+  document.addEventListener('touchend', onUp);
+
+  // Click on track to seek preview
+  rangeTrack.addEventListener('click', (e) => {
+    if (e.target === handleLeft || e.target === handleRight) return;
+    const f = getFraction(e);
+    videoEl.currentTime = f * duration;
+  });
+
+  // --- Preview trimmed clip ---
+  playTrimBtn.addEventListener('click', () => {
+    const start = trimStart * duration;
+    const end = trimEnd * duration;
+    videoEl.currentTime = start;
+    videoEl.muted = true;
+    videoEl.play();
+
+    playhead.style.display = 'block';
+    const update = () => {
+      if (videoEl.paused) { playhead.style.display = 'none'; return; }
+      if (videoEl.currentTime >= end) { videoEl.pause(); playhead.style.display = 'none'; return; }
+      const frac = videoEl.currentTime / duration;
+      playhead.style.left = (frac * 100) + '%';
+      requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  });
+
+  // --- Conversion ---
+  convertBtn.addEventListener('click', async () => {
+    if (isConverting) return;
+    isConverting = true;
+    convertBtn.disabled = true;
+    progressWrap.classList.add('active');
+    resultPanel.classList.add('hidden');
+
+    try {
+      const fps = parseInt(fpsSelect.value);
+      const maxW = parseInt(widthInput.value);
+      const start = trimStart * duration;
+      const end = trimEnd * duration;
+      const clipDur = end - start;
+
+      // Calculate output dimensions
+      const vw = videoEl.videoWidth;
+      const vh = videoEl.videoHeight;
+      const scale = Math.min(1, maxW / vw);
+      const outW = Math.round(vw * scale);
+      const outH = Math.round(vh * scale);
+
+      // Create offscreen canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      const totalFrames = Math.ceil(clipDur * fps);
+      const frameDelay = 1000 / fps;
+
+      const encoder = new GIFEncoder(outW, outH);
+
+      progressText.textContent = `Extracting frames (0/${totalFrames})...`;
+      progressBar.style.width = '0%';
+
+      // Extract frames sequentially by seeking
+      const extractFrame = (i) => new Promise((resolve) => {
+        const t = start + (i / fps);
+        videoEl.currentTime = Math.min(t, end);
+        videoEl.addEventListener('seeked', () => {
+          ctx.drawImage(videoEl, 0, 0, outW, outH);
+          const imageData = ctx.getImageData(0, 0, outW, outH).data;
+          // Copy to a plain array for the encoder
+          const px = new Uint8Array(imageData.length);
+          px.set(imageData);
+          encoder.addFrame(px, frameDelay);
+
+          const pct = Math.round(((i + 1) / totalFrames) * 70);
+          progressBar.style.width = pct + '%';
+          progressText.textContent = `Extracting frames (${i+1}/${totalFrames})...`;
+          resolve();
+        }, { once: true });
+      });
+
+      for (let i = 0; i < totalFrames; i++) {
+        await extractFrame(i);
+      }
+
+      // Encode
+      progressText.textContent = 'Encoding GIF...';
+      progressBar.style.width = '75%';
+
+      // Use setTimeout to unblock UI
+      await new Promise(r => setTimeout(r, 50));
+      const bytes = encoder.encode();
+      progressBar.style.width = '100%';
+
+      gifBlob = new Blob([bytes], { type: 'image/gif' });
+      const url = URL.createObjectURL(gifBlob);
+      resultImg.src = url;
+
+      const sizeMB = (gifBlob.size / (1024 * 1024)).toFixed(2);
+      resultMeta.textContent = `${outW}x${outH} · ${totalFrames} frames · ${fps} fps · ${sizeMB} MB`;
+
+      progressWrap.classList.remove('active');
+      resultPanel.classList.remove('hidden');
+
+    } catch (err) {
+      console.error(err);
+      progressText.textContent = 'Error: ' + err.message;
+    } finally {
+      isConverting = false;
+      convertBtn.disabled = false;
+    }
+  });
+
+  // --- Download ---
+  downloadBtn.addEventListener('click', () => {
+    if (!gifBlob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(gifBlob);
+    a.download = 'live-photo.gif';
+    a.click();
+  });
+
+  // --- Reset ---
+  resetBtn.addEventListener('click', () => {
+    editorPanel.classList.add('hidden');
+    resultPanel.classList.add('hidden');
+    dropZone.classList.remove('hidden');
+    videoEl.pause();
+    videoEl.removeAttribute('src');
+    fileInput.value = '';
+    gifBlob = null;
+    progressWrap.classList.remove('active');
+  });
+
+})();
+</script>
+</body>
+</html>
