@@ -1,0 +1,9 @@
+{
+  "port": 3000,
+  "repoRoot": "..",
+  "cli": {
+    "command": "claude",
+    "args": ["--print", "--verbose"],
+    "env": {}
+  }
+}
