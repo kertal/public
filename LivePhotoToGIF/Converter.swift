@@ -1,7 +1,6 @@
 import AVFoundation
 import ImageIO
 import Photos
-import UIKit
 import UniformTypeIdentifiers
 
 // MARK: - Video extraction from Live Photo PHAsset
@@ -157,7 +156,6 @@ enum GIFConverter {
             throw Error.cannotCreateDestination
         }
 
-        // GIF properties: loop forever
         let gifFileProperties = [
             kCGImagePropertyGIFDictionary: [
                 kCGImagePropertyGIFLoopCount: 0
@@ -165,7 +163,6 @@ enum GIFConverter {
         ] as CFDictionary
         CGImageDestinationSetProperties(destination, gifFileProperties)
 
-        // Per-frame properties
         let frameProperties = [
             kCGImagePropertyGIFDictionary: [
                 kCGImagePropertyGIFDelayTime: delay,

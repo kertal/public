@@ -6,5 +6,9 @@ struct LivePhotoToGIFApp: App {
         WindowGroup {
             ContentView()
         }
+        #if os(macOS)
+        .windowResizability(.contentSize)
+        .defaultSize(width: 560, height: 640)
+        #endif
     }
 }

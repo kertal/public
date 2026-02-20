@@ -1,9 +1,11 @@
 import PhotosUI
 import SwiftUI
 
-/// Wraps PHPickerViewController configured for Live Photos.
-/// Uses `.shared()` photo library so we get asset identifiers for video extraction.
-struct LivePhotoPicker: UIViewControllerRepresentable {
+// MARK: - Photo Picker (wraps PHPickerViewController for both platforms)
+
+#if os(iOS)
+
+struct PhotoPicker: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
     let onPick: (String) -> Void
 
@@ -21,8 +23,8 @@ struct LivePhotoPicker: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     final class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        let parent: LivePhotoPicker
-        init(_ parent: LivePhotoPicker) { self.parent = parent }
+        let parent: PhotoPicker
+        init(_ parent: PhotoPicker) { self.parent = parent }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             parent.dismiss()
@@ -32,16 +34,46 @@ struct LivePhotoPicker: UIViewControllerRepresentable {
     }
 }
 
-/// Wraps UIActivityViewController for sharing the GIF file.
-struct ShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
+#elseif os(macOS)
+
+struct PhotoPicker: NSViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
+    let onPick: (String) -> Void
+
+    func makeNSViewController(context: Context) -> PHPickerViewController {
+        var config = PHPickerConfiguration(photoLibrary: .shared())
+        config.filter = .livePhotos
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        return picker
     }
-    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+
+    func updateNSViewController(_ vc: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: PhotoPicker
+        init(_ parent: PhotoPicker) { self.parent = parent }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            parent.dismiss()
+            guard let result = results.first, let id = result.assetIdentifier else { return }
+            parent.onPick(id)
+        }
+    }
 }
 
-/// Displays an animated GIF from a file URL using UIImageView.
+#endif
+
+// MARK: - Animated GIF View
+
+#if os(iOS)
+
+import UIKit
+import ImageIO
+
 struct AnimatedGIFView: UIViewRepresentable {
     let url: URL
 
@@ -81,3 +113,40 @@ struct AnimatedGIFView: UIViewRepresentable {
         iv.startAnimating()
     }
 }
+
+#elseif os(macOS)
+
+import AppKit
+
+struct AnimatedGIFView: NSViewRepresentable {
+    let url: URL
+
+    func makeNSView(context: Context) -> NSImageView {
+        let iv = NSImageView()
+        iv.imageScaling = .scaleProportionallyUpOrDown
+        iv.animates = true
+        iv.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        iv.setContentHuggingPriority(.defaultLow, for: .vertical)
+        return iv
+    }
+
+    func updateNSView(_ iv: NSImageView, context: Context) {
+        iv.image = NSImage(contentsOf: url)
+    }
+}
+
+#endif
+
+// MARK: - Share Sheet (iOS only)
+
+#if os(iOS)
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+
+#endif
