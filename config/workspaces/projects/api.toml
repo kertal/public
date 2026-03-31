@@ -1,0 +1,15 @@
+[project]
+name = "api"
+workspace = 2
+directory = "~/code/api"
+
+[terminal]
+arrangement = "api"
+
+[browser]
+url = "http://localhost:8000/docs"
+
+[notes]
+# Editable notes displayed when switching to this workspace.
+# Edit this file or run: workspace note api "your note here"
+text = ""
