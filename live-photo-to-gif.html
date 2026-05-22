@@ -34,7 +34,7 @@
   }
 
   h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; text-align: center; }
-  .subtitle { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 28px; text-align: center; max-width: 520px; line-height: 1.5; }
+  .subtitle { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 28px; text-align: center; max-width: 540px; line-height: 1.5; }
 
   .app { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 20px; }
 
@@ -42,7 +42,7 @@
   .drop-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
-    padding: 40px 24px;
+    padding: 36px 24px;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
@@ -58,31 +58,66 @@
   }
   .drop-zone .browse:hover { background: var(--accent-hover); }
 
-  .how-to {
-    margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
-    text-align: left; max-width: 420px; margin-left: auto; margin-right: auto;
+  /* How-to guide */
+  .guide {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
   }
-  .how-to summary {
-    font-size: 0.82rem; color: var(--text-dim); cursor: pointer;
-    text-align: center; list-style: none;
+  .guide-header {
+    padding: 16px 20px; cursor: pointer; display: flex;
+    justify-content: space-between; align-items: center;
+    user-select: none;
   }
-  .how-to summary::-webkit-details-marker { display: none; }
-  .how-to .steps {
-    margin-top: 10px; padding: 0; list-style: none;
-    font-size: 0.82rem; color: var(--text-dim); line-height: 1.7;
+  .guide-header h2 { font-size: 0.95rem; font-weight: 600; }
+  .guide-header .arrow { transition: transform 0.2s; color: var(--text-dim); font-size: 0.8rem; }
+  .guide.open .guide-header .arrow { transform: rotate(180deg); }
+  .guide-body { display: none; padding: 0 20px 20px; }
+  .guide.open .guide-body { display: block; }
+
+  .method-tabs {
+    display: flex; gap: 0; margin-bottom: 16px;
+    border-bottom: 2px solid var(--border);
   }
-  .how-to .steps li { padding-left: 20px; position: relative; }
-  .how-to .steps li::before {
-    content: attr(data-n); position: absolute; left: 0; color: var(--accent); font-weight: 600;
+  .method-tab {
+    padding: 10px 18px; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-dim); background: none; border: none;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -2px; transition: color 0.2s, border-color 0.2s;
+  }
+  .method-tab:hover { color: var(--text); }
+  .method-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .method-content { display: none; }
+  .method-content.active { display: block; }
+
+  .step-list { list-style: none; padding: 0; counter-reset: step; }
+  .step-list li {
+    counter-increment: step; position: relative;
+    padding: 10px 0 10px 36px; font-size: 0.85rem;
+    line-height: 1.6; color: var(--text-dim);
+    border-left: 2px solid var(--border); margin-left: 12px;
+  }
+  .step-list li:last-child { border-left-color: transparent; }
+  .step-list li::before {
+    content: counter(step); position: absolute; left: -11px; top: 8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 0.72rem;
+    font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .step-list li strong { color: var(--text); }
+
+  .tip-box {
+    margin-top: 14px; padding: 10px 14px; border-radius: 8px;
+    background: rgba(78,205,196,0.08); border: 1px solid rgba(78,205,196,0.2);
+    font-size: 0.82rem; line-height: 1.6; color: var(--success);
   }
 
   /* Status banner */
   .status-banner {
-    padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5;
-    display: none; align-items: flex-start; gap: 8px;
+    padding: 12px 16px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5;
+    display: none;
   }
-  .status-banner.active { display: flex; }
-  .status-banner.info { background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.3); }
+  .status-banner.active { display: block; }
   .status-banner.warn { background: rgba(240,192,64,0.1); border: 1px solid rgba(240,192,64,0.3); color: var(--warn); }
   .status-banner.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: var(--danger); }
 
@@ -183,41 +218,82 @@
     h1 { font-size: 1.3rem; }
     .drop-zone { padding: 28px 16px; }
     .card { padding: 14px; }
+    .method-tab { padding: 8px 12px; font-size: 0.8rem; }
   }
 </style>
 </head>
 <body>
 
 <h1>Live Photo &rarr; GIF</h1>
-<p class="subtitle">Drop an iOS Live Photo and convert it to an animated GIF with optional trimming &mdash; entirely in your browser, no upload.</p>
+<p class="subtitle">Convert the video from an iOS Live Photo into an animated GIF &mdash; entirely in your browser, nothing uploaded.</p>
 
 <div class="app">
 
   <!-- Drop Zone -->
   <div class="drop-zone" id="dropZone">
     <div class="icon">&#9861;</div>
-    <div><strong>Drop your Live Photo here</strong></div>
-    <p>
-      Accepts <strong>.HEIC</strong> Live Photos directly,<br>
-      or the <strong>.MOV</strong> video companion,<br>
-      or both files together.
-    </p>
-    <button class="browse" id="browseBtn">Choose Files</button>
-    <input type="file" id="fileInput" accept=".heic,.heif,.mov,.mp4,.m4v,video/*,image/heic,image/heif" multiple hidden>
-
-    <details class="how-to">
-      <summary>How do I get my Live Photo file?</summary>
-      <ol class="steps">
-        <li data-n="1.">Open <strong>Photos</strong> on iPhone or Mac</li>
-        <li data-n="2.">Select the Live Photo</li>
-        <li data-n="3."><strong>iPhone:</strong> Tap Share &rarr; Save to Files &rarr; pick this page via Safari</li>
-        <li data-n="4."><strong>Mac:</strong> File &rarr; Export &rarr; Export Unmodified Original &mdash; then drag the <code>.HEIC</code> (or both files) here</li>
-        <li data-n="5."><strong>AirDrop</strong> to Mac also gives you the paired files</li>
-      </ol>
-    </details>
+    <div><strong>Drop the video from your Live Photo here</strong></div>
+    <p>Accepts <strong>.MOV</strong> or <strong>.MP4</strong> files</p>
+    <button class="browse" id="browseBtn">Choose Video File</button>
+    <input type="file" id="fileInput" accept=".mov,.mp4,.m4v,video/*" hidden>
   </div>
 
-  <!-- Status banner (shown during file processing) -->
+  <!-- How-to guide -->
+  <div class="guide open" id="guide">
+    <div class="guide-header" id="guideToggle">
+      <h2>How to get the video from a Live Photo</h2>
+      <span class="arrow">&#9660;</span>
+    </div>
+    <div class="guide-body">
+      <p style="font-size:0.83rem; color:var(--text-dim); margin-bottom:14px; line-height:1.5;">
+        iOS stores a Live Photo as two separate files: a still image (.HEIC) and a short video (.MOV).
+        Browsers can't read the .HEIC directly &mdash; you need the .MOV video companion. Here's how to get it:
+      </p>
+      <div class="method-tabs">
+        <button class="method-tab active" data-method="iphone">iPhone</button>
+        <button class="method-tab" data-method="mac">Mac</button>
+        <button class="method-tab" data-method="quick">Quickest Way</button>
+      </div>
+
+      <div class="method-content active" data-method="iphone">
+        <ol class="step-list">
+          <li>Open the <strong>Photos</strong> app and find your Live Photo</li>
+          <li>Tap the <strong>&middot;&middot;&middot;</strong> menu (top right) or long-press the photo</li>
+          <li>Tap <strong>Save as Video</strong></li>
+          <li>The video now appears in your Recents &mdash; share or save it to Files</li>
+          <li>Open this page in Safari and <strong>Choose Video File</strong> above</li>
+        </ol>
+        <div class="tip-box">
+          Don't see "Save as Video"? Make sure <strong>Live</strong> is turned on for that photo (not set to Long Exposure or Loop).
+        </div>
+      </div>
+
+      <div class="method-content" data-method="mac">
+        <ol class="step-list">
+          <li>Open <strong>Photos</strong> on your Mac and select the Live Photo</li>
+          <li>Go to <strong>File &rarr; Export &rarr; Export Unmodified Original</strong></li>
+          <li>This saves two files: a <strong>.HEIC</strong> (still image) and a <strong>.MOV</strong> (video)</li>
+          <li>Drag the <strong>.MOV file</strong> onto the drop zone above</li>
+        </ol>
+        <div class="tip-box">
+          You can also drag the Live Photo directly from Photos into Finder first, then drag the .MOV file here.
+        </div>
+      </div>
+
+      <div class="method-content" data-method="quick">
+        <ol class="step-list">
+          <li><strong>AirDrop</strong> the Live Photo from iPhone to your Mac</li>
+          <li>It arrives as two files: <code>.HEIC</code> + <code>.MOV</code></li>
+          <li>Drag the <strong>.MOV</strong> here</li>
+        </ol>
+        <div class="tip-box">
+          This is the fastest way if you have a Mac nearby. The .MOV file is the exact original video from the Live Photo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status banner -->
   <div class="status-banner" id="statusBanner"></div>
 
   <!-- Editor Panel -->
@@ -303,233 +379,6 @@
 </div>
 
 <script>
-// ============================================================
-//  ISOBMFF / HEIC Live Photo parser
-//  Extracts the embedded video track from a HEIC Live Photo
-// ============================================================
-const LivePhotoParser = (() => {
-
-  // Read a 4-byte ASCII tag from a DataView
-  function readTag(dv, offset) {
-    return String.fromCharCode(dv.getUint8(offset), dv.getUint8(offset+1), dv.getUint8(offset+2), dv.getUint8(offset+3));
-  }
-
-  // Parse top-level ISOBMFF boxes
-  function parseBoxes(buffer, start, end) {
-    const dv = new DataView(buffer);
-    const boxes = [];
-    let offset = start;
-    while (offset + 8 <= end) {
-      let size = dv.getUint32(offset);
-      const type = readTag(dv, offset + 4);
-      let headerSize = 8;
-      if (size === 1 && offset + 16 <= end) {
-        // 64-bit extended size
-        const hi = dv.getUint32(offset + 8);
-        const lo = dv.getUint32(offset + 12);
-        size = hi * 0x100000000 + lo;
-        headerSize = 16;
-      } else if (size === 0) {
-        size = end - offset;
-      }
-      if (size < headerSize || offset + size > end) break;
-      boxes.push({ type, offset, size, headerSize, dataOffset: offset + headerSize, dataSize: size - headerSize });
-      offset += size;
-    }
-    return boxes;
-  }
-
-  // Check if a box hierarchy contains a video track (trak → mdia → hdlr with 'vide')
-  function hasVideoTrack(buffer, moovBox) {
-    const inner = parseBoxes(buffer, moovBox.dataOffset, moovBox.offset + moovBox.size);
-    for (const trak of inner.filter(b => b.type === 'trak')) {
-      const trakInner = parseBoxes(buffer, trak.dataOffset, trak.offset + trak.size);
-      for (const mdia of trakInner.filter(b => b.type === 'mdia')) {
-        const mdiaInner = parseBoxes(buffer, mdia.dataOffset, mdia.offset + mdia.size);
-        for (const hdlr of mdiaInner.filter(b => b.type === 'hdlr')) {
-          // handler_type is at offset 8 within hdlr data (after version + flags + pre_defined)
-          if (hdlr.dataSize >= 12) {
-            const dv = new DataView(buffer);
-            const handlerType = readTag(dv, hdlr.dataOffset + 8);
-            if (handlerType === 'vide') return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  // Recursively find and rewrite stco / co64 chunk offsets inside a box range.
-  // delta = new_file_position_of_mdat - original_file_position_of_mdat
-  function rewriteChunkOffsets(buffer, start, end, delta) {
-    const boxes = parseBoxes(buffer, start, end);
-    const dv = new DataView(buffer);
-    for (const box of boxes) {
-      if (box.type === 'stco') {
-        // version(1) + flags(3) + entry_count(4) then entries of 4 bytes each
-        const count = dv.getUint32(box.dataOffset + 4);
-        for (let i = 0; i < count; i++) {
-          const pos = box.dataOffset + 8 + i * 4;
-          dv.setUint32(pos, dv.getUint32(pos) + delta);
-        }
-      } else if (box.type === 'co64') {
-        const count = dv.getUint32(box.dataOffset + 4);
-        for (let i = 0; i < count; i++) {
-          const pos = box.dataOffset + 8 + i * 8;
-          const hi = dv.getUint32(pos);
-          const lo = dv.getUint32(pos + 4);
-          const val = hi * 0x100000000 + lo + delta;
-          dv.setUint32(pos, Math.floor(val / 0x100000000));
-          dv.setUint32(pos + 4, val >>> 0);
-        }
-      } else if (['moov','trak','mdia','minf','stbl','dinf','edts','udta'].includes(box.type)) {
-        // Container boxes — recurse
-        rewriteChunkOffsets(buffer, box.dataOffset, box.offset + box.size, delta);
-      }
-    }
-  }
-
-  /**
-   * Attempt to extract a playable video blob from a HEIC Live Photo buffer.
-   * Returns { blob, method } or null if no embedded video found.
-   */
-  function extractVideo(arrayBuffer) {
-    const boxes = parseBoxes(arrayBuffer, 0, arrayBuffer.byteLength);
-    const types = boxes.map(b => b.type);
-
-    // Must have a moov box with a video track
-    const moovBox = boxes.find(b => b.type === 'moov');
-    if (!moovBox) return null;
-    if (!hasVideoTrack(arrayBuffer, moovBox)) return null;
-
-    // Collect all mdat boxes
-    const mdatBoxes = boxes.filter(b => b.type === 'mdat');
-    if (mdatBoxes.length === 0) return null;
-
-    // Strategy 1: try the whole file as video/mp4 (works in Safari & some Chrome)
-    // We'll try this later in the caller as a fallback-first approach.
-
-    // Strategy 2: build a minimal MP4 from ftyp + moov + mdat(s)
-    // Create a synthetic ftyp that says "isom" so browsers accept it as MP4.
-    const syntheticFtyp = new Uint8Array(20);
-    const ftypDv = new DataView(syntheticFtyp.buffer);
-    ftypDv.setUint32(0, 20); // box size
-    syntheticFtyp[4] = 0x66; syntheticFtyp[5] = 0x74; syntheticFtyp[6] = 0x79; syntheticFtyp[7] = 0x70; // 'ftyp'
-    // major brand = 'isom'
-    syntheticFtyp[8] = 0x69; syntheticFtyp[9] = 0x73; syntheticFtyp[10] = 0x6F; syntheticFtyp[11] = 0x6D;
-    ftypDv.setUint32(12, 0x200); // minor version
-    // compatible brand = 'isom'
-    syntheticFtyp[16] = 0x69; syntheticFtyp[17] = 0x73; syntheticFtyp[18] = 0x6F; syntheticFtyp[19] = 0x6D;
-
-    // Clone moov and mdat so we can adjust offsets
-    const moovBytes = new Uint8Array(arrayBuffer.slice(moovBox.offset, moovBox.offset + moovBox.size));
-
-    // Gather mdat slices
-    const mdatSlices = mdatBoxes.map(b => new Uint8Array(arrayBuffer, b.offset, b.size));
-
-    // New layout: syntheticFtyp(20) + moov + mdat(s)
-    // The original chunk offsets point into the original file. We need to adjust them.
-    // In the new file, the offset shift for each mdat relative to original:
-    //   new_offset = syntheticFtyp.length + moov.size + sum_of_preceding_mdats_in_new - original_offset
-    // But since we might have multiple mdats and they might be interleaved with other boxes,
-    // the simplest correct approach: compute delta for each mdat box.
-    // However chunk offsets point to absolute positions that land within any mdat.
-    // Since we're keeping all mdats in their original order, and moov might have been between some,
-    // we can compute a unified delta if we know the mapping.
-
-    // Simpler: place moov first, then all mdats in original order.
-    // For each chunk offset, find which mdat it belongs to (by checking ranges),
-    // then compute new position.
-
-    // Build a position map: for each original byte position that falls in an mdat,
-    // compute the new byte position.
-    let newFileOffset = syntheticFtyp.length + moovBytes.length;
-    const mdatMap = []; // { origStart, origEnd, newStart }
-    for (const b of mdatBoxes) {
-      mdatMap.push({ origStart: b.offset, origEnd: b.offset + b.size, newStart: newFileOffset });
-      newFileOffset += b.size;
-    }
-
-    // Rewrite chunk offsets in the cloned moov buffer
-    // We need a temporary ArrayBuffer for the moov so DataView works
-    const moovBuf = moovBytes.buffer.slice(moovBytes.byteOffset, moovBytes.byteOffset + moovBytes.byteLength);
-    const moovDv = new DataView(moovBuf);
-
-    // Walk moov's sub-boxes to find stco/co64 and rewrite
-    function rewriteInClone(start, end) {
-      const bx = [];
-      let off = start;
-      while (off + 8 <= end) {
-        let sz = moovDv.getUint32(off);
-        const tp = String.fromCharCode(moovDv.getUint8(off+4), moovDv.getUint8(off+5), moovDv.getUint8(off+6), moovDv.getUint8(off+7));
-        let hs = 8;
-        if (sz === 1 && off + 16 <= end) { sz = moovDv.getUint32(off+8) * 0x100000000 + moovDv.getUint32(off+12); hs = 16; }
-        else if (sz === 0) sz = end - off;
-        if (sz < hs || off + sz > end) break;
-        bx.push({ type: tp, offset: off, size: sz, dataOffset: off + hs });
-        off += sz;
-      }
-
-      for (const b of bx) {
-        if (b.type === 'stco') {
-          const count = moovDv.getUint32(b.dataOffset + 4);
-          for (let i = 0; i < count; i++) {
-            const pos = b.dataOffset + 8 + i * 4;
-            const origChunkOff = moovDv.getUint32(pos);
-            // Find which mdat this points into
-            for (const m of mdatMap) {
-              if (origChunkOff >= m.origStart && origChunkOff < m.origEnd) {
-                moovDv.setUint32(pos, origChunkOff - m.origStart + m.newStart);
-                break;
-              }
-            }
-          }
-        } else if (b.type === 'co64') {
-          const count = moovDv.getUint32(b.dataOffset + 4);
-          for (let i = 0; i < count; i++) {
-            const pos = b.dataOffset + 8 + i * 8;
-            const hi = moovDv.getUint32(pos);
-            const lo = moovDv.getUint32(pos + 4);
-            const origChunkOff = hi * 0x100000000 + lo;
-            for (const m of mdatMap) {
-              if (origChunkOff >= m.origStart && origChunkOff < m.origEnd) {
-                const newOff = origChunkOff - m.origStart + m.newStart;
-                moovDv.setUint32(pos, Math.floor(newOff / 0x100000000));
-                moovDv.setUint32(pos + 4, newOff >>> 0);
-                break;
-              }
-            }
-          }
-        } else if (['moov','trak','mdia','minf','stbl','dinf','edts','udta'].includes(b.type)) {
-          rewriteInClone(b.dataOffset, b.offset + b.size);
-        }
-      }
-    }
-    // moov data starts at headerSize offset within the clone (which starts at 0)
-    rewriteInClone(moovBox.headerSize, moovBytes.length);
-
-    // Assemble the new file
-    const parts = [syntheticFtyp, new Uint8Array(moovBuf), ...mdatSlices];
-    return { blob: new Blob(parts, { type: 'video/mp4' }), method: 'extracted' };
-  }
-
-  /**
-   * Quick check: does this buffer look like it might be a HEIC/HEIF?
-   */
-  function isHEIC(arrayBuffer) {
-    if (arrayBuffer.byteLength < 12) return false;
-    const dv = new DataView(arrayBuffer);
-    const ftyp = readTag(dv, 4);
-    if (ftyp !== 'ftyp') return false;
-    const brand = readTag(dv, 8);
-    const heifBrands = ['heic','heix','hevc','hevx','heim','heis','hevm','hevs','mif1','msf1'];
-    return heifBrands.includes(brand);
-  }
-
-  return { extractVideo, isHEIC };
-})();
-
-
 // ============================================================
 //  GIF Encoder — pure JS, GIF89a with LZW compression
 // ============================================================
@@ -667,6 +516,8 @@ class GIFEncoder {
   const dropZone      = $('#dropZone');
   const browseBtn     = $('#browseBtn');
   const fileInput     = $('#fileInput');
+  const guide         = $('#guide');
+  const guideToggle   = $('#guideToggle');
   const statusBanner  = $('#statusBanner');
   const editorPanel   = $('#editorPanel');
   const resultPanel   = $('#resultPanel');
@@ -699,8 +550,20 @@ class GIFEncoder {
   let dragging = null;
   let isConverting = false;
 
-  function showStatus(msg, type = 'info') {
-    statusBanner.textContent = msg;
+  // ---- Guide tabs ----
+  guideToggle.addEventListener('click', () => guide.classList.toggle('open'));
+
+  document.querySelectorAll('.method-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.method-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector(`.method-content[data-method="${tab.dataset.method}"]`).classList.add('active');
+    });
+  });
+
+  function showStatus(msg, type = 'warn') {
+    statusBanner.innerHTML = msg;
     statusBanner.className = 'status-banner active ' + type;
   }
   function hideStatus() { statusBanner.className = 'status-banner'; }
@@ -708,147 +571,60 @@ class GIFEncoder {
   // ---- File handling ----
   browseBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
   dropZone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFiles(fileInput.files); });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
 
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
   dropZone.addEventListener('drop', e => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    if (!e.dataTransfer.files.length) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    // If multiple files, look for a video among them (user might have dropped HEIC + MOV pair)
+    const video = files.find(f => {
+      const ext = f.name.split('.').pop().toLowerCase();
+      return ['mov','mp4','m4v'].includes(ext) || f.type.startsWith('video/');
+    });
+
+    if (video) {
+      hideStatus();
+      handleFile(video);
+      return;
+    }
+
+    // Check if they dropped a HEIC
+    const heic = files.find(f => {
+      const ext = f.name.split('.').pop().toLowerCase();
+      return ['heic','heif'].includes(ext) || f.type === 'image/heic' || f.type === 'image/heif';
+    });
+
+    if (heic) {
+      showStatus(
+        '<strong>That\'s the still image (.HEIC), not the video.</strong><br>' +
+        'iOS Live Photos are stored as two separate files. ' +
+        'Browsers can\'t extract the video from the .HEIC &mdash; you need the .MOV companion file.<br><br>' +
+        'See the instructions below for how to get it.',
+        'warn'
+      );
+      guide.classList.add('open');
+      return;
+    }
+
+    // Unknown file
+    showStatus('This file type isn\'t supported. Drop a .MOV or .MP4 video file.', 'error');
   });
 
-  async function handleFiles(fileList) {
-    const files = Array.from(fileList);
+  function handleFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['mov','mp4','m4v'].includes(ext) && !file.type.startsWith('video/')) {
+      showStatus('This file type isn\'t supported. Drop a .MOV or .MP4 video file.', 'error');
+      return;
+    }
     hideStatus();
-
-    // Classify files
-    const videos = [];
-    const heics = [];
-    const others = [];
-
-    for (const f of files) {
-      const ext = f.name.split('.').pop().toLowerCase();
-      if (['mov', 'mp4', 'm4v'].includes(ext) || f.type.startsWith('video/')) {
-        videos.push(f);
-      } else if (['heic', 'heif'].includes(ext) || f.type === 'image/heic' || f.type === 'image/heif') {
-        heics.push(f);
-      } else {
-        others.push(f);
-      }
-    }
-
-    // Case 1: paired files — HEIC + MOV dropped together → use the MOV
-    if (videos.length > 0 && heics.length > 0) {
-      showStatus('Detected Live Photo pair — using the video companion.', 'info');
-      return useVideoFile(videos[0]);
-    }
-
-    // Case 2: video file(s) only
-    if (videos.length > 0) {
-      return useVideoFile(videos[0]);
-    }
-
-    // Case 3: HEIC file — extract embedded video
-    if (heics.length > 0) {
-      showStatus('Reading Live Photo...', 'info');
-      return extractFromHEIC(heics[0]);
-    }
-
-    // Case 4: unknown
-    showStatus('Unrecognized file type. Drop a .HEIC Live Photo or its .MOV companion video.', 'error');
-  }
-
-  function useVideoFile(file) {
     if (videoURL) URL.revokeObjectURL(videoURL);
     videoURL = URL.createObjectURL(file);
     loadVideoIntoEditor(videoURL);
-  }
-
-  async function extractFromHEIC(file) {
-    try {
-      const buffer = await file.arrayBuffer();
-
-      if (!LivePhotoParser.isHEIC(buffer)) {
-        showStatus('This doesn\'t look like a HEIC file. Try exporting the Live Photo from the Photos app.', 'error');
-        return;
-      }
-
-      showStatus('Extracting embedded video from Live Photo...', 'info');
-
-      // Strategy 1: try using the whole HEIC as a video source directly (works in Safari)
-      const directBlob = new Blob([buffer], { type: 'video/mp4' });
-      const directURL = URL.createObjectURL(directBlob);
-      const directOK = await tryVideoURL(directURL, 2000);
-
-      if (directOK) {
-        hideStatus();
-        if (videoURL) URL.revokeObjectURL(videoURL);
-        videoURL = directURL;
-        loadVideoIntoEditor(videoURL);
-        return;
-      }
-      URL.revokeObjectURL(directURL);
-
-      // Strategy 2: extract and rebuild the video track
-      const result = LivePhotoParser.extractVideo(buffer);
-      if (!result) {
-        showStatus('No embedded video found in this HEIC. It may be a still photo, not a Live Photo. Try exporting with "Export Unmodified Original" to get the .MOV companion file.', 'warn');
-        return;
-      }
-
-      const extractedURL = URL.createObjectURL(result.blob);
-      const extractedOK = await tryVideoURL(extractedURL, 3000);
-
-      if (extractedOK) {
-        hideStatus();
-        if (videoURL) URL.revokeObjectURL(videoURL);
-        videoURL = extractedURL;
-        loadVideoIntoEditor(videoURL);
-        return;
-      }
-      URL.revokeObjectURL(extractedURL);
-
-      // Strategy 3: try as video/quicktime
-      const qtBlob = new Blob([buffer], { type: 'video/quicktime' });
-      const qtURL = URL.createObjectURL(qtBlob);
-      const qtOK = await tryVideoURL(qtURL, 2000);
-
-      if (qtOK) {
-        hideStatus();
-        if (videoURL) URL.revokeObjectURL(videoURL);
-        videoURL = qtURL;
-        loadVideoIntoEditor(videoURL);
-        return;
-      }
-      URL.revokeObjectURL(qtURL);
-
-      showStatus(
-        'Your browser can\'t decode the video in this Live Photo (likely HEVC). ' +
-        'Try Safari, or export the .MOV companion file separately from Photos: File → Export → Export Unmodified Original.',
-        'warn'
-      );
-    } catch (err) {
-      console.error('HEIC extraction error:', err);
-      showStatus('Failed to read the file: ' + err.message, 'error');
-    }
-  }
-
-  // Test if a video URL is playable by the browser
-  function tryVideoURL(url, timeoutMs) {
-    return new Promise(resolve => {
-      const v = document.createElement('video');
-      v.muted = true;
-      v.preload = 'metadata';
-      const timer = setTimeout(() => { cleanup(); resolve(false); }, timeoutMs);
-      const cleanup = () => { clearTimeout(timer); v.removeAttribute('src'); v.load(); };
-      v.addEventListener('loadedmetadata', () => {
-        if (v.duration > 0 && v.videoWidth > 0) { cleanup(); resolve(true); }
-        else { cleanup(); resolve(false); }
-      }, { once: true });
-      v.addEventListener('error', () => { cleanup(); resolve(false); }, { once: true });
-      v.src = url;
-    });
   }
 
   function loadVideoIntoEditor(url) {
@@ -860,11 +636,12 @@ class GIFEncoder {
       updateTrimUI();
       generateThumbnails();
       dropZone.classList.add('hidden');
+      guide.classList.add('hidden');
       editorPanel.classList.remove('hidden');
       resultPanel.classList.add('hidden');
     }, { once: true });
     videoEl.addEventListener('error', () => {
-      showStatus('Could not play the video. Try a different browser or export the .MOV file separately.', 'error');
+      showStatus('Could not play this video. The codec may not be supported by your browser. Try Safari for HEVC videos.', 'error');
     }, { once: true });
   }
 
@@ -1033,6 +810,7 @@ class GIFEncoder {
     editorPanel.classList.add('hidden');
     resultPanel.classList.add('hidden');
     dropZone.classList.remove('hidden');
+    guide.classList.remove('hidden');
     hideStatus();
     videoEl.pause();
     videoEl.removeAttribute('src');
