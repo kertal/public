@@ -1,0 +1,22 @@
+{
+  "name": "terminal-browser-preview",
+  "version": "1.0.0",
+  "description": "Chromium-based terminal with integrated browser preview - mixes bash/zsh with a browser tab",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "keywords": ["terminal", "browser", "electron", "xterm", "preview"],
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^33.0.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "node-pty": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron-rebuild": "^3.2.9"
+  }
+}
