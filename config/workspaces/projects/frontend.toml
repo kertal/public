@@ -1,0 +1,15 @@
+[project]
+name = "frontend"
+workspace = 1
+directory = "~/code/frontend"
+
+[terminal]
+arrangement = "frontend"
+
+[browser]
+url = "http://localhost:3000"
+
+[notes]
+# Editable notes displayed when switching to this workspace.
+# Edit this file or run: workspace note frontend "your note here"
+text = ""
