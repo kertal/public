@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🇦🇹 GPB Quiz – Österreich im 20. Jahrhundert</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #e0e7ff;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --warning: #f59e0b;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 4px 24px rgba(99,102,241,0.10);
+      --shadow-lg: 0 8px 40px rgba(99,102,241,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      padding: 32px 16px 64px;
+      color: var(--text);
+    }
+
+    /* ─── Header ─── */
+    .hero {
+      text-align: center;
+      margin-bottom: 32px;
+      animation: slideDown 0.6s ease;
+    }
+    .hero .flag { font-size: 4rem; display: block; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.2)); }
+    .hero h1 {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(0,0,0,.25);
+      line-height: 1.2;
+    }
+    .hero p {
+      margin-top: 10px;
+      color: rgba(255,255,255,.85);
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    /* ─── Progress ─── */
+    .progress-wrap {
+      max-width: 760px;
+      margin: 0 auto 24px;
+      animation: slideDown 0.7s ease;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      color: rgba(255,255,255,.9);
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .progress-bar-bg {
+      background: rgba(255,255,255,.25);
+      border-radius: 99px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #34d399, #10b981);
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ─── Container ─── */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ─── Question Card ─── */
+    .question {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 2px solid transparent;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+      animation: fadeUp 0.5s ease both;
+    }
+    .question:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+    .question.correct {
+      border-color: var(--success);
+      background: linear-gradient(135deg, #fff 70%, var(--success-light));
+    }
+    .question.wrong {
+      border-color: var(--danger);
+      background: linear-gradient(135deg, #fff 70%, var(--danger-light));
+    }
+
+    .question-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .q-number {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: .75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .question-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .q-status {
+      margin-left: auto;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .question.correct .q-status, .question.wrong .q-status { opacity: 1; }
+
+    /* ─── Custom Radio ─── */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      font-size: .95rem;
+      font-weight: 500;
+      color: var(--text);
+      user-select: none;
+      position: relative;
+    }
+    .option-label:hover { border-color: var(--primary); background: var(--primary-light); transform: scale(1.01); }
+
+    .option-label input[type="radio"] { display: none; }
+
+    .radio-custom {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .radio-custom::after {
+      content: '';
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .option-label input:checked ~ .radio-custom {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .option-label input:checked ~ .radio-custom::after { opacity: 1; transform: scale(1); }
+    .option-label:has(input:checked) { border-color: var(--primary); background: var(--primary-light); }
+
+    /* After grading: highlight correct / wrong options */
+    .question.correct .option-label:has(input:checked),
+    .question.wrong   .option-label.is-correct {
+      border-color: var(--success);
+      background: var(--success-light);
+    }
+    .question.wrong .option-label:has(input:checked):not(.is-correct) {
+      border-color: var(--danger);
+      background: var(--danger-light);
+    }
+
+    /* ─── Buttons ─── */
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+    }
+    .btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(99,102,241,.4);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--primary-dark);
+      border: 2px solid var(--primary-light);
+    }
+
+    /* ─── Result Banner ─── */
+    #result {
+      display: none;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      animation: popIn 0.5s cubic-bezier(.175,.885,.32,1.275) both;
+    }
+    #result .result-emoji { font-size: 4rem; display: block; margin-bottom: 12px; }
+    #result .result-title { font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    #result .result-score {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), #f093fb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin: 12px 0;
+    }
+    #result .result-feedback { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; }
+
+    .score-bar-wrap { margin: 20px auto; max-width: 340px; }
+    .score-bar-bg { background: var(--border); border-radius: 99px; height: 14px; overflow: hidden; }
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #6366f1, #f093fb);
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+      width: 0%;
+    }
+
+    /* ─── Confetti canvas ─── */
+    #confetti-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ─── Animations ─── */
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* stagger question cards */
+    .question:nth-child(1)  { animation-delay: .05s }
+    .question:nth-child(2)  { animation-delay: .10s }
+    .question:nth-child(3)  { animation-delay: .15s }
+    .question:nth-child(4)  { animation-delay: .20s }
+    .question:nth-child(5)  { animation-delay: .25s }
+    .question:nth-child(6)  { animation-delay: .30s }
+    .question:nth-child(7)  { animation-delay: .35s }
+    .question:nth-child(8)  { animation-delay: .40s }
+    .question:nth-child(9)  { animation-delay: .45s }
+    .question:nth-child(10) { animation-delay: .50s }
+    .question:nth-child(11) { animation-delay: .55s }
+    .question:nth-child(12) { animation-delay: .60s }
+    .question:nth-child(13) { animation-delay: .65s }
+    .question:nth-child(14) { animation-delay: .70s }
+    .question:nth-child(15) { animation-delay: .75s }
+    .question:nth-child(16) { animation-delay: .80s }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.4rem; }
+      .btn { padding: 12px 20px; font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="hero">
+  <span class="flag">🇦🇹</span>
+  <h1>GPB-Quiz: Österreich im&nbsp;20.&nbsp;Jahrhundert</h1>
+  <p>📖 Wähle jeweils die richtige Antwort – du schaffst das! 💪</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span id="progressText">0 von 16 beantwortet</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<div class="container">
+  <form id="quizForm">
+
+    <div class="question" data-q="q1">
+      <div class="question-header">
+        <span class="q-number">Frage 1</span>
+        <h3>👑 Was ist eine Monarchie?</h3>
+        <span class="q-status" id="s-q1"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q1" value="a"><span class="radio-custom"></span>Ein Staat mit Kaiser oder König</label>
+        <label class="option-label"><input type="radio" name="q1" value="b"><span class="radio-custom"></span>Ein Staat mit Präsident</label>
+        <label class="option-label"><input type="radio" name="q1" value="c"><span class="radio-custom"></span>Eine Form von Gericht</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q2">
+      <div class="question-header">
+        <span class="q-number">Frage 2</span>
+        <h3>🗳️ Was ist eine Republik?</h3>
+        <span class="q-status" id="s-q2"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q2" value="a"><span class="radio-custom"></span>Ein Staat mit Kaiser</label>
+        <label class="option-label"><input type="radio" name="q2" value="b"><span class="radio-custom"></span>Ein Staat ohne Monarchen, mit gewähltem Präsidenten</label>
+        <label class="option-label"><input type="radio" name="q2" value="c"><span class="radio-custom"></span>Eine Diktatur</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q3">
+      <div class="question-header">
+        <span class="q-number">Frage 3</span>
+        <h3>🗽 Was bedeutet Demokratie?</h3>
+        <span class="q-status" id="s-q3"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q3" value="a"><span class="radio-custom"></span>Das Volk entscheidet mit</label>
+        <label class="option-label"><input type="radio" name="q3" value="b"><span class="radio-custom"></span>Eine Person hat alle Macht</label>
+        <label class="option-label"><input type="radio" name="q3" value="c"><span class="radio-custom"></span>Es gibt keinen Staat</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q4">
+      <div class="question-header">
+        <span class="q-number">Frage 4</span>
+        <h3>⚠️ Was bedeutet Diktatur?</h3>
+        <span class="q-status" id="s-q4"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q4" value="a"><span class="radio-custom"></span>Alle Menschen wählen frei</label>
+        <label class="option-label"><input type="radio" name="q4" value="b"><span class="radio-custom"></span>Eine Person oder Gruppe hat sehr viel Macht</label>
+        <label class="option-label"><input type="radio" name="q4" value="c"><span class="radio-custom"></span>Das Parlament entscheidet alles alleine</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q5">
+      <div class="question-header">
+        <span class="q-number">Frage 5</span>
+        <h3>⚖️ Welche drei Gewalten gibt es?</h3>
+        <span class="q-status" id="s-q5"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q5" value="a"><span class="radio-custom"></span>Schule, Polizei, Kaiser</label>
+        <label class="option-label"><input type="radio" name="q5" value="b"><span class="radio-custom"></span>Legislative, Exekutive, Judikative</label>
+        <label class="option-label"><input type="radio" name="q5" value="c"><span class="radio-custom"></span>Nationalrat, Bundesrat, Bürgermeister</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q6">
+      <div class="question-header">
+        <span class="q-number">Frage 6</span>
+        <h3>📜 Was macht die Legislative?</h3>
+        <span class="q-status" id="s-q6"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q6" value="a"><span class="radio-custom"></span>Sie macht Gesetze</label>
+        <label class="option-label"><input type="radio" name="q6" value="b"><span class="radio-custom"></span>Sie kontrolliert Gerichte</label>
+        <label class="option-label"><input type="radio" name="q6" value="c"><span class="radio-custom"></span>Sie führt Kriege</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q7">
+      <div class="question-header">
+        <span class="q-number">Frage 7</span>
+        <h3>🏛️ Was macht die Exekutive?</h3>
+        <span class="q-status" id="s-q7"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q7" value="a"><span class="radio-custom"></span>Sie schreibt Schulbücher</label>
+        <label class="option-label"><input type="radio" name="q7" value="b"><span class="radio-custom"></span>Sie führt Gesetze aus</label>
+        <label class="option-label"><input type="radio" name="q7" value="c"><span class="radio-custom"></span>Sie macht Urteile</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q8">
+      <div class="question-header">
+        <span class="q-number">Frage 8</span>
+        <h3>🔨 Was macht die Judikative?</h3>
+        <span class="q-status" id="s-q8"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q8" value="a"><span class="radio-custom"></span>Sie kontrolliert durch Gerichte</label>
+        <label class="option-label"><input type="radio" name="q8" value="b"><span class="radio-custom"></span>Sie wählt den Kaiser</label>
+        <label class="option-label"><input type="radio" name="q8" value="c"><span class="radio-custom"></span>Sie baut Straßen</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q9">
+      <div class="question-header">
+        <span class="q-number">Frage 9</span>
+        <h3>📅 Bis wann war Österreich eine Monarchie?</h3>
+        <span class="q-status" id="s-q9"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q9" value="a"><span class="radio-custom"></span>Bis 1918</label>
+        <label class="option-label"><input type="radio" name="q9" value="b"><span class="radio-custom"></span>Bis 1938</label>
+        <label class="option-label"><input type="radio" name="q9" value="c"><span class="radio-custom"></span>Bis 1945</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q10">
+      <div class="question-header">
+        <span class="q-number">Frage 10</span>
+        <h3>🏳️ Wann begann die 1. Republik?</h3>
+        <span class="q-status" id="s-q10"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q10" value="a"><span class="radio-custom"></span>1900</label>
+        <label class="option-label"><input type="radio" name="q10" value="b"><span class="radio-custom"></span>1918</label>
+        <label class="option-label"><input type="radio" name="q10" value="c"><span class="radio-custom"></span>1945</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q11">
+      <div class="question-header">
+        <span class="q-number">Frage 11</span>
+        <h3>🕰️ Wann war Austrofaschismus in Österreich?</h3>
+        <span class="q-status" id="s-q11"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q11" value="a"><span class="radio-custom"></span>1918–1933</label>
+        <label class="option-label"><input type="radio" name="q11" value="b"><span class="radio-custom"></span>1933–1938</label>
+        <label class="option-label"><input type="radio" name="q11" value="c"><span class="radio-custom"></span>1945–1955</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q12">
+      <div class="question-header">
+        <span class="q-number">Frage 12</span>
+        <h3>📜 Wann war Österreich Teil der NS-Zeit?</h3>
+        <span class="q-status" id="s-q12"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q12" value="a"><span class="radio-custom"></span>1938–1945</label>
+        <label class="option-label"><input type="radio" name="q12" value="b"><span class="radio-custom"></span>1918–1933</label>
+        <label class="option-label"><input type="radio" name="q12" value="c"><span class="radio-custom"></span>Ab 2000</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q13">
+      <div class="question-header">
+        <span class="q-number">Frage 13</span>
+        <h3>🌟 Seit wann gibt es die 2. Republik?</h3>
+        <span class="q-status" id="s-q13"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q13" value="a"><span class="radio-custom"></span>1918</label>
+        <label class="option-label"><input type="radio" name="q13" value="b"><span class="radio-custom"></span>1933</label>
+        <label class="option-label"><input type="radio" name="q13" value="c"><span class="radio-custom"></span>1945</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q14">
+      <div class="question-header">
+        <span class="q-number">Frage 14</span>
+        <h3>🗿 Woran erinnert das Denkmal der Republik?</h3>
+        <span class="q-status" id="s-q14"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q14" value="a"><span class="radio-custom"></span>An die Gründung der Republik 1918</label>
+        <label class="option-label"><input type="radio" name="q14" value="b"><span class="radio-custom"></span>An den Kaiser</label>
+        <label class="option-label"><input type="radio" name="q14" value="c"><span class="radio-custom"></span>An den Nationalsozialismus</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q15">
+      <div class="question-header">
+        <span class="q-number">Frage 15</span>
+        <h3>🗳️ Wann bekamen Frauen in Österreich das Wahlrecht?</h3>
+        <span class="q-status" id="s-q15"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q15" value="a"><span class="radio-custom"></span>1918</label>
+        <label class="option-label"><input type="radio" name="q15" value="b"><span class="radio-custom"></span>1938</label>
+        <label class="option-label"><input type="radio" name="q15" value="c"><span class="radio-custom"></span>1970</label>
+      </div>
+    </div>
+
+    <div class="question" data-q="q16">
+      <div class="question-header">
+        <span class="q-number">Frage 16</span>
+        <h3>✊ Wer waren Suffragetten?</h3>
+        <span class="q-status" id="s-q16"></span>
+      </div>
+      <div class="options">
+        <label class="option-label"><input type="radio" name="q16" value="a"><span class="radio-custom"></span>Frauen, die für Frauenrechte kämpften</label>
+        <label class="option-label"><input type="radio" name="q16" value="b"><span class="radio-custom"></span>Soldaten im Ersten Weltkrieg</label>
+        <label class="option-label"><input type="radio" name="q16" value="c"><span class="radio-custom"></span>Mitglieder des Bundesrats</label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-primary" onclick="checkQuiz()">
+        ✅ Test auswerten
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="resetQuiz()">
+        🔄 Neu starten
+      </button>
+    </div>
+
+  </form>
+
+  <div id="result">
+    <span class="result-emoji" id="resultEmoji"></span>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBarFill"></div></div>
+    </div>
+    <div class="result-feedback" id="resultFeedback"></div>
+  </div>
+</div>
+
+<script>
+  const answers = {
+    q1: "a", q2: "b", q3: "a", q4: "b",
+    q5: "b", q6: "a", q7: "b", q8: "a",
+    q9: "a", q10: "b", q11: "b", q12: "a",
+    q13: "c", q14: "a", q15: "a", q16: "a"
+  };
+  const total = Object.keys(answers).length;
+
+  // ── Progress tracking ──
+  document.getElementById("quizForm").addEventListener("change", updateProgress);
+
+  function updateProgress() {
+    const answered = Object.keys(answers).filter(q =>
+      document.querySelector(`input[name="${q}"]:checked`)
+    ).length;
+    const pct = Math.round((answered / total) * 100);
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("progressText").textContent = `${answered} von ${total} beantwortet`;
+    document.getElementById("progressPct").textContent = pct + "%";
+  }
+
+  // ── Grade quiz ──
+  function checkQuiz() {
+    let score = 0;
+
+    document.querySelectorAll(".question").forEach(qEl => {
+      qEl.classList.remove("correct", "wrong");
+      qEl.querySelectorAll(".option-label").forEach(l => l.classList.remove("is-correct"));
+    });
+
+    for (const q in answers) {
+      const selected = document.querySelector(`input[name="${q}"]:checked`);
+      const qEl = document.querySelector(`.question[data-q="${q}"]`);
+      const statusEl = document.getElementById(`s-${q}`);
+
+      // Mark the correct option visually
+      const correctInput = qEl.querySelector(`input[value="${answers[q]}"]`);
+      if (correctInput) correctInput.closest(".option-label").classList.add("is-correct");
+
+      if (selected && selected.value === answers[q]) {
+        score++;
+        qEl.classList.add("correct");
+        statusEl.textContent = "✅";
+      } else {
+        qEl.classList.add("wrong");
+        statusEl.textContent = "❌";
+      }
+    }
+
+    showResult(score);
+    document.getElementById("result").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function showResult(score) {
+    const pct = Math.round((score / total) * 100);
+    let emoji, title, feedback;
+
+    if (pct === 100) {
+      emoji = "🏆"; title = "Perfekt!"; feedback = "Unglaublich – du bist ein echter Österreich-Experte! 🌟";
+      launchConfetti();
+    } else if (pct >= 90) {
+      emoji = "🔥"; title = "Ausgezeichnet!"; feedback = "Fantastische Leistung – fast perfekt! Weiter so! 🚀";
+      launchConfetti();
+    } else if (pct >= 75) {
+      emoji = "😄"; title = "Sehr gut!"; feedback = "Toll gemacht! Du kennst dich richtig gut aus. 👏";
+    } else if (pct >= 60) {
+      emoji = "👍"; title = "Gut gemacht!"; feedback = "Solide! Noch ein bisschen üben und du bist Profi. 📚";
+    } else if (pct >= 40) {
+      emoji = "😅"; title = "Nicht schlecht!"; feedback = "Du bist auf dem richtigen Weg – nochmal drüberschauen! 💡";
+    } else {
+      emoji = "💪"; title = "Weitermachen!"; feedback = "Keine Angst – üben macht den Meister! Du schaffst das! 🌈";
+    }
+
+    document.getElementById("resultEmoji").textContent = emoji;
+    document.getElementById("resultTitle").textContent = title;
+    document.getElementById("resultScore").textContent = `${score} / ${total} Punkte (${pct}%)`;
+    document.getElementById("resultFeedback").textContent = feedback;
+
+    const resultEl = document.getElementById("result");
+    resultEl.style.display = "block";
+
+    // Animate score bar after a tick
+    setTimeout(() => {
+      document.getElementById("scoreBarFill").style.width = pct + "%";
+    }, 100);
+  }
+
+  function resetQuiz() {
+    document.getElementById("quizForm").reset();
+    const resultEl = document.getElementById("result");
+    resultEl.style.display = "none";
+    document.getElementById("scoreBarFill").style.width = "0%";
+
+    document.querySelectorAll(".question").forEach(q => {
+      q.classList.remove("correct", "wrong");
+      q.querySelectorAll(".option-label").forEach(l => l.classList.remove("is-correct"));
+    });
+    document.querySelectorAll(".q-status").forEach(s => s.textContent = "");
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ── Confetti ──
+  function launchConfetti() {
+    const canvas = document.getElementById("confetti-canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const pieces = Array.from({ length: 120 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height,
+      w: 8 + Math.random() * 8,
+      h: 4 + Math.random() * 6,
+      color: ["#6366f1","#f093fb","#10b981","#f59e0b","#ef4444","#3b82f6"][Math.floor(Math.random()*6)],
+      rot: Math.random() * 360,
+      speed: 2 + Math.random() * 4,
+      drift: (Math.random() - 0.5) * 2,
+    }));
+
+    let frame;
+    let elapsed = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      pieces.forEach(p => {
+        p.y += p.speed;
+        p.x += p.drift;
+        p.rot += 3;
+        if (p.y < canvas.height + 20) alive = true;
+        ctx.save();
+        ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ctx.restore();
+      });
+      elapsed++;
+      if (alive && elapsed < 300) frame = requestAnimationFrame(draw);
+      else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    }
+    cancelAnimationFrame(frame);
+    draw();
+  }
+</script>
+</body>
+</html>

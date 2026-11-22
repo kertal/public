@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <script type="text/javascript" async
+            src="https://polyfill.io/v3/polyfill.min.js?features=es6">
+    </script>
+    <script type="text/javascript" async
+            id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js">
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1600px;
+            margin: auto;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        .options label {
+            display: block;
+            padding: 5px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .graph-container {
+            margin-bottom: 40px;
+        }
+        .graph-item {
+            flex: 1 1 30%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            border: 1px solid #000;
+        }
+        .graph-title {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        text {
+            font-size: 0.5em; /* Use em units for responsive font size */
+        }
+    </style>
+</head>
+<body>
+<h2>Kurvendiskusion 1</h2>
+<div class="graph-container">
+    <div class="graph-item">
+        <div class="graph-title">\( f_1 \)</div>
+        <svg id="graphSvg1" viewBox="0 0 500 500"></svg>
+    </div>
+    <div class="graph-item">
+        <div class="graph-title">\( f_2 \)</div>
+        <svg id="graphSvg2" viewBox="0 0 500 500"></svg>
+    </div>
+    <div class="graph-item">
+        <div class="graph-title">\( f_3 \)</div>
+        <svg id="graphSvg3" viewBox="0 0 500 500"></svg>
+    </div>
+</div>
+<form id="quizForm">
+    <div class="question">
+        <p>1. Welche Aussagen ist korrekt?</p>
+        <div class="options">
+            <label><input type="checkbox" name="q1" value="A"> <b>A</b> Die Funktionswerte von \( f_1' \) sind im Intervall \([0,160]\) negativ.</label>
+            <label><input type="checkbox" name="q1" value="B"> <b>B</b> Der Wert des Differenzialquotienten von \( f_3 \) wächst im Intervall \([0,160]\) mit wachsendem \( x \).</label>
+            <label><input type="checkbox" name="q1" value="C"> <b>C</b> Die Funktion \( f_2'' \) hat im Intervall \((0,160)\) genau eine Nullstelle.</label>
+            <label><input type="checkbox" name="q1" value="D"> <b>D</b> Die Funktionswerte von \( f_3' \) sind im Intervall \([0,160]\) negativ.</label>
+            <label><input type="checkbox" name="q1" value="E"> <b>E</b> Die Funktion \( f_1 \) ist im Intervall \([0,160]\) streng monoton fallend.</label>
+        </div>
+    </div>
+    <button type="button" onclick="checkAnswers()">Antworten überprüfen</button>
+</form>
+<div id="resultA" class="result incorrect"><b>A</b> Falsch. \( f_1' \) ist nicht durchgehend negativ, da \( f_1 \) eine wachsende Funktion ist.</div>
+<div id="resultB" class="result correct"><b>B</b> Richtig! <br/>
+    Da \( f_1 \) immer schneller ansteigt, wird seine Steigung  immer  \( f_1' \) größer,
+</div>
+<div id="resultC" class="result correct"><b>C</b> Richtig!<br/>
+    \( f_2'' \)  ist die zweite Ableitung – sie zeigt, wie sich die Steigung (die erste Ableitung) verändert.<br/>
+    \( f_2 \) ändert seine Krümmung genau einmal.<br/>
+    Das bedeutet, dass \( f_2'' \) genau eine Nullstelle hat – dort, wo die Krümmung wechselt.
+</div>
+<div id="resultD" class="result incorrect">D Falsch. \( f_3' \) gibt die Steigung von \( f_3 \) an. Da \( f_3 \) wächst, ist \( f_3' \) nicht negativ.</div>
+<div id="resultE" class="result incorrect">E Falsch. \( f_1 \) ist nicht streng monoton fallend, sondern wächst in bestimmten Bereichen.</div>
+<script>
+    function checkAnswers() {
+        const checkboxes = document.querySelectorAll('input[name="q1"]:checked');
+        const resultDivs = document.querySelectorAll('.result');
+        resultDivs.forEach(div => div.style.display = 'none');
+        if (checkboxes.length !== 2) {
+            alert("Bitte wähle zwei Antworten aus.");
+            return;
+        }
+        checkboxes.forEach(checkbox => {
+            document.getElementById("result" + checkbox.value).style.display = 'block';
+        });
+        MathJax.typeset();
+    }
+
+    function drawAxes(svg, width, height, padding) {
+        const ns = "http://www.w3.org/2000/svg";
+        const axis = document.createElementNS(ns, "line");
+        axis.setAttribute("x1", padding);
+        axis.setAttribute("y1", height - padding);
+        axis.setAttribute("x2", width - padding);
+        axis.setAttribute("y2", height - padding);
+        axis.setAttribute("stroke", "black");
+        svg.appendChild(axis);
+
+        const axisY = document.createElementNS(ns, "line");
+        axisY.setAttribute("x1", padding);
+        axisY.setAttribute("y1", padding);
+        axisY.setAttribute("x2", padding);
+        axisY.setAttribute("y2", height - padding);
+        axisY.setAttribute("stroke", "black");
+        svg.appendChild(axisY);
+
+        // Draw scales
+        for (let i = 0; i <= 16; i++) { // Adjusted to 16 to match the new scale
+            let x = padding + i * (width - 2 * padding) / 16;
+            let y = height - padding + 20;
+            const text = document.createElementNS(ns, "text");
+            text.setAttribute("x", x - 10);
+            text.setAttribute("y", y);
+            text.textContent = (i * 10).toString(); // Changed scale to 10
+            svg.appendChild(text);
+
+            const tick = document.createElementNS(ns, "line");
+            tick.setAttribute("x1", x);
+            tick.setAttribute("y1", height - padding);
+            tick.setAttribute("x2", x);
+            tick.setAttribute("y2", height - padding - 5);
+            tick.setAttribute("stroke", "black");
+            svg.appendChild(tick);
+        }
+        for (let i = 0; i <= 10; i++) {
+            let y = height - padding - i * (height - 2 * padding) / 10;
+            let x = padding - 30;
+            const text = document.createElementNS(ns, "text");
+            text.setAttribute("x", x);
+            text.setAttribute("y", y + 5);
+            text.textContent = (i * 10).toString();
+            svg.appendChild(text);
+
+            const tick = document.createElementNS(ns, "line");
+            tick.setAttribute("x1", padding);
+            tick.setAttribute("y1", y);
+            tick.setAttribute("x2", padding + 5);
+            tick.setAttribute("y2", y);
+            tick.setAttribute("stroke", "black");
+            svg.appendChild(tick);
+        }
+    }
+
+    function drawGraph1(svg, width, height, padding) {
+        const ns = "http://www.w3.org/2000/svg";
+        const path = document.createElementNS(ns, "path");
+        let d = "";
+        for (let x = 0; x <= 160; x++) {
+            const y = Math.log(x + 1) * 20; // Example function
+            const xPos = padding + (x / 160) * (width - 2 * padding); // Calculate x position as a percentage
+            const yPos = height - padding - (y / 200) * (height - 2 * padding); // Calculate y position as a percentage
+            d += `${x === 0 ? "M" : "L"}${xPos},${yPos} `;
+        }
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "blue");
+        path.setAttribute("fill", "none");
+        svg.appendChild(path);
+    }
+
+    function drawGraph2(svg, width, height, padding) {
+        const ns = "http://www.w3.org/2000/svg";
+        const path = document.createElementNS(ns, "path");
+        let d = "";
+        for (let x = 0; x <= 160; x++) {
+            const y = 100 / (1 + Math.exp(-0.05 * (x - 80))); // Example sigmoid function
+            const xPos = padding + (x / 160) * (width - 2 * padding); // Calculate x position as a percentage
+            const yPos = height - padding - (y / 200) * (height - 2 * padding); // Calculate y position as a percentage
+            d += `${x === 0 ? "M" : "L"}${xPos},${yPos} `;
+        }
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "green");
+        path.setAttribute("fill", "none");
+        svg.appendChild(path);
+    }
+
+    function drawGraph3(svg, width, height, padding) {
+        const ns = "http://www.w3.org/2000/svg";
+        const path = document.createElementNS(ns, "path");
+        let d = "";
+        for (let x = 0; x <= 160; x++) {
+            const y = Math.pow(x / 10, 2); // Example quadratic function
+            const xPos = padding + (x / 160) * (width - 2 * padding); // Calculate x position as a percentage
+            const yPos = height - padding - (y / 200) * (height - 2 * padding); // Calculate y position as a percentage
+            d += `${x === 0 ? "M" : "L"}${xPos},${yPos} `;
+        }
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "red");
+        path.setAttribute("fill", "none");
+        svg.appendChild(path);
+    }
+
+    function drawGraph(svgId, drawGraphFunction) {
+        const svg = document.getElementById(svgId);
+        const width = svg.clientWidth;
+        const height = width; // Maintain aspect ratio
+        const padding = 50;
+
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.innerHTML = ''; // Clear previous content
+
+        drawAxes(svg, width, height, padding);
+        drawGraphFunction(svg, width, height, padding);
+    }
+
+    window.addEventListener('resize', () => {
+        drawGraph('graphSvg1', drawGraph1);
+        drawGraph('graphSvg2', drawGraph2);
+        drawGraph('graphSvg3', drawGraph3);
+    });
+
+    drawGraph('graphSvg1', drawGraph1);
+    drawGraph('graphSvg2', drawGraph2);
+    drawGraph('graphSvg3', drawGraph3);
+</script>
+</body>
+</html>
