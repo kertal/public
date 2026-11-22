@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Physik Matura Quiz</title>
+</head>
+<body>
+  <!-- Templates (parsed once) -->
+  <template id="quiz-shell-tpl">
+    <style>
+      :host { display:block; }
+      .wrap{
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        margin:0; padding:1rem; background:#f7f7f7; min-height:100vh; box-sizing:border-box;
+      }
+      h1{ margin:0.2rem 0 1rem 0; text-align:center; font-size:1.35rem; }
+    </style>
+    <div class="wrap">
+      <h1 part="title"></h1>
+      <slot></slot>
+    </div>
+  </template>
+
+  <template id="quiz-card-tpl">
+    <style>
+      :host{ display:block; }
+      .card{
+        background:#fff; border-radius:14px; padding:1rem; margin-bottom:1rem;
+        box-shadow:0 2px 8px rgba(0,0,0,0.08);
+      }
+    </style>
+    <div class="card"><slot></slot></div>
+  </template>
+
+  <template id="quiz-start-tpl">
+    <style>
+      :host{ display:block; }
+      .row{ display:flex; gap:0.6rem; flex-wrap:wrap; }
+      input{
+        flex:1 1 180px; padding:0.75rem 0.8rem; border-radius:12px; border:1px solid #ccc;
+        font-size:1rem;
+      }
+      button{
+        padding:0.75rem 0.95rem; border-radius:12px; border:1px solid #333;
+        background:#111; color:#fff; font-size:1rem; cursor:pointer;
+      }
+      .muted{ color:#666; font-size:0.9rem; margin-top:0.5rem; }
+    </style>
+    <quiz-card>
+      <div class="row">
+        <input id="name" placeholder="Name eingeben (Pflicht)" autocomplete="name"/>
+        <button id="start">Start</button>
+      </div>
+      <div class="muted" id="hint"></div>
+    </quiz-card>
+  </template>
+
+  <template id="quiz-timer-tpl">
+    <style>
+      :host{ display:inline-block; font-weight:800; }
+    </style>
+    <span id="t"></span>
+  </template>
+
+  <template id="quiz-progress-tpl">
+    <style>
+      :host{ display:block; }
+      .row{
+        display:flex; justify-content:space-between; gap:0.6rem; flex-wrap:wrap;
+        font-size:0.95rem; align-items:center;
+      }
+      button{
+        margin-top:0.75rem; padding:0.75rem 0.95rem; border-radius:12px;
+        border:1px solid #bbb; background:#fff; color:#111; font-size:1rem; cursor:pointer;
+      }
+    </style>
+    <quiz-card>
+      <div class="row">
+        <div><strong>Name:</strong> <span id="name"></span></div>
+        <div><strong>Fortschritt:</strong> <span id="prog"></span></div>
+        <div><strong>Score:</strong> <span id="score"></span></div>
+        <div id="timerSlot"></div>
+      </div>
+      <button id="restart">Neu starten</button>
+    </quiz-card>
+  </template>
+
+  <template id="quiz-question-tpl">
+    <style>
+      :host{ display:block; }
+      .q{ font-size:1rem; margin:0 0 0.5rem 0; line-height:1.35; font-weight:700; }
+      .tag{ font-size:0.85rem; color:#666; margin-bottom:0.6rem; }
+      .answers{ display:block; }
+      button.answer{
+        display:block; width:100%; margin:0.45rem 0; padding:0.8rem 0.85rem;
+        border-radius:12px; border:1px solid #cfcfcf; background:#fff; font-size:0.98rem;
+        text-align:left; cursor:pointer;
+      }
+      button.answer:disabled{ cursor:default; opacity:1; }
+      button.correct{ background:#d4f8d4; border-color:#4caf50; }
+      button.wrong{ background:#ffd6d6; border-color:#f44336; }
+      .meta{ font-size:0.85rem; color:#666; margin-top:0.4rem; }
+    </style>
+    <quiz-card>
+      <div class="q" id="q"></div>
+      <div class="tag" id="tag"></div>
+      <div class="answers" id="answers"></div>
+      <div class="meta" id="meta"></div>
+    </quiz-card>
+  </template>
+
+  <template id="quiz-results-tpl">
+    <style>
+      :host{ display:block; }
+      .result{ text-align:center; font-size:1.1rem; font-weight:900; }
+      .sub{ text-align:center; color:#666; margin-top:0.35rem; }
+    </style>
+    <quiz-card>
+      <div class="result" id="headline"></div>
+      <div class="sub" id="sub"></div>
+      <div class="sub" id="log"></div>
+    </quiz-card>
+  </template>
+
+  <template id="quiz-review-tpl">
+    <style>
+      :host{ display:block; }
+      h3{ margin:0.2rem 0 0.6rem 0; }
+      .mini{ color:#666; font-size:0.9rem; }
+      .tagrow{ display:flex; gap:0.6rem; flex-wrap:wrap; }
+      .pill{
+        background:#fff; border:1px solid #ddd; border-radius:999px;
+        padding:0.25rem 0.55rem; font-size:0.9rem;
+      }
+      .item{ margin:0.7rem 0; padding:0.7rem; border-radius:12px; background:#f6f6f6; }
+    </style>
+    <quiz-card>
+      <h3>Auswertung nach Tags</h3>
+      <div class="tagrow" id="tags"></div>
+
+      <h3 style="margin-top:1rem;">Falsche Fragen</h3>
+      <div id="wrong"></div>
+    </quiz-card>
+  </template>
+
+  <template id="quiz-app-tpl">
+    <style>
+      :host{ display:block; }
+      #running[hidden], #start[hidden], #resultsWrap[hidden] { display:none !important; }
+    </style>
+
+    <quiz-shell id="shell">
+      <div id="start">
+        <quiz-start id="startCmp"></quiz-start>
+      </div>
+
+      <div id="running" hidden>
+        <quiz-progress id="progressCmp"></quiz-progress>
+        <div id="resultsWrap" hidden>
+          <quiz-results id="resultsCmp"></quiz-results>
+          <quiz-review id="reviewCmp"></quiz-review>
+        </div>
+        <div id="questions"></div>
+      </div>
+    </quiz-shell>
+  </template>
+
+  <!-- App root -->
+  <quiz-app></quiz-app>
+
+  <script type="module">
+    // =========================
+    // CONFIG (GitHub Pages)
+    // =========================
+    const LOG_ENDPOINT = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+    const LOG_KEY = "PASTE_YOUR_SECRET";
+    const QUIZ_VERSION = "v1.0";
+
+    const SUBSET_SIZE = 15;       // random subset size per attempt
+    const TIME_LIMIT_SEC = 12 * 60; // set 0 to disable
+
+    function gradeFromPercent(p) {
+      if (p >= 90) return "Sehr gut (1)";
+      if (p >= 80) return "Gut (2)";
+      if (p >= 65) return "Befriedigend (3)";
+      if (p >= 50) return "Genügend (4)";
+      return "Nicht genügend (5)";
+    }
+
+    // Questions based on the provided notes  [oai_citation:0‡frieda phsikstoff.pdf](sediment://file_000000005e7471f499d2d0a64588bea3)
+    const QUESTION_BANK = [
+      { id:"A-Z-1", tag:"Verstehen",
+        q:"Welche Aussage über Massenzahl A und Kernladungszahl Z ist korrekt?",
+        answers:["A = Protonenzahl, Z = Nukleonenzahl","Z = Protonenzahl, A = Nukleonenzahl","A ist immer gleich Z","Z = Neutronenzahl"],
+        correct:1
+      },
+      { id:"A-Z-2", tag:"Rechnen",
+        q:"Ein neutrales Atom besitzt A = 56 und Z = 26. Wie viele Neutronen enthält der Kern?",
+        answers:["26","30","56","82"],
+        correct:1
+      },
+      { id:"ISO-1", tag:"Verstehen",
+        q:"Was versteht man unter Isotopen?",
+        answers:["Atome gleicher Massenzahl","Atome gleicher Neutronenzahl","Atome gleicher Protonenzahl, aber unterschiedlicher Neutronenzahl","Verschiedene Elemente mit gleicher Masse"],
+        correct:2
+      },
+      { id:"MD-1", tag:"Verstehen",
+        q:"Warum ist die Masse eines Atomkerns kleiner als die Summe der Massen seiner Nukleonen?",
+        answers:["Messfehler","Elektronen tragen negative Masse","Ein Teil der Masse wurde in Bindungsenergie umgewandelt","Neutronen verlieren Masse im Kern"],
+        correct:2
+      },
+      { id:"E=mc2-1", tag:"Verstehen",
+        q:"Welche Beziehung erklärt den Massendefekt (Masse-Energie-Äquivalenz)?",
+        answers:["F = m·a","E = h·f","E = m·c²","p = m·v"],
+        correct:2
+      },
+      { id:"KERNKRAFT-1", tag:"Verstehen",
+        q:"Welche Eigenschaft der starken Kernkraft ist entscheidend für die Kernstabilität?",
+        answers:["Unendliche Reichweite","Sehr große Stärke bei kurzer Reichweite","Elektrische Abstoßung","Gravitative Wirkung"],
+        correct:1
+      },
+      { id:"ALPHA-1", tag:"Anwenden",
+        q:"Welche Änderung tritt bei einem Alpha-Zerfall auf?",
+        answers:["A − 2, Z − 2","A − 4, Z − 2","A − 4, Z − 4","A − 2, Z − 4"],
+        correct:1
+      },
+      { id:"BETA-1", tag:"Verstehen",
+        q:"Was passiert bei einem β⁻-Zerfall im Atomkern?",
+        answers:["Ein Proton wird zu einem Neutron","Ein Neutron wird zu einem Proton","Ein Elektron wird eingefangen","Ein Photon wird emittiert"],
+        correct:1
+      },
+      { id:"MAGNET-1", tag:"Verstehen",
+        q:"Welche Strahlung wird im Magnetfeld nicht abgelenkt?",
+        answers:["Alpha","Beta⁻","Beta⁺","Gamma"],
+        correct:3
+      },
+      { id:"PENET-1", tag:"Verstehen",
+        q:"Welche Reihenfolge ist bezüglich der Durchdringungsfähigkeit korrekt?",
+        answers:["Alpha > Beta > Gamma","Gamma > Beta > Alpha","Beta > Alpha > Gamma","Gamma > Alpha > Beta"],
+        correct:1
+      },
+      { id:"SHIELD-1", tag:"Anwenden",
+        q:"Welche Abschirmung ist für Alpha-Strahlung ausreichend?",
+        answers:["Mehrere Meter Beton","Aluminiumblech","Papier oder wenige Zentimeter Luft","Blei"],
+        correct:2
+      },
+      { id:"ACT-1", tag:"Verstehen",
+        q:"Was ist die Einheit der Aktivität?",
+        answers:["Gray (Gy)","Sievert (Sv)","Becquerel (Bq)","Joule (J)"],
+        correct:2
+      },
+      { id:"HWZ-1", tag:"Rechnen",
+        q:"T½ = 5 Jahre. Wie viel Prozent sind nach 15 Jahren noch vorhanden?",
+        answers:["50 %","25 %","12,5 %","6,25 %"],
+        correct:3
+      },
+      { id:"DOSE-1", tag:"Verstehen",
+        q:"Welche Größe beschreibt die absorbierte Energie pro Kilogramm?",
+        answers:["Äquivalentdosis","Aktivität","Energiedosis","Ionendosis"],
+        correct:2
+      },
+      { id:"H=QD-1", tag:"Verstehen",
+        q:"Die Äquivalentdosis H berechnet sich als:",
+        answers:["H = A · t","H = D / Q","H = Q · D","H = N · λ"],
+        correct:2
+      },
+      { id:"Q-1", tag:"Verstehen",
+        q:"Welche Strahlung besitzt den größten Qualitätsfaktor Q?",
+        answers:["Gamma","Beta","Neutronen","Alpha"],
+        correct:3
+      },
+      { id:"THERM-1", tag:"Verstehen",
+        q:"Warum sind langsame Neutronen besonders gut für Kernspaltung geeignet?",
+        answers:["Sie sind elektrisch geladen","Sie besitzen mehr Energie","Die Spaltwahrscheinlichkeit ist größer","Sie werden nicht absorbiert"],
+        correct:2
+      },
+      { id:"MOD-1", tag:"Verstehen",
+        q:"Welche Aufgabe hat der Moderator im Kernreaktor?",
+        answers:["Neutronen absorbieren","Neutronen abbremsen","Strahlung abschirmen","Wärme erzeugen"],
+        correct:1
+      },
+      { id:"CRIT-1", tag:"Verstehen",
+        q:"Was versteht man unter kritischer Masse?",
+        answers:["Maximale Masse eines Kerns","Minimale Masse für eine selbsterhaltende Kettenreaktion","Masse eines Neutrons","Masse eines Brennstabs"],
+        correct:1
+      },
+      { id:"WASTE-1", tag:"Verstehen",
+        q:"Warum ist die Endlagerung radioaktiver Abfälle problematisch?",
+        answers:["Wegen hoher Temperaturen","Wegen kurzer Halbwertszeiten","Wegen sehr langer Halbwertszeiten","Wegen geringer Strahlung"],
+        correct:2
+      },
+      // add more questions anytime (aim 40–80 for great randomization)
+    ];
+
+    // =========================
+    // Utilities
+    // =========================
+    const uuid = () => (crypto?.randomUUID?.() ?? "id-" + Math.random().toString(16).slice(2) + "-" + Date.now());
+
+    function getOrCreateDeviceId() {
+      const k = "quiz_device_id_v1";
+      const existing = localStorage.getItem(k);
+      if (existing) return existing;
+      const id = uuid();
+      localStorage.setItem(k, id);
+      return id;
+    }
+
+    function pickRandomSubset(arr, n) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a.slice(0, Math.min(n, a.length));
+    }
+
+    function shuffleAnswers(answers, correctIndex) {
+      const mapped = answers.map((text, i) => ({ text, isCorrect: i === correctIndex }));
+      for (let i = mapped.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [mapped[i], mapped[j]] = [mapped[j], mapped[i]];
+      }
+      return { answers: mapped.map(a => a.text), correctIndex: mapped.findIndex(a => a.isCorrect) };
+    }
+
+    async function logToSheet(payload) {
+      if (!LOG_ENDPOINT || LOG_ENDPOINT.includes("PASTE_YOUR")) return { ok:false, skipped:true };
+      const url = new URL(LOG_ENDPOINT);
+      url.searchParams.set("key", LOG_KEY);
+
+      // Most reliable with GitHub Pages + Apps Script (no CORS fights).
+      await fetch(url.toString(), {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      return { ok:true };
+    }
+
+    // =========================
+    // Web Components (template-based; no innerHTML)
+    // =========================
+    class QuizShell extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-shell-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$title = this.shadowRoot.querySelector("h1");
+      }
+      static get observedAttributes() { return ["title"]; }
+      connectedCallback(){ this.#sync(); }
+      attributeChangedCallback(){ this.#sync(); }
+      #sync(){
+        this.$title.textContent = this.getAttribute("title") || "Quiz";
+      }
+    }
+    customElements.define("quiz-shell", QuizShell);
+
+    class QuizCard extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-card-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+      }
+    }
+    customElements.define("quiz-card", QuizCard);
+
+    class QuizStart extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-start-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$name = this.shadowRoot.getElementById("name");
+        this.$start = this.shadowRoot.getElementById("start");
+        this.$hint = this.shadowRoot.getElementById("hint");
+      }
+      connectedCallback(){
+        this.$hint.textContent = `Zufällige Auswahl: ${SUBSET_SIZE} Fragen · Zeitlimit: ${TIME_LIMIT_SEC ? Math.round(TIME_LIMIT_SEC/60) + " min" : "aus"}`;
+        const fire = () => this.dispatchEvent(new CustomEvent("quiz-start", { bubbles:true, detail:{ name:this.$name.value } }));
+        this.$start.addEventListener("click", fire);
+        this.$name.addEventListener("keydown", (e) => { if (e.key === "Enter") fire(); });
+        setTimeout(()=>this.$name.focus(), 50);
+      }
+    }
+    customElements.define("quiz-start", QuizStart);
+
+    class QuizTimer extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-timer-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$t = this.shadowRoot.getElementById("t");
+      }
+      setRemaining(sec){
+        const rem = Math.max(0, Number(sec) || 0);
+        const mm = String(Math.floor(rem/60)).padStart(2,"0");
+        const ss = String(rem%60).padStart(2,"0");
+        this.$t.textContent = `⏱ ${mm}:${ss}`;
+      }
+    }
+    customElements.define("quiz-timer", QuizTimer);
+
+    class QuizProgress extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-progress-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$name = this.shadowRoot.getElementById("name");
+        this.$prog = this.shadowRoot.getElementById("prog");
+        this.$score = this.shadowRoot.getElementById("score");
+        this.$timerSlot = this.shadowRoot.getElementById("timerSlot");
+        this.$restart = this.shadowRoot.getElementById("restart");
+        this._timerEl = null;
+      }
+      connectedCallback(){
+        this.$restart.addEventListener("click", () => this.dispatchEvent(new CustomEvent("quiz-restart", { bubbles:true })));
+      }
+      setData({ name, answered, total, score, remaining, timeLimitSec }){
+        this.$name.textContent = name;
+        this.$prog.textContent = `${answered}/${total}`;
+        this.$score.textContent = `${score}/${total}`;
+
+        // timer
+        const enabled = !!timeLimitSec;
+        if (!enabled) {
+          this.$timerSlot.replaceChildren();
+          this._timerEl = null;
+          return;
+        }
+        if (!this._timerEl) {
+          this._timerEl = document.createElement("quiz-timer");
+          this.$timerSlot.replaceChildren(this._timerEl);
+        }
+        this._timerEl.setRemaining(remaining);
+      }
+    }
+    customElements.define("quiz-progress", QuizProgress);
+
+    class QuizQuestion extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-question-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$q = this.shadowRoot.getElementById("q");
+        this.$tag = this.shadowRoot.getElementById("tag");
+        this.$answers = this.shadowRoot.getElementById("answers");
+        this.$meta = this.shadowRoot.getElementById("meta");
+
+        this._answered = false;
+        this._data = null;
+        this._shuffled = null;
+      }
+
+      setData(data, index){
+        this._data = data;
+        this._index = index;
+
+        // shuffle ONCE per instance so it stays stable even if UI updates
+        this._shuffled = shuffleAnswers(data.answers, data.correct);
+        this._answered = false;
+        this.render();
+      }
+
+      render(){
+        const d = this._data;
+        if (!d) return;
+
+        this.$q.textContent = `${this._index + 1}. ${d.q}`;
+        this.$tag.textContent = `Tag: ${d.tag}`;
+        this.$meta.textContent = "";
+        this.$answers.replaceChildren();
+
+        const answers = this._shuffled.answers;
+        const correct = this._shuffled.correctIndex;
+
+        answers.forEach((text, i) => {
+          const btn = document.createElement("button");
+          btn.className = "answer";
+          btn.textContent = text;
+
+          btn.addEventListener("click", () => {
+            if (this._answered) return;
+            this._answered = true;
+
+            const isCorrect = i === correct;
+
+            if (isCorrect) {
+              btn.classList.add("correct");
+              this.$meta.textContent = "✅ Richtig";
+            } else {
+              btn.classList.add("wrong");
+              const correctBtn = this.$answers.children[correct];
+              if (correctBtn) correctBtn.classList.add("correct");
+              this.$meta.textContent = "❌ Falsch";
+            }
+
+            // disable all
+            [...this.$answers.children].forEach(b => b.disabled = true);
+
+            this.dispatchEvent(new CustomEvent("question-answered", {
+              bubbles:true,
+              detail:{
+                id: d.id,
+                tag: d.tag,
+                isCorrect,
+                chosen: i,
+                correct,
+              }
+            }));
+          });
+
+          this.$answers.appendChild(btn);
+        });
+      }
+    }
+    customElements.define("quiz-question", QuizQuestion);
+
+    class QuizResults extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-results-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$headline = this.shadowRoot.getElementById("headline");
+        this.$sub = this.shadowRoot.getElementById("sub");
+        this.$log = this.shadowRoot.getElementById("log");
+      }
+      setData({ score, total, percent, grade, timedOut, logText }){
+        this.$headline.textContent = `Ergebnis: ${score}/${total} (${percent}%)`;
+        this.$sub.textContent = `Note: ${grade}${timedOut ? " · (Zeit abgelaufen)" : ""}`;
+        this.$log.textContent = logText || "";
+      }
+    }
+    customElements.define("quiz-results", QuizResults);
+
+    class QuizReview extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-review-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+        this.$tags = this.shadowRoot.getElementById("tags");
+        this.$wrong = this.shadowRoot.getElementById("wrong");
+      }
+      setData({ tagsBreakdown, wrongItems }){
+        // tags pills
+        this.$tags.replaceChildren();
+        const entries = Object.entries(tagsBreakdown || {});
+        if (!entries.length) {
+          const span = document.createElement("span");
+          span.className = "mini";
+          span.textContent = "Keine Daten";
+          this.$tags.appendChild(span);
+        } else {
+          for (const [k, v] of entries) {
+            const pill = document.createElement("span");
+            pill.className = "pill";
+            pill.textContent = `${k}: ${v.correct}/${v.total}`;
+            this.$tags.appendChild(pill);
+          }
+        }
+
+        // wrong list
+        this.$wrong.replaceChildren();
+        if (!wrongItems?.length) {
+          const div = document.createElement("div");
+          div.className = "mini";
+          div.textContent = "Alles richtig 🎉";
+          this.$wrong.appendChild(div);
+          return;
+        }
+
+        for (const w of wrongItems) {
+          const item = document.createElement("div");
+          item.className = "item";
+
+          const title = document.createElement("div");
+          title.textContent = w.q;
+
+          const meta = document.createElement("div");
+          meta.className = "mini";
+          meta.textContent = `Tag: ${w.tag}`;
+
+          item.appendChild(title);
+          item.appendChild(meta);
+          this.$wrong.appendChild(item);
+        }
+      }
+    }
+    customElements.define("quiz-review", QuizReview);
+
+    class QuizApp extends HTMLElement {
+      constructor(){
+        super();
+        this.attachShadow({ mode:"open" });
+        const tpl = document.getElementById("quiz-app-tpl");
+        this.shadowRoot.appendChild(tpl.content.cloneNode(true));
+
+        this.deviceId = getOrCreateDeviceId();
+
+        this.$shell = this.shadowRoot.getElementById("shell");
+        this.$startWrap = this.shadowRoot.getElementById("start");
+        this.$runningWrap = this.shadowRoot.getElementById("running");
+        this.$resultsWrap = this.shadowRoot.getElementById("resultsWrap");
+        this.$questions = this.shadowRoot.getElementById("questions");
+
+        this.$startCmp = this.shadowRoot.getElementById("startCmp");
+        this.$progressCmp = this.shadowRoot.getElementById("progressCmp");
+        this.$resultsCmp = this.shadowRoot.getElementById("resultsCmp");
+        this.$reviewCmp = this.shadowRoot.getElementById("reviewCmp");
+
+        this._tick = null;
+        this.reset();
+      }
+
+      connectedCallback(){
+        this.$shell.setAttribute("title", "Physik Matura – Kernphysik & Radioaktivität");
+
+        this.$startCmp.addEventListener("quiz-start", (e) => this.start(e.detail.name));
+        this.$progressCmp.addEventListener("quiz-restart", () => this.restart());
+      }
+
+      reset(){
+        this.state = {
+          started:false,
+          name:"",
+          startedAt:0,
+          remaining: TIME_LIMIT_SEC,
+          timedOut:false,
+          selected: [],
+          score:0,
+          answered:0,
+          details: []
+        };
+      }
+
+      restart(){
+        if (this._tick) clearInterval(this._tick);
+        this._tick = null;
+
+        this.reset();
+        this.$questions.replaceChildren();
+        this.$resultsWrap.hidden = true;
+        this.$runningWrap.hidden = true;
+        this.$startWrap.hidden = false;
+      }
+
+      start(nameRaw){
+        const name = String(nameRaw || "").trim();
+        if (name.length < 2) return;
+
+        const picked = pickRandomSubset(QUESTION_BANK, SUBSET_SIZE);
+
+        this.state.started = true;
+        this.state.name = name;
+        this.state.startedAt = Date.now();
+        this.state.remaining = TIME_LIMIT_SEC;
+        this.state.timedOut = false;
+        this.state.selected = picked;
+        this.state.score = 0;
+        this.state.answered = 0;
+        this.state.details = [];
+
+        this.$startWrap.hidden = true;
+        this.$runningWrap.hidden = false;
+        this.$resultsWrap.hidden = true;
+
+        this.renderProgress();
+        this.renderQuestions();
+        this.startTimer();
+      }
+
+      renderProgress(){
+        this.$progressCmp.setData({
+          name: this.state.name,
+          answered: this.state.answered,
+          total: this.state.selected.length,
+          score: this.state.score,
+          remaining: this.state.remaining,
+          timeLimitSec: TIME_LIMIT_SEC
+        });
+      }
+
+      renderQuestions(){
+        this.$questions.replaceChildren();
+
+        this.state.selected.forEach((q, idx) => {
+          const el = document.createElement("quiz-question");
+          el.setData(q, idx);
+          el.addEventListener("question-answered", (evt) => this.onAnswered(evt.detail));
+          this.$questions.appendChild(el);
+        });
+      }
+
+      startTimer(){
+        if (!TIME_LIMIT_SEC) return;
+
+        if (this._tick) clearInterval(this._tick);
+        this._tick = setInterval(() => {
+          if (!this.state.started) return;
+          if (this.state.answered >= this.state.selected.length) return;
+
+          this.state.remaining = Math.max(0, this.state.remaining - 1);
+          this.renderProgress();
+
+          if (this.state.remaining === 0) {
+            this.state.timedOut = true;
+            clearInterval(this._tick);
+            this._tick = null;
+            this.finish();
+          }
+        }, 1000);
+      }
+
+      onAnswered(detail){
+        // idempotent by question id
+        if (this.state.details.some(d => d.id === detail.id)) return;
+
+        this.state.details.push(detail);
+        this.state.answered += 1;
+        if (detail.isCorrect) this.state.score += 1;
+
+        this.renderProgress();
+
+        if (this.state.answered >= this.state.selected.length) {
+          if (this._tick) clearInterval(this._tick);
+          this._tick = null;
+          this.finish();
+        }
+      }
+
+      buildTagBreakdown(){
+        const tags = {};
+        for (const q of this.state.selected) {
+          tags[q.tag] ??= { total:0, correct:0 };
+          tags[q.tag].total += 1;
+        }
+        for (const d of this.state.details) {
+          tags[d.tag] ??= { total:0, correct:0 };
+          if (d.isCorrect) tags[d.tag].correct += 1;
+        }
+        return tags;
+      }
+
+      async finish(){
+        const total = this.state.selected.length;
+        const score = this.state.score;
+        const percent = total ? Math.round((score / total) * 1000) / 10 : 0;
+        const grade = gradeFromPercent(percent);
+        const duration_ms = Date.now() - this.state.startedAt;
+
+        const tags_breakdown = this.buildTagBreakdown();
+        const wrongItems = this.state.details
+          .filter(d => !d.isCorrect)
+          .map(d => {
+            const q = this.state.selected.find(x => x.id === d.id);
+            return { q: q?.q || d.id, tag: d.tag };
+          });
+
+        // UI first
+        this.$resultsWrap.hidden = false;
+        this.$reviewCmp.setData({ tagsBreakdown: tags_breakdown, wrongItems });
+
+        // try logging
+        let logText = "";
+        try {
+          await logToSheet({
+            quiz_version: QUIZ_VERSION,
+            name: this.state.name,
+            score,
+            total,
+            percent,
+            grade,
+            duration_ms,
+            timed_out: this.state.timedOut,
+            subset_size: total,
+            device_id: this.deviceId,
+            user_agent: navigator.userAgent,
+            tags_breakdown,
+            selected_question_ids: this.state.selected.map(q => q.id),
+            details: this.state.details.map(d => ({
+              id: d.id, tag: d.tag, isCorrect: d.isCorrect, chosen: d.chosen, correct: d.correct
+            }))
+          });
+          logText = "Ergebnis gesendet ✅ (falls Endpoint konfiguriert ist)";
+        } catch {
+          logText = "Senden fehlgeschlagen (offline / Rate limit / URL) ❌";
+        }
+
+        this.$resultsCmp.setData({
+          score, total, percent, grade,
+          timedOut: this.state.timedOut,
+          logText
+        });
+      }
+    }
+    customElements.define("quiz-app", QuizApp);
+  </script>
+</body>
+</html>
