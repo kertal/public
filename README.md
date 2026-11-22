@@ -20,7 +20,7 @@ Some public stuff of kertal inc
 - [English Grammar Quiz – 8th Grade](./english-grammar-quiz/)
 
 ## Preview deployments
-Every pull request is deployed to `https://kertal.github.io/public/pr-preview/pr-<number>/`
+Every pull request from a branch of this repository (not from forks) is deployed to `https://kertal.github.io/public/pr-preview/pr-<number>/`
 (a comment with the link is posted on the PR; the preview is removed when the PR is closed).
 `main` is deployed to the `gh-pages` branch root. GitHub Pages must be set to
 **Deploy from a branch → `gh-pages` / `(root)`** in the repository settings.
