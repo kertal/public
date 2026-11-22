@@ -114,10 +114,25 @@
   @keyframes pop{50%{transform:scale(1.06)}}
 
   /* Done */
-  .done{align-items:center;text-align:center;justify-content:center}
-  .trophy{font-size:84px;margin:10px 0}
+  .done{align-items:center;text-align:center;justify-content:flex-start}
+  .done>*{flex-shrink:0}
+  .trophy{font-size:64px;margin:4px 0 0;animation:pop .6s}
+  .done{position:relative;overflow-x:hidden}
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+  .ring{--p:0;width:150px;height:150px;border-radius:50%;margin:14px auto 8px;display:grid;place-items:center;
+        background:conic-gradient(var(--rc,var(--green)) calc(var(--p)*1%),var(--line) 0)}
+  .ring-in{width:120px;height:120px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-in b{font-size:40px;font-weight:900;line-height:1;color:var(--rc,var(--green))}
+  .ring-in span{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+  .grade{font-size:18px;font-weight:900;padding:6px 16px;border-radius:999px;display:inline-block;color:#fff;background:var(--rc,var(--green))}
+  .record{font-weight:900;color:#ff9600;margin-top:8px;min-height:0}
+  .record:empty{display:none}
+  .breakdown{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:12px 0 4px;font-weight:800;font-size:15px}
+  .breakdown .g{color:var(--green-t)} .breakdown .y{color:var(--yellow-t)} .breakdown .r{color:var(--red-t)}
+  .motiv{background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px 14px;font-weight:800;font-size:16px;margin-top:12px;width:100%;line-height:1.35}
+  .motiv i{display:block;font-style:normal;color:var(--blue-d);margin-top:6px;font-size:14px}
   .done h1{color:#ffc800;font-size:30px}
-  .tiles{display:flex;gap:12px;width:100%;margin:22px 0}
+  .tiles{display:flex;gap:12px;width:100%;margin:14px 0}
   .tile{flex:1;border-radius:16px;border:2px solid;overflow:hidden}
   .tile .t{color:#fff;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:4px}
   .tile .v{padding:12px 4px;font-size:22px;font-weight:900;background:#fff}
@@ -242,8 +257,18 @@
 
   <!-- DONE -->
   <section class="screen done" id="done">
+    <canvas id="confetti"></canvas>
     <div class="trophy" id="trophy">🏆</div>
     <h1 id="doneTitle">Lektion geschafft!</h1>
+    <div class="ring" id="ring"><div class="ring-in"><b id="dScore">0</b><span>Punkte</span></div></div>
+    <div class="grade" id="dGrade"></div>
+    <div class="record" id="dRecord"></div>
+    <div class="breakdown">
+      <span class="g">✅ <b id="nOk">0</b> richtig</span>
+      <span class="y">🟡 <b id="nMostly">0</b> fast</span>
+      <span class="r">❌ <b id="nBad">0</b> falsch</span>
+    </div>
+    <div class="motiv" id="dMotiv"></div>
     <div class="tiles">
       <div class="tile y"><div class="t">XP</div><div class="v" id="dXp">0</div></div>
       <div class="tile g"><div class="t">Genauigkeit</div><div class="v" id="dAcc">0%</div></div>
@@ -535,7 +560,7 @@ function startLesson(onlyWeak) {
   L = {
     queue: cards.map(c => ({card: c, dir: settings.dir === 'mix' ? (Math.random() < .5 ? 'it-de' : 'de-it') : settings.dir})),
     total: cards.length, done: 0, streak: 0, best: 0, xp: 0, attempts: 0, correct: 0,
-    mistakes: new Map(), state: 'ask', mode: settings.mode, onlyWeak
+    mistakes: new Map(), first: new Map(), state: 'ask', mode: settings.mode, onlyWeak
   };
   show('lesson');
   $('typeView').style.display = L.mode === 'type' ? '' : 'none';
@@ -630,6 +655,7 @@ function check(skipped) {
   $('answer').disabled = true;
   try { $('answer').blur(); } catch {}
   L.attempts++;
+  if (!L.first.has(card.id)) L.first.set(card.id, r.level);
   const shownAnswers = answers.map(esc).join(' / ');
   if (r.level === 'ok') {
     L.correct++; L.streak++; L.xp += 10;
@@ -673,6 +699,7 @@ $('flip').addEventListener('click', () => { if (L && L.state === 'ask') flipCard
 function selfGrade(ok) {
   const {card} = cur();
   L.attempts++;
+  if (!L.first.has(card.id)) L.first.set(card.id, ok ? 'ok' : 'bad');
   if (ok) { L.correct++; L.streak++; L.xp += 10; } else { L.streak = 0; L.mistakes.set(card.id, card); }
   L.best = Math.max(L.best, L.streak);
   updateStreak(); beep(ok ? 'ok' : 'bad'); record(card, ok);
@@ -694,19 +721,77 @@ function updateStreak() {
   s.classList.toggle('dim', L.streak === 0);
   if (L.streak) { s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); }
 }
+const MOTIV = {
+  1: {title: 'Perfetto! Sehr gut!', emoji: '🏆', color: '#58cc02',
+      msgs: ['Wow, du bist ein echter Italien-Profi! 🇮🇹', 'Unglaublich – du hast die Vokabeln voll im Griff!', 'So sieht ein Einser aus! Mach weiter so!'],
+      it: ['Sei un campione! 🥇', 'Bravissimo/-a!', 'Che spettacolo!']},
+  2: {title: 'Bravo! Gut gemacht!', emoji: '🎉', color: '#58cc02',
+      msgs: ['Fast perfekt – nur noch ein paar Kleinigkeiten!', 'Starke Leistung! Noch eine Runde und du hast den Einser.', 'Super! Die meisten Wörter sitzen schon.'],
+      it: ['Molto bene!', 'Ottimo lavoro!', 'Continua così!']},
+  3: {title: 'Bene! Befriedigend', emoji: '😊', color: '#1cb0f6',
+      msgs: ['Guter Fortschritt! Übe die roten Wörter nochmal.', 'Du bist auf dem richtigen Weg – dranbleiben!', 'Mit einer weiteren Runde wird es noch besser!'],
+      it: ['Bene, avanti così!', 'Ce la fai!', 'Piano piano si va lontano.']},
+  4: {title: 'Geschafft! Genügend', emoji: '💪', color: '#ffc800',
+      msgs: ['Das war ein Anfang! Jede Wiederholung macht dich besser.', 'Nicht aufgeben – Übung macht den Meister!', 'Die Hälfte sitzt schon. Gleich nochmal?'],
+      it: ['Non mollare!', 'Forza, ancora una volta!', 'Sbagliando s\'impara.']},
+  5: {title: 'Weiter üben!', emoji: '📚', color: '#ff4b4b',
+      msgs: ['Kein Problem – Fehler gehören zum Lernen dazu!', 'Schau dir die Wortliste kurz an und probier es nochmal.', 'Jeder Profi hat mal klein angefangen. Du schaffst das!'],
+      it: ['Sbagliando s\'impara!', 'Coraggio!', 'Ancora una volta – dai!']}
+};
+const pick = a => a[Math.random() * a.length | 0];
 function finish() {
   $('progress').style.width = '100%';
-  const acc = L.attempts ? Math.round(L.correct / L.attempts * 100) : 0;
-  const bonus = acc === 100 ? 5 : 0;
+  const res = [...L.first.values()];
+  const nOk = res.filter(x => x === 'ok').length, nMostly = res.filter(x => x === 'mostly').length, nBad = res.length - nOk - nMostly;
+  const score = res.length ? Math.round((nOk * 100 + nMostly * 75) / res.length) : 0;
+  const note = score >= 90 ? 1 : score >= 80 ? 2 : score >= 65 ? 3 : score >= 50 ? 4 : 5;
+  const names = {1: 'Sehr gut', 2: 'Gut', 3: 'Befriedigend', 4: 'Genügend', 5: 'Nicht genügend'};
+  const M = MOTIV[note];
+  const bonus = score === 100 ? 20 : note <= 2 ? 10 : 0;
   L.xp += bonus; totalXp += L.xp; store.set('xp', totalXp);
-  $('dXp').textContent = L.xp; $('dAcc').textContent = acc + '%'; $('dStreak').textContent = '🔥 ' + L.best;
-  $('trophy').textContent = acc === 100 ? '🏆' : acc >= 80 ? '🎉' : acc >= 50 ? '💪' : '📚';
-  $('doneTitle').textContent = acc === 100 ? 'Perfetto! Keine Fehler!' : acc >= 80 ? 'Lektion geschafft!' : 'Gut gemacht – weiter üben!';
+  const key = 'best_' + settings.dir + '_' + (L.onlyWeak ? 'weak' : settings.len);
+  const prev = store.get(key, null);
+  const isRecord = prev !== null && score > prev;
+  if (prev === null || score > prev) store.set(key, score);
+
+  const done = $('done');
+  done.style.setProperty('--rc', M.color);
+  $('trophy').textContent = M.emoji;
+  $('doneTitle').textContent = M.title;
+  $('doneTitle').style.color = M.color;
+  $('dGrade').textContent = `Note ${note} – ${names[note]}`;
+  $('dRecord').textContent = isRecord ? `🎖️ Neuer Rekord! (vorher ${prev})` : (prev !== null && score === prev && score < 100 ? `Gleich wie dein Rekord (${prev}) – knack ihn!` : '');
+  $('nOk').textContent = nOk; $('nMostly').textContent = nMostly; $('nBad').textContent = nBad;
+  $('dMotiv').innerHTML = `${pick(M.msgs)}<i>🇮🇹 ${pick(M.it)}</i>` + (bonus ? `<i>⚡ +${bonus} Bonus-XP</i>` : '');
+  $('dXp').textContent = L.xp; $('dAcc').textContent = score + '%'; $('dStreak').textContent = '🔥 ' + L.best;
   const m = [...L.mistakes.values()];
   $('mistBox').style.display = m.length ? '' : 'none';
   $('mistList').innerHTML = m.map(c => `<li><span class="it">${esc(c.it)}</span> – <span class="de">${esc(c.de)}</span></li>`).join('');
+  $('againBtn').textContent = m.length ? 'Nochmal üben' : 'Nochmal';
   show('done');
-  try { beep('ok'); setTimeout(() => beep('ok'), 220); } catch {}
+  // count-up animation for the score ring
+  const ring = $('ring'), t0 = performance.now(), dur = 1100;
+  (function tick(t) {
+    const k = Math.min(1, (t - t0) / dur), v = Math.round(score * (1 - Math.pow(1 - k, 3)));
+    ring.style.setProperty('--p', v); $('dScore').textContent = v;
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+  if (note <= 2) confetti();
+  try { beep('ok'); setTimeout(() => beep(note <= 3 ? 'ok' : 'mostly'), 220); } catch {}
+}
+function confetti() {
+  const c = $('confetti'), ctx = c.getContext('2d');
+  const W = c.width = innerWidth, H = c.height = innerHeight;
+  const cols = ['#58cc02', '#ffc800', '#1cb0f6', '#ff4b4b', '#ce82ff', '#ffffff', '#009246', '#ce2b37'];
+  const P = Array.from({length: 140}, () => ({x: Math.random() * W, y: -20 - Math.random() * H * .6, vx: (Math.random() - .5) * 3,
+    vy: 2 + Math.random() * 3, r: 4 + Math.random() * 5, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: pick(cols)}));
+  const end = performance.now() + 3500;
+  (function f(t) {
+    ctx.clearRect(0, 0, W, H);
+    P.forEach(p => { p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+    if (t < end && $('done').classList.contains('active')) requestAnimationFrame(f); else ctx.clearRect(0, 0, W, H);
+  })(performance.now());
 }
 
 /* ---------- Word list ---------- */
