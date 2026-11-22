@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#58cc02">
 <title>Unità 3 – A scuola · Vokabeltrainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +42,8 @@
   .label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
   .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .opts.two{grid-template-columns:repeat(2,1fr)}
-  .opt{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:12px 6px;text-align:center;font-weight:800;cursor:pointer;background:#fff;user-select:none;font-size:15px}
+  .opt{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:12px 6px;text-align:center;font-weight:800;cursor:pointer;background:#fff;user-select:none;font-size:15px;font-family:inherit;color:var(--ink);width:100%}
+  .opt:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
   .opt small{display:block;font-weight:700;color:var(--muted);font-size:12px;margin-top:2px}
   .opt.sel{border-color:#84d8ff;background:#ddf4ff;color:var(--blue-d)}
   .opt.sel small{color:var(--blue-d)}
@@ -181,27 +182,27 @@
 
     <div class="group">
       <div class="label">Richtung</div>
-      <div class="opts" data-key="dir">
-        <div class="opt sel" data-v="it-de">🇮🇹 → 🇩🇪<small>Italienisch</small></div>
-        <div class="opt" data-v="de-it">🇩🇪 → 🇮🇹<small>Deutsch</small></div>
-        <div class="opt" data-v="mix">🔀<small>Gemischt</small></div>
+      <div class="opts" data-key="dir" role="group" aria-label="Richtung">
+        <button type="button" class="opt sel" data-v="it-de" aria-pressed="true">🇮🇹 → 🇩🇪<small>Italienisch</small></button>
+        <button type="button" class="opt" data-v="de-it" aria-pressed="false">🇩🇪 → 🇮🇹<small>Deutsch</small></button>
+        <button type="button" class="opt" data-v="mix" aria-pressed="false">🔀<small>Gemischt</small></button>
       </div>
     </div>
 
     <div class="group">
       <div class="label">Modus</div>
-      <div class="opts two" data-key="mode">
-        <div class="opt sel" data-v="type">⌨️ Tippen<small>Antwort schreiben</small></div>
-        <div class="opt" data-v="flip">🃏 Karteikarten<small>Umdrehen</small></div>
+      <div class="opts two" data-key="mode" role="group" aria-label="Modus">
+        <button type="button" class="opt sel" data-v="type" aria-pressed="true">⌨️ Tippen<small>Antwort schreiben</small></button>
+        <button type="button" class="opt" data-v="flip" aria-pressed="false">🃏 Karteikarten<small>Umdrehen</small></button>
       </div>
     </div>
 
     <div class="group">
       <div class="label">Lektion</div>
-      <div class="opts" data-key="len">
-        <div class="opt sel" data-v="10">10<small>Wörter</small></div>
-        <div class="opt" data-v="20">20<small>Wörter</small></div>
-        <div class="opt" data-v="all">Alle<small id="allN"></small></div>
+      <div class="opts" data-key="len" role="group" aria-label="Lektion">
+        <button type="button" class="opt sel" data-v="10" aria-pressed="true">10<small>Wörter</small></button>
+        <button type="button" class="opt" data-v="20" aria-pressed="false">20<small>Wörter</small></button>
+        <button type="button" class="opt" data-v="all" aria-pressed="false">Alle<small id="allN"></small></button>
       </div>
     </div>
 
@@ -358,7 +359,7 @@ la presidenza = die Direktion
 la sala insegnanti = das Lehrerzimmer
 la biblioteca = die Bibliothek
 il liceo = das Gymnasium
-il sistema scolastico; il sistema scolastica = das Schulsystem
+il sistema scolastico = das Schulsystem
 primo piano; il primo piano = erster Stock; der erste Stock
 l'orario di scuola = der Stundenplan
 il dialogo = der Dialog
@@ -442,7 +443,7 @@ function gradeOne(input, target, lang) {
   // Article handling
   if (tArt) {
     if (!aArt) notes.push(`Artikel vergessen: <b>${tArt.replace(/'$/, "'")}</b>`);
-    else if (aArt !== tArt && !(fold(aW) === fold(tW) && ['un','uno','una',"un'",'ein','eine'].includes(aArt)))
+    else if (aArt !== tArt)
       notes.push(`Falscher Artikel: <b>${tArt}</b> statt <mark>${aArt}</mark>`);
   }
   // target has no article but user wrote one → ignore it
@@ -518,7 +519,12 @@ function speak(text, lang) {
   try {
     if (!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/\/.*$/, ''));
+    // Expand shorthand like "il/la maestro/-a" to a real word before speaking
+    if (text.includes('/')) {
+      const c = CARDS.find(c => c.it === text || c.de === text);
+      if (c) text = (c.it === text ? c.itA : c.deA)[0] || text;
+    }
+    const u = new SpeechSynthesisUtterance(text);
     u.lang = lang === 'it' ? 'it-IT' : 'de-AT'; u.rate = .9;
     const v = speechSynthesis.getVoices().find(v => v.lang.startsWith(lang));
     if (v) u.voice = v;
@@ -536,7 +542,7 @@ function renderHome() {
   $('stWeak').textContent = weak.length;
   $('weakBtn').style.display = weak.length ? '' : 'none';
   document.querySelectorAll('.opts').forEach(g => {
-    g.querySelectorAll('.opt').forEach(o => o.classList.toggle('sel', o.dataset.v === settings[g.dataset.key]));
+    g.querySelectorAll('.opt').forEach(o => { const on = o.dataset.v === settings[g.dataset.key]; o.classList.toggle('sel', on); o.setAttribute('aria-pressed', on); });
   });
 }
 document.querySelectorAll('.opts').forEach(g => g.addEventListener('click', e => {
@@ -629,6 +635,8 @@ $('answer').addEventListener('keydown', e => {
 });
 document.addEventListener('keydown', e => {
   if (!$('lesson').classList.contains('active') || e.target === $('answer')) return;
+  if ($('quitModal').classList.contains('show')) return;
+  if (e.target.closest && e.target.closest('button, a, input, textarea, select, [contenteditable]')) return;
   if (e.key === 'Enter' && L.state === 'fb') { e.preventDefault(); advance(); }
   if (L.mode === 'flip' && L.state === 'ask' && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); flipCard(); }
 });
