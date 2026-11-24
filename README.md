@@ -23,7 +23,7 @@ Some public stuff of kertal inc
 - [Unità 3 – A scuola (Vokabeltrainer)](./italiano-unita3-a-scuola.html)
 
 ## Deutsch
-- [das oder dass? – Rechtschreibtrainer 9. Klasse](./deutsch-das-dass.html)
+- [das oder dass? – Rechtschreibtrainer 9. Schulstufe](./deutsch-das-dass.html)
 
 ## Preview deployments
 Every pull request from a branch of this repository (not from forks) is deployed to `https://kertal.github.io/public/pr-preview/pr-<number>/`
