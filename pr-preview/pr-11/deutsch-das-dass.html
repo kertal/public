@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#58cc02">
-<title>das oder dass? · Rechtschreibtrainer 9. Klasse</title>
+<title>das oder dass? · Rechtschreibtrainer 9. Schulstufe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -79,13 +79,13 @@
   .gap.wrong{border:2px solid var(--red);background:var(--red-bg);color:var(--red-t);cursor:default}
   .gap s{opacity:.6;font-weight:800;margin-right:6px}
   .gap{position:relative}
-  .gap .wt{position:absolute;left:50%;top:-15px;transform:translateX(-50%);white-space:nowrap;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;line-height:1}
+  .gap .wt{position:absolute;left:50%;top:-15px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:900;letter-spacing:.2px;line-height:1}
   .sentence.pro{line-height:2.7}
 
   .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
   .choice{border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;padding:14px 8px;background:#fff;font:inherit;font-size:24px;font-weight:900;color:var(--ink);cursor:pointer;text-align:center}
   .choice:active{border-bottom-width:2px;transform:translateY(2px)}
-  .choice small{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+  .choice small{display:block;font-size:13px;font-weight:800;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
   .choice kbd{float:left;font:inherit;font-size:11px;color:#afafaf;border:2px solid var(--line);border-radius:6px;padding:0 5px;line-height:16px}
   .choice:disabled{opacity:.45;cursor:default}
   .choice.dass{color:var(--purple-d)}
@@ -184,7 +184,7 @@
     <div class="stats">
       <div class="stat"><b id="stXp">0</b><span>⚡ XP</span></div>
       <div class="stat"><b id="stKnown">0</b><span>✅ Gelernt</span></div>
-      <div class="stat"><b id="stWeak">0</b><span>🔁 Schwach</span></div>
+      <div class="stat"><b id="stWeak">0</b><span>🔁 Schwierig</span></div>
     </div>
 
     <div class="group">
@@ -215,7 +215,7 @@
     <div class="spacer"></div>
     <div class="home-actions">
       <button class="btn" id="startBtn">Los geht's!</button>
-      <button class="btn ghost" id="weakBtn">🔁 Schwache Sätze üben</button>
+      <button class="btn ghost" id="weakBtn">🔁 Schwierige Sätze wiederholen</button>
       <button class="link" id="rulesBtn">📖 Regeln &amp; Ersatzprobe</button>
     </div>
   </section>
@@ -281,7 +281,7 @@
       <h2 style="margin:0;flex:1">Regeln</h2>
     </div>
     <div class="rules">
-      <div class="tip">🔎 <b>Ersatzprobe:</b> Kannst du das Wort durch <b>dieses</b>, <b>jenes</b> oder <b>welches</b> ersetzen, schreibst du <b>das</b> mit einem s. Klappt das nicht, ist es die Konjunktion <b>dass</b>.</div>
+      <div class="tip">🔎 <b>Ersatzprobe:</b> Kannst du das Wort durch <b>dies</b>, <b>dieses</b>, <b>jenes</b> oder <b>welches</b> ersetzen, schreibst du <b>das</b> mit einem s. Klappt das nicht, ist es die Konjunktion <b>dass</b>.</div>
 
       <div class="rule">
         <div class="head"><span class="w">das</span><span class="kind">Artikel</span><span class="probe-tag">→ dieses / jenes</span></div>
@@ -289,17 +289,17 @@
         <p class="ex"><b>Das</b> (dieses) Experiment im Chemieunterricht verlief erfolgreich.</p>
       </div>
       <div class="rule">
-        <div class="head"><span class="w">das</span><span class="kind">Demonstrativpronomen</span><span class="probe-tag">→ dieses / jenes</span></div>
+        <div class="head"><span class="w">das</span><span class="kind">Demonstrativpronomen</span><span class="probe-tag">→ dies / dieses</span></div>
         <p>Weist auf etwas hin, steht allein (ohne Nomen).</p>
-        <p class="ex"><b>Das</b> (dieses) hätte niemand erwartet.</p>
+        <p class="ex"><b>Das</b> (dies) hätte niemand erwartet.</p>
       </div>
       <div class="rule">
         <div class="head"><span class="w">das</span><span class="kind">Relativpronomen</span><span class="probe-tag">→ welches</span></div>
-        <p>Leitet einen Relativsatz ein und bezieht sich auf ein Nomen davor.</p>
+        <p>Leitet einen Relativsatz ein und bezieht sich auf ein Bezugswort im übergeordneten Satz.</p>
         <p class="ex">Das Buch, <b>das</b> (welches) wir gerade lesen, ist sehr gesellschaftskritisch.</p>
       </div>
       <div class="rule k">
-        <div class="head"><span class="w">dass</span><span class="kind">Konjunktion</span><span class="probe-tag">nicht ersetzbar</span></div>
+        <div class="head"><span class="w">dass</span><span class="kind">Konjunktion (Subjunktion)</span><span class="probe-tag">nicht ersetzbar</span></div>
         <p>Bindewort – leitet einen Nebensatz ein, meist nach einem Komma.</p>
         <p class="ex">Viele Jugendliche kritisieren, <b class="k">dass</b> der Klimaschutz zu langsam vorangeht.</p>
       </div>
@@ -321,9 +321,15 @@
         <p class="ex">Ich hoffe, <b class="k">dass</b> (nicht ersetzbar) <b>das</b> (dieses) Problem bald gelöst wird.</p>
       </div>
       <div class="rule k">
-        <div class="head"><span class="kind">so dass · ohne dass · statt dass</span></div>
-        <p>In diesen festen Verbindungen steht immer „dass“ – vor „ohne/statt dass“ oft auch gar kein Komma direkt davor.</p>
+        <div class="head"><span class="kind">ohne dass · statt dass</span></div>
+        <p>„ohne dass“ und „statt dass“ leiten Nebensätze ein. Diese werden durch ein Komma vom übergeordneten Satz getrennt. Zwischen „ohne“ bzw. „statt“ und „dass“ steht <b>kein</b> Komma.</p>
         <p class="ex">Er verließ den Raum, ohne <b class="k">dass</b> es jemand bemerkte.</p>
+        <p class="ex"><b class="k">Statt dass</b> er lernt, spielt er Computerspiele.</p>
+      </div>
+      <div class="rule k">
+        <div class="head"><span class="kind">so dass · sodass</span></div>
+        <p>Beide Schreibweisen sind korrekt – getrennt oder zusammen.</p>
+        <p class="ex">Es regnete stark, so <b class="k">dass</b> das Spiel abgebrochen wurde. = …, <b class="k">sodass</b> das Spiel abgebrochen wurde.</p>
       </div>
     </div>
   </section>
@@ -340,9 +346,9 @@
 </div>
 
 <script>
-/* ---------- Sätze (Niveau 9. Klasse / 5. Klasse AHS/BHS) ----------
+/* ---------- Sätze (Niveau 9. Schulstufe: 5. Klasse AHS / 1. Klasse BHS) ----------
    Lücken:  {A} / {A:Nomen}  Artikel          → dieses
-            {D}              Demonstrativpron. → dieses
+            {D}              Demonstrativpron. → dies
             {R:Bezugswort}   Relativpronomen   → welches
             {K}              Konjunktion       → dass
    Zeilen mit "* " am Anfang sind Stolperfallen. */
@@ -411,14 +417,14 @@ Er fragte mich: „Ist {D} dein Rucksack?“
 Es ist erstaunlich, wie viel {A:Gehirn} menschliche Gehirn speichern kann.
 {A} Messer, {R:Messer} auf dem Tisch liegt, ist sehr scharf.
 Der Arzt meinte, {K} er mehr Sport treiben sollte.
-* Es regnete so stark, {K} {A} Spiel abgebrochen werden musste.
+* Es regnete stark, so {K} {A} Spiel abgebrochen werden musste.
 {A} Handy klingelte mitten in der Deutschstunde.
 * {A} Lied, {R:Lied} im Radio läuft, gefällt mir so gut, {K} ich es sofort herunterlade.
 `;
 
 const TYPES = {
   A: {word: 'das',  name: 'Artikel',              probe: 'dieses'},
-  D: {word: 'das',  name: 'Demonstrativpronomen', probe: 'dieses'},
+  D: {word: 'das',  name: 'Demonstrativpronomen', probe: 'dies'},
   R: {word: 'das',  name: 'Relativpronomen',      probe: 'welches'},
   K: {word: 'dass', name: 'Konjunktion',          probe: 'dass'}
 };
@@ -434,7 +440,10 @@ const ITEMS = RAW.trim().split('\n').map((line, id) => {
     parts.push(text); before += text;
     const after = line.slice(pos + m.length);
     const noun = type === 'A' && !ref ? ((after.match(/^\s*([A-Za-zÄÖÜäöüß-]+)/) || [])[1] || '') : ref;
-    const g = {type, ref: noun || '', upper: /^\s*$|[.!?„]\s*$/.test(before)};
+    // full noun phrase for the Ersatzprobe, e.g. "menschliche Gehirn"
+    const at = noun ? after.indexOf(noun) : -1;
+    const phrase = at >= 0 ? after.slice(0, at + noun.length).trim() : noun || '';
+    const g = {type, ref: noun || '', phrase, so: /\bso\s*$/.test(before), upper: /^\s*$|[.!?„]\s*$/.test(before)};
     gaps.push(g); parts.push(g);
     before += 'das'; last = pos + m.length;
     return m;
@@ -469,10 +478,10 @@ const probeHtml = item => render(item, g => g.type === 'K'
   : `<b class="r">${cap(TYPES[g.type].probe, g.upper)}</b>`);
 function explain(g) {
   const w = cap(TYPES[g.type].word, g.upper);
-  if (g.type === 'A') return `<b>${w}</b> = Artikel${g.ref ? ` zu „${esc(g.ref)}“` : ''} → „${cap('dieses', g.upper)}${g.ref ? ' ' + esc(g.ref) : ''}“ passt ✔`;
-  if (g.type === 'D') return `<b>${w}</b> = Demonstrativpronomen (weist auf etwas hin) → „${cap('dieses', g.upper)}“ passt ✔`;
-  if (g.type === 'R') return `<b>${w}</b> = Relativpronomen${g.ref ? `, bezieht sich auf „${esc(g.ref)}“` : ''} → „welches“ passt ✔`;
-  return `<b>${w}</b> = Konjunktion (leitet einen Nebensatz ein) → weder „dieses“ noch „welches“ passt ✘`;
+  if (g.type === 'A') return `<b>${w}</b> = Artikel${g.ref ? ` zu „${esc(g.ref)}“` : ''} → „${cap('dieses', g.upper)}${g.phrase ? ' ' + esc(g.phrase) : ''}“ passt ✔`;
+  if (g.type === 'D') return `<b>${w}</b> = Demonstrativpronomen (weist auf etwas hin) → „${cap('dies', g.upper)}“ passt ✔`;
+  if (g.type === 'R') return `<b>${w}</b> = Relativpronomen${g.ref ? `, bezieht sich auf das Bezugswort „${esc(g.ref)}“ im übergeordneten Satz` : ''} → „welches“ passt ✔`;
+  return `<b>${w}</b> = Konjunktion (Subjunktion, leitet einen Nebensatz ein) → weder „dies/dieses“ noch „welches“ passt ✘${g.so ? ' · „so dass“ darf man auch zusammen schreiben: „sodass“' : ''}`;
 }
 
 /* ---------- Sound ---------- */
@@ -493,7 +502,7 @@ function beep(kind) {
 
 /* ---------- Home ---------- */
 function renderHome() {
-  $('countLine').textContent = `${ITEMS.length} Sätze · Rechtschreibung 9. Klasse`;
+  $('countLine').textContent = `${ITEMS.length} Sätze · Rechtschreibung 9. Schulstufe`;
   $('allN').textContent = ITEMS.length + ' Sätze';
   $('trapN').textContent = ITEMS.filter(i => i.trap).length + ' knifflige';
   $('stXp').textContent = totalXp;
@@ -513,8 +522,8 @@ document.querySelectorAll('.opts').forEach(g => g.addEventListener('click', e =>
 /* ---------- Lesson ---------- */
 const CHOICES = {
   basic: [{v: 'das', label: 'das'}, {v: 'dass', label: 'dass'}],
-  pro: [{v: 'A', label: 'das', sub: 'Artikel'}, {v: 'D', label: 'das', sub: 'Demonstrativ'},
-        {v: 'R', label: 'das', sub: 'Relativ'}, {v: 'K', label: 'dass', sub: 'Konjunktion'}]
+  pro: [{v: 'A', label: 'das', sub: 'Artikel'}, {v: 'D', label: 'das', sub: 'Demonstrativpronomen'},
+        {v: 'R', label: 'das', sub: 'Relativpronomen'}, {v: 'K', label: 'dass', sub: 'Konjunktion'}]
 };
 const wordOf = v => v === 'das' || v === 'dass' ? v : TYPES[v].word;
 
@@ -564,7 +573,7 @@ function renderSentence() {
   $('sentence').innerHTML = render(item, (g, i) => {
     const v = L.ans[i];
     const cls = ['gap', v ? 'filled' : 'empty', i === L.active ? 'active' : ''].join(' ');
-    const sub = v && L.mode === 'pro' ? `<span class="wt">${TYPES[v].name.replace('pronomen', '')}</span>` : '';
+    const sub = v && L.mode === 'pro' ? `<span class="wt">${TYPES[v].name}</span>` : '';
     return `<button type="button" class="${cls}" data-i="${i}" aria-label="Lücke ${i + 1}${v ? ': ' + wordOf(v) : ''}">${sub}${gapLabel(item, i)}</button>`;
   });
   $('sentence').querySelectorAll('.gap').forEach(b => b.onclick = () => { if (L.state !== 'ask') return; L.active = +b.dataset.i; renderSentence(); });
@@ -621,7 +630,7 @@ function check(skipped) {
   // Show result in the sentence
   $('sentence').innerHTML = render(item, (g, i) => {
     const r = res[i], right = cap(TYPES[g.type].word, g.upper);
-    const wt = pro ? `<span class="wt">${TYPES[g.type].name.replace('pronomen', '')}</span>` : '';
+    const wt = pro ? `<span class="wt">${TYPES[g.type].name}</span>` : '';
     const wrongWord = r === 'wrong' && L.ans[i] && !skipped ? `<s>${gapLabel(item, i)}</s>` : '';
     return `<span class="gap ${r}">${wt}${wrongWord}${right}</span>`;
   });
@@ -683,11 +692,11 @@ const MOTIV = {
   3: {title: 'Befriedigend', emoji: '😊', color: '#1cb0f6',
       msgs: ['Guter Fortschritt! Übe die roten Sätze nochmal.', 'Du bist auf dem richtigen Weg – dranbleiben!', 'Mit einer weiteren Runde wird es noch besser!']},
   4: {title: 'Geschafft! Genügend', emoji: '💪', color: '#ffc800',
-      msgs: ['Das war ein Anfang! Jede Wiederholung macht dich sicherer.', 'Nicht aufgeben – Übung macht den Meister!', 'Die Hälfte sitzt schon. Gleich nochmal?']},
+      msgs: ['Das war ein Anfang! Jede Wiederholung macht dich sicherer.', 'Nicht aufgeben – Übung macht den Meister!', 'Die Grundlagen sitzen schon. Gleich nochmal?']},
   5: {title: 'Weiter üben!', emoji: '📚', color: '#ff4b4b',
       msgs: ['Kein Problem – Fehler gehören zum Lernen dazu!', 'Lies dir die Regeln kurz durch und probier es nochmal.', 'Jeder Profi hat mal klein angefangen. Du schaffst das!']}
 };
-const TIPS = ['Tipp: Passt „dieses“ oder „welches“? → das. Sonst → dass.', 'Tipp: Ein Komma allein heißt noch nicht „dass“!',
+const TIPS = ['Tipp: Passt „dies“, „dieses“ oder „welches“? → das. Sonst → dass.', 'Tipp: Ein Komma allein heißt noch nicht „dass“!',
               'Tipp: „Dass“ kann auch am Satzanfang stehen.', 'Tipp: Bei „…, dass das …“ jedes Wort einzeln prüfen.'];
 function finish() {
   $('progress').style.width = '100%';
