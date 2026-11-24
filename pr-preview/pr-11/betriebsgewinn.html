@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple-Choice-Test: Betriebsgewinn</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        .question {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        label:hover {
+            background: #e0f7fa;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        input[type="radio"]:checked + label {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .explanation {
+            display: none;
+            margin-top: 10px;
+            font-size: 0.9em;
+            background: #fff3e0;
+            padding: 10px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .math {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Betriebsgewinn</h1>
+    <div class="question">
+        <p><strong>Aufgabe:</strong></p>
+        <p class="math">
+            Ein Betrieb produziert und verkauft die Produkte \(P_1, \dots, P_5\). In der vorangegangenen Woche wurden \(x_i\) Stück des Produkts \(P_i\) produziert und verkauft. Das Produkt \(P_i\) wird zu einem Stückpreis \(v_i\) verkauft, wobei \(k_i\) die Herstellungskosten pro Stück \(P_i\) sind.<br>
+            Die Vektoren sind wie folgt definiert:<br>
+            \[
+            \vec{X} = \begin{pmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \\ x_5 \end{pmatrix}, \quad
+            \vec{V} = \begin{pmatrix} v_1 \\ v_2 \\ v_3 \\ v_4 \\ v_5 \end{pmatrix}, \quad
+            \vec{K} = \begin{pmatrix} k_1 \\ k_2 \\ k_3 \\ k_4 \\ k_5 \end{pmatrix}
+            \]
+            Wählen Sie den Term, der den Gewinn \(G\) des Betriebs beschreibt.
+        </p>
+        <form id="quizForm">
+            <div>
+                <input type="radio" id="option1" name="option">
+                <label for="option1">\(G = \vec{X} \cdot \vec{V} + \vec{X} \cdot \vec{K}\)</label>
+                <div class="explanation" id="explanation1">
+                    Dieser Term ist falsch, da die Herstellungskosten \(\vec{X} \cdot \vec{K}\) subtrahiert und nicht addiert werden sollten.
+                </div>
+            </div>
+            <div>
+                <input type="radio" id="option2" name="option">
+                <label for="option2">\(G = \vec{X} \cdot \vec{V} - \vec{X} \cdot \vec{K}\)</label>
+                <div class="explanation" id="explanation2">
+                    Dieser Term ist korrekt, da er die Einnahmen \(\vec{X} \cdot \vec{V}\) und die abgezogenen Herstellungskosten \(\vec{X} \cdot \vec{K}\) berücksichtigt.
+                </div>
+            </div>
+            <div>
+                <input type="radio" id="option3" name="option">
+                <label for="option3">\(G = \vec{V} - \vec{K}\)</label>
+                <div class="explanation" id="explanation3">
+                    Dieser Term ist falsch, da er die Produktionsmenge \(\vec{X}\) nicht berücksichtigt.
+                </div>
+            </div>
+            <div>
+                <input type="radio" id="option4" name="option">
+                <label for="option4">\(G = \vec{X} \cdot (\vec{V} + \vec{K})\)</label>
+                <div class="explanation" id="explanation4">
+                    Dieser Term ist falsch, da die Herstellungskosten \(\vec{K}\) abgezogen und nicht addiert werden sollten.
+                </div>
+            </div>
+            <button type="button" onclick="checkAnswers()">Antworten überprüfen</button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+</div>
+
+<script>
+    function checkAnswers() {
+        const correctAnswer = "option2";
+        const explanations = {
+            "option1": "explanation1",
+            "option2": "explanation2",
+            "option3": "explanation3",
+            "option4": "explanation4"
+        };
+
+        const selected = document.querySelector('input[name="option"]:checked');
+        const resultDiv = document.getElementById('result');
+
+        if (selected) {
+            if (selected.id === correctAnswer) {
+                resultDiv.textContent = "Richtig! Gut gemacht!";
+                resultDiv.className = "result correct";
+            } else {
+                resultDiv.textContent = "Leider falsch. Bitte überprüfen Sie die Erklärung.";
+                resultDiv.className = "result incorrect";
+            }
+
+            for (const expId of Object.values(explanations)) {
+                const exp = document.getElementById(expId);
+                exp.style.display = expId === explanations[selected.id] ? 'block' : 'none';
+            }
+        } else {
+            resultDiv.textContent = "Bitte wählen Sie eine Antwort aus.";
+            resultDiv.className = "result incorrect";
+        }
+    }
+</script>
+</body>
+</html>
