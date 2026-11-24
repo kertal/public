@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#58cc02">
+<title>das oder dass? · Rechtschreibtrainer 9. Schulstufe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#58cc02; --green-d:#58a700; --green-bg:#d7ffb8; --green-t:#58a700;
+    --yellow:#ffc800; --yellow-d:#e5a800; --yellow-bg:#fff4c2; --yellow-t:#b07d00;
+    --red:#ff4b4b; --red-d:#ea2b2b; --red-bg:#ffdfe0; --red-t:#ea2b2b;
+    --blue:#1cb0f6; --blue-d:#1899d6; --blue-bg:#ddf4ff; --blue-l:#84d8ff;
+    --purple:#ce82ff; --purple-d:#a568cc;
+    --ink:#3c3c3c; --muted:#777; --line:#e5e5e5; --bg:#fff; --soft:#f7f7f7;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{display:flex;justify-content:center}
+  .app{width:100%;max-width:600px;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+  .screen{display:none;flex:1;flex-direction:column;padding:16px 18px calc(16px + env(safe-area-inset-bottom))}
+  .screen.active{display:flex}
+  h1{font-size:26px;font-weight:900;margin:8px 0 2px}
+  h2{font-size:22px;font-weight:900;margin:0 0 14px}
+  .sub{color:var(--muted);font-weight:700;margin:0 0 18px}
+
+  /* Buttons */
+  .btn{appearance:none;border:none;border-radius:16px;font:inherit;font-weight:800;font-size:16px;letter-spacing:.8px;text-transform:uppercase;
+       padding:14px 18px;cursor:pointer;width:100%;color:#fff;background:var(--green);box-shadow:0 4px 0 var(--green-d);transition:transform .05s,filter .15s}
+  .btn:active{transform:translateY(4px);box-shadow:0 0 0 transparent}
+  .btn:disabled{background:var(--line);color:#afafaf;box-shadow:0 4px 0 #d0d0d0;cursor:default}
+  .btn.ghost{background:#fff;color:var(--muted);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+  .btn.blue{background:var(--blue);box-shadow:0 4px 0 var(--blue-d)}
+  .btn.yellow{background:var(--yellow);box-shadow:0 4px 0 var(--yellow-d)}
+  .btn.red{background:var(--red);box-shadow:0 4px 0 var(--red-d)}
+
+  /* Home */
+  .hero{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .owl{font-size:52px;line-height:1}
+  .group{margin:14px 0}
+  .label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+  .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .opts.two{grid-template-columns:repeat(2,1fr)}
+  .opt{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:12px 6px;text-align:center;font-weight:800;cursor:pointer;background:#fff;user-select:none;font-size:15px;font-family:inherit;color:var(--ink);width:100%}
+  .opt:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  .opt small{display:block;font-weight:700;color:var(--muted);font-size:12px;margin-top:2px}
+  .opt.sel{border-color:var(--blue-l);background:var(--blue-bg);color:var(--blue-d)}
+  .opt.sel small{color:var(--blue-d)}
+  .stats{display:flex;gap:10px;margin:6px 0 4px}
+  .stat{flex:1;border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+  .stat b{display:block;font-size:22px;font-weight:900}
+  .stat span{font-size:12px;color:var(--muted);font-weight:800;text-transform:uppercase}
+  .spacer{flex:1}
+  .home-actions{display:grid;gap:12px;margin-top:18px}
+  .link{background:none;border:none;color:var(--blue);font:inherit;font-weight:800;cursor:pointer;padding:10px;text-transform:uppercase;letter-spacing:.8px;font-size:14px}
+
+  /* Lesson top bar */
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .x{background:none;border:none;font-size:26px;color:#afafaf;cursor:pointer;padding:4px 6px;line-height:1}
+  .bar{flex:1;height:16px;background:var(--line);border-radius:10px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:var(--green);border-radius:10px;transition:width .4s;
+         background-image:linear-gradient(to bottom,rgba(255,255,255,.35) 0 30%,transparent 30%)}
+  .streak{font-weight:900;color:#ff9600;min-width:46px;text-align:right}
+  .streak.dim{color:#cfcfcf}
+
+  .prompt-label{font-size:20px;font-weight:900;margin:0 0 6px}
+  .prompt-sub{color:var(--muted);font-weight:700;font-size:14px;margin:0 0 16px}
+  .sentence{border:2px solid var(--line);border-bottom-width:4px;border-radius:18px;padding:18px 16px;font-size:22px;font-weight:700;line-height:2.1;margin-bottom:18px}
+  .gap{appearance:none;font:inherit;font-weight:900;font-size:21px;line-height:1.3;min-width:72px;padding:2px 10px;margin:0 2px;border-radius:12px;cursor:pointer;
+       border:2px dashed #c9c9c9;background:var(--soft);color:var(--ink);vertical-align:baseline}
+  .gap.empty{color:transparent}
+  .gap.active{border:2px solid var(--blue);background:var(--blue-bg);color:var(--blue-d);box-shadow:0 0 0 3px rgba(28,176,246,.2)}
+  .gap.active.empty{color:transparent}
+  .gap.filled{border-style:solid;border-color:var(--blue-l);background:#fff;color:var(--blue-d)}
+  .gap.good{border:2px solid var(--green);background:var(--green-bg);color:var(--green-t);cursor:default}
+  .gap.half{border:2px solid var(--yellow);background:var(--yellow-bg);color:var(--yellow-t);cursor:default}
+  .gap.wrong{border:2px solid var(--red);background:var(--red-bg);color:var(--red-t);cursor:default}
+  .gap s{opacity:.6;font-weight:800;margin-right:6px}
+  .gap{position:relative}
+  .gap .wt{position:absolute;left:50%;top:-15px;transform:translateX(-50%);white-space:nowrap;font-size:11px;font-weight:900;letter-spacing:.2px;line-height:1}
+  .sentence.pro{line-height:2.7}
+
+  .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .choice{border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;padding:14px 8px;background:#fff;font:inherit;font-size:24px;font-weight:900;color:var(--ink);cursor:pointer;text-align:center}
+  .choice:active{border-bottom-width:2px;transform:translateY(2px)}
+  .choice small{display:block;font-size:13px;font-weight:800;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+  .choice kbd{float:left;font:inherit;font-size:11px;color:#afafaf;border:2px solid var(--line);border-radius:6px;padding:0 5px;line-height:16px}
+  .choice:disabled{opacity:.45;cursor:default}
+  .choice.dass{color:var(--purple-d)}
+
+  /* Footer / feedback sheet */
+  .footer{margin:auto -18px calc(-16px - env(safe-area-inset-bottom));padding:16px 18px calc(18px + env(safe-area-inset-bottom));border-top:2px solid var(--line);background:#fff;transition:background .2s}
+  .footer.ok{background:var(--green-bg);border-color:transparent}
+  .footer.mostly{background:var(--yellow-bg);border-color:transparent}
+  .footer.bad{background:var(--red-bg);border-color:transparent}
+  .fb{display:none;margin-bottom:14px}
+  .footer.ok .fb,.footer.mostly .fb,.footer.bad .fb{display:block;animation:up .25s ease-out}
+  @keyframes up{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+  .fb-title{font-size:22px;font-weight:900;display:flex;align-items:center;gap:8px}
+  .fb-body{font-weight:700;margin-top:6px;font-size:15px;line-height:1.4}
+  .fb-body ul{margin:6px 0 0;padding-left:18px}
+  .fb-body li{margin:3px 0}
+  .probe{background:rgba(255,255,255,.65);border-radius:12px;padding:8px 10px;margin-top:8px;color:var(--ink)}
+  .probe b.r{color:var(--blue-d)} .probe b.k{color:var(--purple-d)}
+  .probe small{display:block;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  .ok .fb-title,.ok .fb-body{color:var(--green-t)}
+  .mostly .fb-title,.mostly .fb-body{color:var(--yellow-t)}
+  .bad .fb-title,.bad .fb-body{color:var(--red-t)}
+  .row{display:flex;gap:12px}
+  .row .btn.ghost{flex:0 0 38%}
+
+  .shake{animation:shake .35s}
+  @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+  .pop{animation:pop .3s}
+  @keyframes pop{50%{transform:scale(1.06)}}
+
+  /* Done */
+  .done{align-items:center;text-align:center;justify-content:flex-start;position:relative;overflow-x:hidden}
+  .done>*{flex-shrink:0}
+  .trophy{font-size:64px;margin:4px 0 0;animation:pop .6s}
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+  .ring{--p:0;width:150px;height:150px;border-radius:50%;margin:14px auto 8px;display:grid;place-items:center;
+        background:conic-gradient(var(--rc,var(--green)) calc(var(--p)*1%),var(--line) 0)}
+  .ring-in{width:120px;height:120px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-in b{font-size:40px;font-weight:900;line-height:1;color:var(--rc,var(--green))}
+  .ring-in span{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+  .grade{font-size:18px;font-weight:900;padding:6px 16px;border-radius:999px;display:inline-block;color:#fff;background:var(--rc,var(--green))}
+  .record{font-weight:900;color:#ff9600;margin-top:8px}
+  .record:empty{display:none}
+  .breakdown{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:12px 0 4px;font-weight:800;font-size:15px}
+  .breakdown .g{color:var(--green-t)} .breakdown .y{color:var(--yellow-t)} .breakdown .r{color:var(--red-t)}
+  .motiv{background:var(--soft);border:2px solid var(--line);border-radius:16px;padding:12px 14px;font-weight:800;font-size:16px;margin-top:12px;width:100%;line-height:1.35}
+  .motiv i{display:block;font-style:normal;color:var(--blue-d);margin-top:6px;font-size:14px}
+  .tiles{display:flex;gap:12px;width:100%;margin:14px 0}
+  .tile{flex:1;border-radius:16px;border:2px solid;overflow:hidden}
+  .tile .t{color:#fff;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:4px}
+  .tile .v{padding:12px 4px;font-size:22px;font-weight:900;background:#fff}
+  .tile.y{border-color:var(--yellow)} .tile.y .t{background:var(--yellow)} .tile.y .v{color:var(--yellow-d)}
+  .tile.g{border-color:var(--green)} .tile.g .t{background:var(--green)} .tile.g .v{color:var(--green-d)}
+  .tile.b{border-color:var(--blue)} .tile.b .t{background:var(--blue)} .tile.b .v{color:var(--blue-d)}
+  .mist{width:100%;text-align:left;margin-bottom:10px}
+  .mist li{padding:8px 0;border-bottom:1px solid var(--line);font-weight:700;list-style:none}
+  .mist ul{padding:0;margin:0;max-height:30vh;overflow:auto}
+  .mist b{color:var(--blue-d)} .mist b.k{color:var(--purple-d)}
+
+  /* Rules */
+  .rules{overflow:auto;flex:1}
+  .rule{border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;padding:12px 14px;margin-bottom:12px}
+  .rule .head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .rule .w{font-size:22px;font-weight:900;color:var(--blue-d)}
+  .rule.k .w{color:var(--purple-d)}
+  .rule .kind{font-weight:900}
+  .rule .probe-tag{margin-left:auto;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;padding:3px 8px;border-radius:999px;background:var(--blue-bg);color:var(--blue-d);white-space:nowrap}
+  .rule.k .probe-tag{background:#f3e3ff;color:var(--purple-d)}
+  .rule p{margin:4px 0;font-weight:700;color:var(--muted)}
+  .rule .ex{color:var(--ink)}
+  .rule .ex b{color:var(--blue-d)} .rule .ex b.k{color:var(--purple-d)}
+  .tip{background:var(--yellow-bg);border-radius:16px;padding:12px 14px;font-weight:700;margin-bottom:12px}
+  .tip b{color:var(--yellow-t)}
+
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:9}
+  .modal.show{display:flex}
+  .sheet{background:#fff;width:100%;max-width:600px;border-radius:20px 20px 0 0;padding:22px 18px calc(18px + env(safe-area-inset-bottom));text-align:center}
+  .sheet h3{font-size:20px;font-weight:900;margin:4px 0 8px}
+  .sheet p{color:var(--muted);font-weight:700;margin:0 0 18px}
+  .sheet .btn{margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen active" id="home">
+    <div class="hero">
+      <div class="owl">✍️</div>
+      <div>
+        <h1>das oder dass?</h1>
+        <div class="sub" id="countLine" style="margin:0"></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="stXp">0</b><span>⚡ XP</span></div>
+      <div class="stat"><b id="stKnown">0</b><span>✅ Gelernt</span></div>
+      <div class="stat"><b id="stWeak">0</b><span>🔁 Schwierig</span></div>
+    </div>
+
+    <div class="group">
+      <div class="label">Modus</div>
+      <div class="opts two" data-key="mode" role="group" aria-label="Modus">
+        <button type="button" class="opt sel" data-v="basic" aria-pressed="true">✏️ Basis<small>das oder dass</small></button>
+        <button type="button" class="opt" data-v="pro" aria-pressed="false">🎓 Profi<small>+ Wortart bestimmen</small></button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label">Sätze</div>
+      <div class="opts two" data-key="focus" role="group" aria-label="Sätze">
+        <button type="button" class="opt sel" data-v="all" aria-pressed="true">🔀 Gemischt<small>alle Sätze</small></button>
+        <button type="button" class="opt" data-v="trap" aria-pressed="false">⚠️ Stolperfallen<small id="trapN"></small></button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label">Lektion</div>
+      <div class="opts" data-key="len" role="group" aria-label="Lektion">
+        <button type="button" class="opt sel" data-v="10" aria-pressed="true">10<small>Sätze</small></button>
+        <button type="button" class="opt" data-v="20" aria-pressed="false">20<small>Sätze</small></button>
+        <button type="button" class="opt" data-v="all" aria-pressed="false">Alle<small id="allN"></small></button>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="home-actions">
+      <button class="btn" id="startBtn">Los geht's!</button>
+      <button class="btn ghost" id="weakBtn">🔁 Schwierige Sätze wiederholen</button>
+      <button class="link" id="rulesBtn">📖 Regeln &amp; Ersatzprobe</button>
+    </div>
+  </section>
+
+  <!-- LESSON -->
+  <section class="screen" id="lesson">
+    <div class="topbar">
+      <button class="x" id="quitBtn" aria-label="Beenden">✕</button>
+      <div class="bar"><i id="progress"></i></div>
+      <div class="streak dim" id="streak">🔥 0</div>
+    </div>
+
+    <div id="qView">
+      <p class="prompt-label" id="promptLabel">das oder dass?</p>
+      <p class="prompt-sub" id="promptSub"></p>
+      <div class="sentence" id="sentence"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+
+    <div class="footer" id="footer">
+      <div class="fb">
+        <div class="fb-title" id="fbTitle"></div>
+        <div class="fb-body" id="fbBody"></div>
+      </div>
+      <div class="row" id="actionRow"></div>
+    </div>
+  </section>
+
+  <!-- DONE -->
+  <section class="screen done" id="done">
+    <canvas id="confetti"></canvas>
+    <div class="trophy" id="trophy">🏆</div>
+    <h1 id="doneTitle">Lektion geschafft!</h1>
+    <div class="ring" id="ring"><div class="ring-in"><b id="dScore">0</b><span>Punkte</span></div></div>
+    <div class="grade" id="dGrade"></div>
+    <div class="record" id="dRecord"></div>
+    <div class="breakdown">
+      <span class="g">✅ <b id="nOk">0</b> richtig</span>
+      <span class="y">🟡 <b id="nMostly">0</b> fast</span>
+      <span class="r">❌ <b id="nBad">0</b> falsch</span>
+    </div>
+    <div class="motiv" id="dMotiv"></div>
+    <div class="tiles">
+      <div class="tile y"><div class="t">XP</div><div class="v" id="dXp">0</div></div>
+      <div class="tile g"><div class="t">Genauigkeit</div><div class="v" id="dAcc">0%</div></div>
+      <div class="tile b"><div class="t">Serie</div><div class="v" id="dStreak">0</div></div>
+    </div>
+    <div class="mist" id="mistBox">
+      <div class="label">Wiederholen</div>
+      <ul id="mistList"></ul>
+    </div>
+    <div class="spacer"></div>
+    <div class="home-actions" style="width:100%">
+      <button class="btn" id="againBtn">Nochmal</button>
+      <button class="btn ghost" id="homeBtn">Fertig</button>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section class="screen" id="rules">
+    <div class="topbar" style="margin-bottom:12px">
+      <button class="x" id="rulesBack" aria-label="Zurück">←</button>
+      <h2 style="margin:0;flex:1">Regeln</h2>
+    </div>
+    <div class="rules">
+      <div class="tip">🔎 <b>Ersatzprobe:</b> Kannst du das Wort durch <b>dies</b>, <b>dieses</b>, <b>jenes</b> oder <b>welches</b> ersetzen, schreibst du <b>das</b> mit einem s. Klappt das nicht, ist es die Konjunktion <b>dass</b>.</div>
+
+      <div class="rule">
+        <div class="head"><span class="w">das</span><span class="kind">Artikel</span><span class="probe-tag">→ dieses / jenes</span></div>
+        <p>Bestimmter Artikel – begleitet ein Nomen.</p>
+        <p class="ex"><b>Das</b> (dieses) Experiment im Chemieunterricht verlief erfolgreich.</p>
+      </div>
+      <div class="rule">
+        <div class="head"><span class="w">das</span><span class="kind">Demonstrativpronomen</span><span class="probe-tag">→ dies / dieses</span></div>
+        <p>Weist auf etwas hin, steht allein (ohne Nomen).</p>
+        <p class="ex"><b>Das</b> (dies) hätte niemand erwartet.</p>
+      </div>
+      <div class="rule">
+        <div class="head"><span class="w">das</span><span class="kind">Relativpronomen</span><span class="probe-tag">→ welches</span></div>
+        <p>Leitet einen Relativsatz ein und bezieht sich auf ein Bezugswort im übergeordneten Satz.</p>
+        <p class="ex">Das Buch, <b>das</b> (welches) wir gerade lesen, ist sehr gesellschaftskritisch.</p>
+      </div>
+      <div class="rule k">
+        <div class="head"><span class="w">dass</span><span class="kind">Konjunktion (Subjunktion)</span><span class="probe-tag">nicht ersetzbar</span></div>
+        <p>Bindewort – leitet einen Nebensatz ein, meist nach einem Komma.</p>
+        <p class="ex">Viele Jugendliche kritisieren, <b class="k">dass</b> der Klimaschutz zu langsam vorangeht.</p>
+      </div>
+
+      <div class="label" style="margin-top:18px">⚠️ Stolperfallen</div>
+      <div class="rule">
+        <div class="head"><span class="kind">Komma vor „das“</span></div>
+        <p>Auch vor einem Relativpronomen steht ein Komma. Ein Komma allein bedeutet also nicht automatisch „dass“!</p>
+        <p class="ex">Er gab mir das Buch, <b>das</b> (welches) auf dem Tisch lag.</p>
+      </div>
+      <div class="rule k">
+        <div class="head"><span class="kind">„Dass“ am Satzanfang</span></div>
+        <p>Wird der Nebensatz vorgezogen, steht „Dass“ ganz vorne.</p>
+        <p class="ex"><b class="k">Dass</b> du pünktlich kommst, setze ich voraus.</p>
+      </div>
+      <div class="rule">
+        <div class="head"><span class="kind">Beide hintereinander</span></div>
+        <p>Oft folgen „dass“ und „das“ direkt aufeinander – prüfe jedes Wort einzeln.</p>
+        <p class="ex">Ich hoffe, <b class="k">dass</b> (nicht ersetzbar) <b>das</b> (dieses) Problem bald gelöst wird.</p>
+      </div>
+      <div class="rule k">
+        <div class="head"><span class="kind">ohne dass · statt dass</span></div>
+        <p>„ohne dass“ und „statt dass“ leiten Nebensätze ein. Diese werden durch ein Komma vom übergeordneten Satz getrennt. Zwischen „ohne“ bzw. „statt“ und „dass“ steht <b>kein</b> Komma.</p>
+        <p class="ex">Er verließ den Raum, ohne <b class="k">dass</b> es jemand bemerkte.</p>
+        <p class="ex"><b class="k">Statt dass</b> er lernt, spielt er Computerspiele.</p>
+      </div>
+      <div class="rule k">
+        <div class="head"><span class="kind">so dass · sodass</span></div>
+        <p>Beide Schreibweisen sind korrekt – getrennt oder zusammen.</p>
+        <p class="ex">Es regnete stark, so <b class="k">dass</b> das Spiel abgebrochen wurde. = …, <b class="k">sodass</b> das Spiel abgebrochen wurde.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="quitModal">
+    <div class="sheet">
+      <div style="font-size:48px">😢</div>
+      <h3>Willst du wirklich aufhören?</h3>
+      <p>Dein Fortschritt in dieser Lektion geht verloren.</p>
+      <button class="btn blue" id="keepBtn">Weiterlernen</button>
+      <button class="link" id="reallyQuit" style="color:var(--red)">Beenden</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Sätze (Niveau 9. Schulstufe: 5. Klasse AHS / 1. Klasse BHS) ----------
+   Lücken:  {A} / {A:Nomen}  Artikel          → dieses
+            {D}              Demonstrativpron. → dies
+            {R:Bezugswort}   Relativpronomen   → welches
+            {K}              Konjunktion       → dass
+   Zeilen mit "* " am Anfang sind Stolperfallen. */
+const RAW = `
+{A} Experiment im Chemieunterricht verlief erfolgreich.
+{D} hätte niemand erwartet.
+{A} Buch, {R:Buch} wir gerade lesen, ist sehr gesellschaftskritisch.
+Viele Jugendliche kritisieren, {K} der Klimaschutz zu langsam vorangeht.
+* Er gab mir {A} Buch, {R:Buch} auf dem Tisch lag.
+* {K} du pünktlich kommst, setze ich voraus.
+* Ich hoffe, {K} {A} Problem bald gelöst wird.
+* Glaubst du wirklich, {K} {D} eine gute Idee ist?
+{A} Referat über den Klimawandel war hervorragend vorbereitet.
+Unsere Lehrerin betonte, {K} die Schularbeit nächste Woche stattfindet.
+{A} Smartphone, {R:Smartphone} sie zum Geburtstag bekommen hat, ist schon kaputt.
+{D} weiß doch jedes Kind!
+* Es ist wichtig, {K} man sich gut auf {A} Vorstellungsgespräch vorbereitet.
+* Wir haben erfahren, {K} {A} Konzert wegen des Unwetters abgesagt wurde.
+{A} Mädchen, {R:Mädchen} neben mir sitzt, kommt aus Graz.
+* {K} {A} Wetter morgen besser wird, bezweifle ich.
+Ich habe dir {D} schon tausendmal gesagt.
+* Der Direktor teilte mit, {K} {A} Schulfest verschoben wird.
+Sie war so müde, {K} sie im Bus eingeschlafen ist.
+{A} Gedicht, {R:Gedicht} wir auswendig lernen mussten, stammt von Goethe.
+Hast du gewusst, {K} Wale Säugetiere sind?
+* Er behauptet, {K} er {D} nicht gewusst hat.
+* {A} Problem ist, {K} niemand Verantwortung übernehmen will.
+* Ich finde es schade, {K} {A} Schwimmbad im Winter geschlossen ist.
+{D} ist doch nicht dein Ernst!
+{A} Theaterstück, {R:Theaterstück} die 9b aufführt, handelt von Freundschaft.
+Die Studie zeigt, {K} Jugendliche zu wenig schlafen.
+* Kannst du mir {A} Heft geben, {R:Heft} du gestern mitgenommen hast?
+Er lief so schnell, {K} ihn niemand einholen konnte.
+* {K} Rauchen schädlich ist, ist allgemein bekannt.
+{A} Ergebnis der Umfrage überraschte alle.
+* Ich bin mir sicher, {K} {A} Ergebnis, {R:Ergebnis} wir erzielt haben, uns weiterbringt.
+Sie öffnete {A} Fenster, damit frische Luft hereinkam.
+Wir müssen darauf achten, {K} wir die Abgabefrist nicht verpassen.
+{A} Land, {R:Land} wir im Sommer bereist haben, war wunderschön.
+{D} hier ist mein neues Fahrrad.
+Es freut mich, {K} du die Prüfung bestanden hast.
+* Weißt du, {K} {A} Auto, {R:Auto} vor der Schule parkt, dem Direktor gehört?
+* Er verließ den Raum, ohne {K} es jemand bemerkte.
+* Statt {K} er lernt, spielt er stundenlang Computerspiele.
+{A} Wissen, {R:Wissen} man in der Schule erwirbt, ist wertvoll.
+* Mein Bruder meint, {K} {D} viel zu teuer ist.
+{A} Internet hat unser Leben stark verändert.
+Es ist kein Wunder, {K} sie so gute Noten hat – sie lernt jeden Tag.
+{A} Plakat, {R:Plakat} unsere Gruppe gestaltet hat, hängt jetzt in der Aula.
+* Ich glaube nicht, {K} {D} stimmt.
+Wer hat {D} gemacht?
+* Die Politikerin versprach, {K} sich {A} Bildungssystem verbessern wird.
+* {K} {A} Klassenzimmer so unordentlich ist, ärgert die Lehrerin.
+{A} Video, {R:Video} viral gegangen ist, zeigt einen tanzenden Hund.
+Es kann sein, {K} der Zug Verspätung hat.
+Sie redete so leise, {K} niemand sie verstand.
+{A} Jugendzentrum bietet viele Freizeitaktivitäten an.
+* {A} Argument, {R:Argument} er vorgebracht hat, zeigt, {K} er sich gut informiert hat.
+{D} finde ich ungerecht.
+* Wir vermuten, {K} {A} Fußballspiel unentschieden endet.
+Sie sagte: „{D} mache ich nie wieder!“
+Er fragte mich: „Ist {D} dein Rucksack?“
+{A} Projekt, {R:Projekt} die meisten Stimmen bekommt, gewinnt einen Preis.
+* Ich wünsche mir, {K} {A} Schuljahr schnell vergeht.
+* Ich bin überzeugt, {K} ich {D} schaffe.
+Es ist erstaunlich, wie viel {A:Gehirn} menschliche Gehirn speichern kann.
+{A} Messer, {R:Messer} auf dem Tisch liegt, ist sehr scharf.
+Der Arzt meinte, {K} er mehr Sport treiben sollte.
+* Es regnete stark, so {K} {A} Spiel abgebrochen werden musste.
+{A} Handy klingelte mitten in der Deutschstunde.
+* {A} Lied, {R:Lied} im Radio läuft, gefällt mir so gut, {K} ich es sofort herunterlade.
+`;
+
+const TYPES = {
+  A: {word: 'das',  name: 'Artikel',              probe: 'dieses'},
+  D: {word: 'das',  name: 'Demonstrativpronomen', probe: 'dies'},
+  R: {word: 'das',  name: 'Relativpronomen',      probe: 'welches'},
+  K: {word: 'dass', name: 'Konjunktion',          probe: 'dass'}
+};
+const cap = (s, on) => on ? s[0].toUpperCase() + s.slice(1) : s;
+
+const ITEMS = RAW.trim().split('\n').map((line, id) => {
+  const trap = line.startsWith('* ');
+  if (trap) line = line.slice(2);
+  const parts = [], gaps = [];
+  let last = 0, before = '';
+  line.replace(/\{([ADRK])(?::([^}]+))?\}/g, (m, type, ref, pos) => {
+    const text = line.slice(last, pos);
+    parts.push(text); before += text;
+    const after = line.slice(pos + m.length);
+    const noun = type === 'A' && !ref ? ((after.match(/^\s*([A-Za-zÄÖÜäöüß-]+)/) || [])[1] || '') : ref;
+    // full noun phrase for the Ersatzprobe, e.g. "menschliche Gehirn"
+    const at = noun ? after.indexOf(noun) : -1;
+    const phrase = at >= 0 ? after.slice(0, at + noun.length).trim() : noun || '';
+    const g = {type, ref: noun || '', phrase, so: /\bso\s*$/.test(before), upper: /^\s*$|[.!?„]\s*$/.test(before)};
+    gaps.push(g); parts.push(g);
+    before += 'das'; last = pos + m.length;
+    return m;
+  });
+  parts.push(line.slice(last));
+  return {id, trap, parts, gaps};
+});
+
+/* ---------- Storage ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('dd9_' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('dd9_' + k, JSON.stringify(v)); } catch {} }
+};
+let stats = store.get('stats', {});   // id -> {ok, bad, box}
+let totalXp = store.get('xp', 0);
+let settings = Object.assign({mode: 'basic', focus: 'all', len: '10'}, store.get('settings', {}));
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); window.scrollTo(0,0); };
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const box = id => (stats[id] && stats[id].box) || 0;
+const isWeak = it => stats[it.id] && stats[it.id].bad > 0 && box(it.id) < 2;
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pick = a => a[Math.random() * a.length | 0];
+
+// Sentence rendered as HTML; fn(gap, index) returns the HTML for each gap
+const render = (item, fn) => item.parts.map(p => typeof p === 'string' ? esc(p) : fn(p, item.gaps.indexOf(p))).join('');
+const solved = item => render(item, g => `<b class="${g.type === 'K' ? 'k' : ''}">${cap(TYPES[g.type].word, g.upper)}</b>`);
+const probeHtml = item => render(item, g => g.type === 'K'
+  ? `<b class="k">${cap('dass', g.upper)}</b>`
+  : `<b class="r">${cap(TYPES[g.type].probe, g.upper)}</b>`);
+function explain(g) {
+  const w = cap(TYPES[g.type].word, g.upper);
+  if (g.type === 'A') return `<b>${w}</b> = Artikel${g.ref ? ` zu „${esc(g.ref)}“` : ''} → „${cap('dieses', g.upper)}${g.phrase ? ' ' + esc(g.phrase) : ''}“ passt ✔`;
+  if (g.type === 'D') return `<b>${w}</b> = Demonstrativpronomen (weist auf etwas hin) → „${cap('dies', g.upper)}“ passt ✔`;
+  if (g.type === 'R') return `<b>${w}</b> = Relativpronomen${g.ref ? `, bezieht sich auf das Bezugswort „${esc(g.ref)}“ im übergeordneten Satz` : ''} → „welches“ passt ✔`;
+  return `<b>${w}</b> = Konjunktion (Subjunktion, leitet einen Nebensatz ein) → weder „dies/dieses“ noch „welches“ passt ✘${g.so ? ' · „so dass“ darf man auch zusammen schreiben: „sodass“' : ''}`;
+}
+
+/* ---------- Sound ---------- */
+let actx;
+function beep(kind) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = kind === 'ok' ? [660, 880] : kind === 'mostly' ? [660, 740] : [220, 180];
+    notes.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = kind === 'bad' ? 'square' : 'sine'; o.frequency.value = f;
+      const t0 = actx.currentTime + i * .11;
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.18, t0 + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + .16);
+      o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + .18);
+    });
+  } catch {}
+}
+
+/* ---------- Home ---------- */
+function renderHome() {
+  $('countLine').textContent = `${ITEMS.length} Sätze · Rechtschreibung 9. Schulstufe`;
+  $('allN').textContent = ITEMS.length + ' Sätze';
+  $('trapN').textContent = ITEMS.filter(i => i.trap).length + ' knifflige';
+  $('stXp').textContent = totalXp;
+  $('stKnown').textContent = ITEMS.filter(i => box(i.id) >= 2).length;
+  const weak = ITEMS.filter(isWeak);
+  $('stWeak').textContent = weak.length;
+  $('weakBtn').style.display = weak.length ? '' : 'none';
+  document.querySelectorAll('.opts').forEach(g => {
+    g.querySelectorAll('.opt').forEach(o => { const on = o.dataset.v === settings[g.dataset.key]; o.classList.toggle('sel', on); o.setAttribute('aria-pressed', on); });
+  });
+}
+document.querySelectorAll('.opts').forEach(g => g.addEventListener('click', e => {
+  const o = e.target.closest('.opt'); if (!o) return;
+  settings[g.dataset.key] = o.dataset.v; store.set('settings', settings); renderHome();
+}));
+
+/* ---------- Lesson ---------- */
+const CHOICES = {
+  basic: [{v: 'das', label: 'das'}, {v: 'dass', label: 'dass'}],
+  pro: [{v: 'A', label: 'das', sub: 'Artikel'}, {v: 'D', label: 'das', sub: 'Demonstrativpronomen'},
+        {v: 'R', label: 'das', sub: 'Relativpronomen'}, {v: 'K', label: 'dass', sub: 'Konjunktion'}]
+};
+const wordOf = v => v === 'das' || v === 'dass' ? v : TYPES[v].word;
+
+let L;
+function pickItems(onlyWeak) {
+  let pool = onlyWeak ? ITEMS.filter(isWeak) : ITEMS.filter(i => settings.focus === 'all' || i.trap);
+  if (!onlyWeak) pool = shuffle(pool.slice()).sort((a, b) => (box(a.id) - box(b.id)) + (Math.random() - .5) * 1.5);
+  else shuffle(pool);
+  const n = settings.len === 'all' ? pool.length : Math.min(+settings.len, pool.length);
+  return shuffle(pool.slice(0, n));
+}
+function startLesson(onlyWeak) {
+  const items = pickItems(onlyWeak);
+  L = {queue: items, total: items.length, done: 0, streak: 0, best: 0, xp: 0,
+       mistakes: new Map(), first: new Map(), state: 'ask', mode: settings.mode, onlyWeak, ans: [], active: 0};
+  show('lesson');
+  nextQ();
+}
+const cur = () => L.queue[0];
+
+function nextQ() {
+  if (!L.queue.length) return finish();
+  L.state = 'ask';
+  const item = cur();
+  L.ans = item.gaps.map(() => null);
+  L.active = 0;
+  setFooter('', '', '');
+  $('progress').style.width = (L.done / L.total * 100) + '%';
+  const n = item.gaps.length;
+  $('promptLabel').textContent = L.mode === 'pro' ? 'das oder dass – und welche Wortart?' : 'das oder dass?';
+  $('promptSub').textContent = n > 1 ? `${n} Lücken – tippe auf eine Lücke, um sie zu ändern.` : 'Wähle das richtige Wort für die Lücke.';
+  $('choices').innerHTML = CHOICES[L.mode].map((c, i) =>
+    `<button type="button" class="choice${c.label === 'dass' ? ' dass' : ''}" data-v="${c.v}"><kbd>${i + 1}</kbd>${c.label}${c.sub ? `<small>${c.sub}</small>` : ''}</button>`).join('');
+  $('choices').querySelectorAll('.choice').forEach(b => b.onclick = () => choose(b.dataset.v));
+  $('actionRow').innerHTML = `<button class="btn ghost" id="skipBtn">Weiß nicht</button><button class="btn" id="checkBtn" disabled>Prüfen</button>`;
+  $('skipBtn').onclick = () => check(true);
+  $('checkBtn').onclick = () => check(false);
+  renderSentence();
+}
+function gapLabel(item, i) {
+  const v = L.ans[i]; if (!v) return 'das';
+  return cap(wordOf(v), item.gaps[i].upper);
+}
+function renderSentence() {
+  const item = cur();
+  $('sentence').classList.toggle('pro', L.mode === 'pro');
+  $('sentence').innerHTML = render(item, (g, i) => {
+    const v = L.ans[i];
+    const cls = ['gap', v ? 'filled' : 'empty', i === L.active ? 'active' : ''].join(' ');
+    const sub = v && L.mode === 'pro' ? `<span class="wt">${TYPES[v].name}</span>` : '';
+    return `<button type="button" class="${cls}" data-i="${i}" aria-label="Lücke ${i + 1}${v ? ': ' + wordOf(v) : ''}">${sub}${gapLabel(item, i)}</button>`;
+  });
+  $('sentence').querySelectorAll('.gap').forEach(b => b.onclick = () => { if (L.state !== 'ask') return; L.active = +b.dataset.i; renderSentence(); });
+  $('checkBtn').disabled = L.ans.some(a => !a);
+}
+function choose(v) {
+  if (L.state !== 'ask') return;
+  L.ans[L.active] = v;
+  const next = L.ans.findIndex((a, i) => !a && i > L.active);
+  const any = L.ans.findIndex(a => !a);
+  L.active = next >= 0 ? next : any >= 0 ? any : L.active;
+  renderSentence();
+}
+
+document.addEventListener('keydown', e => {
+  if (!$('lesson').classList.contains('active') || $('quitModal').classList.contains('show')) return;
+  if (L.state === 'ask') {
+    const opts = CHOICES[L.mode], k = +e.key;
+    if (k >= 1 && k <= opts.length) { e.preventDefault(); choose(opts[k - 1].v); return; }
+    const n = cur().gaps.length;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); L.active = (L.active + (e.key === 'ArrowRight' ? 1 : n - 1)) % n; renderSentence(); return; }
+    if (e.key === 'Backspace') { e.preventDefault(); L.ans[L.active] = null; renderSentence(); return; }
+    if (e.key === 'Enter' && !L.ans.some(a => !a)) { e.preventDefault(); check(false); }
+  } else if (L.state === 'fb' && e.key === 'Enter') {
+    if (e.target.closest && e.target.closest('button') && e.target.id !== 'contBtn') return;
+    e.preventDefault(); advance();
+  }
+});
+
+function setFooter(cls, title, body) {
+  const f = $('footer');
+  f.className = 'footer' + (cls ? ' ' + cls : '');
+  $('fbTitle').innerHTML = title; $('fbBody').innerHTML = body;
+}
+function record(item, ok) {
+  const s = stats[item.id] || {ok: 0, bad: 0, box: 0};
+  if (ok) { s.ok++; s.box = Math.min(5, s.box + 1); } else { s.bad++; s.box = 0; }
+  stats[item.id] = s; store.set('stats', stats);
+}
+
+function check(skipped) {
+  if (L.state !== 'ask') return;
+  const item = cur(), pro = L.mode === 'pro';
+  // per gap: 'good' | 'half' (right spelling, wrong Wortart) | 'wrong'
+  const res = item.gaps.map((g, i) => {
+    const v = skipped ? null : L.ans[i];
+    if (!v || wordOf(v) !== TYPES[g.type].word) return 'wrong';
+    return pro && v !== g.type ? 'half' : 'good';
+  });
+  const nWrong = res.filter(r => r === 'wrong').length, nHalf = res.filter(r => r === 'half').length;
+  const level = nWrong ? 'bad' : nHalf ? 'mostly' : 'ok';
+  if (!L.first.has(item.id)) L.first.set(item.id, level);
+
+  // Show result in the sentence
+  $('sentence').innerHTML = render(item, (g, i) => {
+    const r = res[i], right = cap(TYPES[g.type].word, g.upper);
+    const wt = pro ? `<span class="wt">${TYPES[g.type].name}</span>` : '';
+    const wrongWord = r === 'wrong' && L.ans[i] && !skipped ? `<s>${gapLabel(item, i)}</s>` : '';
+    return `<span class="gap ${r}">${wt}${wrongWord}${right}</span>`;
+  });
+  $('choices').querySelectorAll('.choice').forEach(b => b.disabled = true);
+
+  // Explanations: all gaps if few, otherwise only those not fully right
+  const relevant = item.gaps.map((g, i) => ({g, r: res[i]})).filter(x => level === 'ok' ? item.gaps.length <= 2 : x.r !== 'good');
+  const list = relevant.length ? `<ul>${relevant.map(x => `<li>${explain(x.g)}${x.r === 'half' ? ` – nicht „${TYPES[L.ans[item.gaps.indexOf(x.g)]].name}“` : ''}</li>`).join('')}</ul>` : '';
+  const probe = `<div class="probe"><small>🔎 Ersatzprobe</small>${probeHtml(item)}</div>`;
+
+  if (level === 'ok') {
+    L.streak++; L.xp += 10;
+    setFooter('ok', '✅ ' + pick(['Super!', 'Ausgezeichnet!', 'Richtig!', 'Perfekt!', 'Stark!', 'Genau so!']), list + probe);
+  } else if (level === 'mostly') {
+    L.streak++; L.xp += 7;
+    setFooter('mostly', '🟡 Schreibung richtig!', 'Aber die Wortart stimmt noch nicht ganz:' + list + probe);
+  } else {
+    L.streak = 0;
+    const partial = !skipped && item.gaps.length > 1 && nWrong < item.gaps.length;
+    setFooter('bad', skipped ? '💡 Lösung:' : partial ? `❌ ${item.gaps.length - nWrong} von ${item.gaps.length} richtig` : '❌ Leider falsch', list + probe);
+    $('qView').classList.add('shake'); setTimeout(() => $('qView').classList.remove('shake'), 400);
+  }
+  L.best = Math.max(L.best, L.streak);
+  updateStreak();
+  beep(level);
+  const good = level !== 'bad';
+  record(item, good);
+  L.lastGood = good;
+  if (!good) L.mistakes.set(item.id, item);
+  L.state = 'fb';
+  const cls = level === 'ok' ? '' : level === 'mostly' ? 'yellow' : 'red';
+  $('actionRow').innerHTML = `<button class="btn ${cls}" id="contBtn">Weiter</button>`;
+  $('contBtn').onclick = advance;
+  setTimeout(() => { try { $('contBtn').focus({preventScroll: true}); } catch {} }, 30);
+}
+function advance() {
+  if (L.state !== 'fb') return;
+  const item = L.queue.shift();
+  if (L.lastGood) L.done++;
+  else {
+    // wrong sentences come back later in the lesson
+    const pos = Math.min(L.queue.length, 2 + (Math.random() * 3 | 0));
+    L.queue.splice(pos, 0, item);
+  }
+  nextQ();
+}
+function updateStreak() {
+  const s = $('streak');
+  s.textContent = '🔥 ' + L.streak;
+  s.classList.toggle('dim', L.streak === 0);
+  if (L.streak) { s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); }
+}
+
+const MOTIV = {
+  1: {title: 'Perfekt! Sehr gut!', emoji: '🏆', color: '#58cc02',
+      msgs: ['Wow – du bist ein echter Rechtschreib-Profi!', 'Unglaublich, das sitzt bombenfest!', 'So sieht ein Einser aus! Mach weiter so!']},
+  2: {title: 'Bravo! Gut gemacht!', emoji: '🎉', color: '#58cc02',
+      msgs: ['Fast perfekt – nur noch ein paar Kleinigkeiten!', 'Starke Leistung! Noch eine Runde und du hast den Einser.', 'Super! Die Ersatzprobe hast du drauf.']},
+  3: {title: 'Befriedigend', emoji: '😊', color: '#1cb0f6',
+      msgs: ['Guter Fortschritt! Übe die roten Sätze nochmal.', 'Du bist auf dem richtigen Weg – dranbleiben!', 'Mit einer weiteren Runde wird es noch besser!']},
+  4: {title: 'Geschafft! Genügend', emoji: '💪', color: '#ffc800',
+      msgs: ['Das war ein Anfang! Jede Wiederholung macht dich sicherer.', 'Nicht aufgeben – Übung macht den Meister!', 'Die Grundlagen sitzen schon. Gleich nochmal?']},
+  5: {title: 'Weiter üben!', emoji: '📚', color: '#ff4b4b',
+      msgs: ['Kein Problem – Fehler gehören zum Lernen dazu!', 'Lies dir die Regeln kurz durch und probier es nochmal.', 'Jeder Profi hat mal klein angefangen. Du schaffst das!']}
+};
+const TIPS = ['Tipp: Passt „dies“, „dieses“ oder „welches“? → das. Sonst → dass.', 'Tipp: Ein Komma allein heißt noch nicht „dass“!',
+              'Tipp: „Dass“ kann auch am Satzanfang stehen.', 'Tipp: Bei „…, dass das …“ jedes Wort einzeln prüfen.'];
+function finish() {
+  $('progress').style.width = '100%';
+  const res = [...L.first.values()];
+  const nOk = res.filter(x => x === 'ok').length, nMostly = res.filter(x => x === 'mostly').length, nBad = res.length - nOk - nMostly;
+  const score = res.length ? Math.round((nOk * 100 + nMostly * 75) / res.length) : 0;
+  const note = score >= 90 ? 1 : score >= 80 ? 2 : score >= 65 ? 3 : score >= 50 ? 4 : 5;
+  const names = {1: 'Sehr gut', 2: 'Gut', 3: 'Befriedigend', 4: 'Genügend', 5: 'Nicht genügend'};
+  const M = MOTIV[note];
+  const bonus = score === 100 ? 20 : note <= 2 ? 10 : 0;
+  L.xp += bonus; totalXp += L.xp; store.set('xp', totalXp);
+  const key = 'best_' + L.mode + '_' + (L.onlyWeak ? 'weak' : settings.focus + '_' + settings.len);
+  const prev = store.get(key, null);
+  const isRecord = prev !== null && score > prev;
+  if (prev === null || score > prev) store.set(key, score);
+
+  $('done').style.setProperty('--rc', M.color);
+  $('trophy').textContent = M.emoji;
+  $('doneTitle').textContent = M.title;
+  $('doneTitle').style.color = M.color;
+  $('dGrade').textContent = `Note ${note} – ${names[note]}`;
+  $('dRecord').textContent = isRecord ? `🎖️ Neuer Rekord! (vorher ${prev})` : (prev !== null && score === prev && score < 100 ? `Gleich wie dein Rekord (${prev}) – knack ihn!` : '');
+  $('nOk').textContent = nOk; $('nMostly').textContent = nMostly; $('nBad').textContent = nBad;
+  $('dMotiv').innerHTML = `${pick(M.msgs)}<i>💡 ${pick(TIPS)}</i>` + (bonus ? `<i>⚡ +${bonus} Bonus-XP</i>` : '');
+  $('dXp').textContent = L.xp; $('dAcc').textContent = score + '%'; $('dStreak').textContent = '🔥 ' + L.best;
+  const m = [...L.mistakes.values()];
+  $('mistBox').style.display = m.length ? '' : 'none';
+  $('mistList').innerHTML = m.map(it => `<li>${solved(it)}</li>`).join('');
+  $('againBtn').textContent = m.length ? 'Nochmal üben' : 'Nochmal';
+  show('done');
+  const ring = $('ring'), t0 = performance.now(), dur = 1100;
+  (function tick(t) {
+    const k = Math.min(1, (t - t0) / dur), v = Math.round(score * (1 - Math.pow(1 - k, 3)));
+    ring.style.setProperty('--p', v); $('dScore').textContent = v;
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+  if (note <= 2) confetti();
+  try { beep('ok'); setTimeout(() => beep(note <= 3 ? 'ok' : 'mostly'), 220); } catch {}
+}
+function confetti() {
+  const c = $('confetti'), ctx = c.getContext('2d');
+  const W = c.width = innerWidth, H = c.height = innerHeight;
+  const cols = ['#58cc02', '#ffc800', '#1cb0f6', '#ff4b4b', '#ce82ff', '#ffffff'];
+  const P = Array.from({length: 140}, () => ({x: Math.random() * W, y: -20 - Math.random() * H * .6, vx: (Math.random() - .5) * 3,
+    vy: 2 + Math.random() * 3, r: 4 + Math.random() * 5, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: pick(cols)}));
+  const end = performance.now() + 3500;
+  (function f(t) {
+    ctx.clearRect(0, 0, W, H);
+    P.forEach(p => { p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+    if (t < end && $('done').classList.contains('active')) requestAnimationFrame(f); else ctx.clearRect(0, 0, W, H);
+  })(performance.now());
+}
+
+/* ---------- Wiring ---------- */
+$('startBtn').onclick = () => startLesson(false);
+$('weakBtn').onclick = () => startLesson(true);
+$('againBtn').onclick = () => startLesson(L.onlyWeak && ITEMS.some(isWeak));
+$('homeBtn').onclick = () => { renderHome(); show('home'); };
+$('quitBtn').onclick = () => $('quitModal').classList.add('show');
+$('keepBtn').onclick = () => $('quitModal').classList.remove('show');
+$('reallyQuit').onclick = () => { $('quitModal').classList.remove('show'); renderHome(); show('home'); };
+$('rulesBtn').onclick = () => show('rules');
+$('rulesBack').onclick = () => { renderHome(); show('home'); };
+renderHome();
+</script>
+</body>
+</html>
