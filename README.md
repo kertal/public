@@ -19,6 +19,9 @@ Some public stuff of kertal inc
 ## English
 - [English Grammar Quiz – 8th Grade](./english-grammar-quiz/)
 
+## Italiano
+- [Unità 3 – A scuola (Vokabeltrainer)](./italiano-unita3-a-scuola.html)
+
 ## Preview deployments
 Every pull request from a branch of this repository (not from forks) is deployed to `https://kertal.github.io/public/pr-preview/pr-<number>/`
 (a comment with the link is posted on the PR; the preview is removed when the PR is closed).
