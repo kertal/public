@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disco Birthday Brunch · 10 January 2027 · Habibi &amp; Hawara Vienna</title>
+<meta name="description" content="Get down! 70s Disco Birthday Brunch on Sunday, 10 January 2027 at 12:00 at Habibi & Hawara, Vienna.">
+<style>
+  :root {
+    --night: #1c0b1f;
+    --plum: #3d1240;
+    --brown: #5a2d0c;
+    --rust: #c1440e;
+    --orange: #f18805;
+    --mustard: #f6c026;
+    --pink: #ff3d8b;
+    --teal: #1fb5a8;
+    --cream: #fdf0d5;
+    --ink: #3a1a0a;
+    --groovy: "Cooper Black", "Cooper Std", "Bookman Old Style", "URW Bookman", "Bookman", Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; background: var(--night); overflow-x: hidden; }
+  body {
+    font-family: "Avenir Next", "Futura", "Century Gothic", "Trebuchet MS", system-ui, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255, 61, 139, 0.35), transparent 55%),
+      radial-gradient(ellipse at 0% 60%, rgba(31, 181, 168, 0.18), transparent 50%),
+      radial-gradient(ellipse at 100% 80%, rgba(241, 136, 5, 0.22), transparent 50%),
+      linear-gradient(180deg, var(--plum) 0%, var(--night) 70%);
+    overflow-x: hidden;
+  }
+
+  /* ---------- Light beams ---------- */
+  .beams {
+    position: fixed; top: 50%; left: 50%; width: 250vmax; height: 250vmax;
+    margin: -125vmax 0 0 -125vmax; z-index: 0; pointer-events: none;
+    background: conic-gradient(from 0deg at 50% 50%,
+      transparent 0 8deg, rgba(255, 61, 139, .10) 10deg 14deg, transparent 16deg 52deg,
+      rgba(246, 192, 38, .10) 54deg 58deg, transparent 60deg 112deg,
+      rgba(31, 181, 168, .10) 114deg 118deg, transparent 120deg 172deg,
+      rgba(241, 136, 5, .10) 174deg 178deg, transparent 180deg 232deg,
+      rgba(255, 61, 139, .10) 234deg 238deg, transparent 240deg 292deg,
+      rgba(246, 192, 38, .10) 294deg 298deg, transparent 300deg 360deg);
+    animation: spin 40s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  canvas#sparkle { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* ---------- Disco ball ---------- */
+  .ball-wrap { display: flex; flex-direction: column; align-items: center; }
+  .string { width: 2px; height: 60px; background: linear-gradient(#888, #ddd); }
+  .ball {
+    width: 130px; height: 130px; border-radius: 50%; position: relative;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,.95) 0 6%, transparent 14%),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 1px, transparent 1px 11px),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 11px),
+      linear-gradient(90deg, #6d6d7a, #e9e9f2 20%, #9c9cab 35%, #ffffff 50%, #8a8a99 65%, #e1e1ea 80%, #6d6d7a);
+    background-size: 100% 100%, 22px 100%, 100% 100%, 260px 100%;
+    animation: ballspin 4s linear infinite;
+    box-shadow: 0 0 40px rgba(255,255,255,.35), 0 0 90px rgba(255, 61, 139, .45), inset -18px -18px 40px rgba(0,0,0,.55);
+  }
+  @keyframes ballspin {
+    from { background-position: 0 0, 0 0, 0 0, 0 0; }
+    to   { background-position: 0 0, 22px 0, 0 0, 260px 0; }
+  }
+
+  /* ---------- Hero ---------- */
+  header.hero { text-align: center; color: var(--cream); padding: 10px 0 30px; }
+  .kicker {
+    font-family: var(--groovy); font-size: 1.25rem; color: var(--mustard);
+    margin-top: 22px; letter-spacing: .08em;
+  }
+  h1 {
+    font-family: var(--groovy); font-weight: 900; line-height: .95;
+    font-size: clamp(3rem, 12vw, 6rem); margin: 10px 0 6px;
+    color: var(--mustard);
+    text-shadow:
+      3px 3px 0 var(--orange), 6px 6px 0 var(--rust), 9px 9px 0 var(--pink), 12px 12px 0 var(--plum);
+    transform: rotate(-3deg);
+  }
+  h1 .line2 { display: block; color: var(--cream); font-size: .8em;
+    text-shadow: 3px 3px 0 var(--pink), 6px 6px 0 var(--orange), 9px 9px 0 var(--brown); }
+  .tagline { font-size: 1.15rem; margin-top: 26px; opacity: .95; }
+
+  .stripes {
+    height: 36px; margin: 26px -20px 34px;
+    background: linear-gradient(180deg,
+      var(--mustard) 0 20%, var(--orange) 20% 40%, var(--rust) 40% 60%, var(--pink) 60% 80%, var(--brown) 80% 100%);
+    border-radius: 999px; box-shadow: 0 0 30px rgba(241,136,5,.4);
+  }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--cream);
+    border: 4px solid var(--brown);
+    border-radius: 28px;
+    padding: 28px;
+    margin-bottom: 26px;
+    box-shadow: 8px 8px 0 var(--orange), 16px 16px 0 var(--pink);
+    position: relative;
+  }
+  .card h2 {
+    font-family: var(--groovy); font-size: 1.8rem; color: var(--rust);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    text-shadow: 2px 2px 0 var(--mustard);
+  }
+
+  .details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .detail {
+    border-radius: 20px; padding: 18px 12px; text-align: center; color: var(--cream);
+    background: var(--brown);
+  }
+  .detail:nth-child(1) { background: var(--rust); }
+  .detail:nth-child(2) { background: var(--orange); }
+  .detail:nth-child(3) { background: var(--teal); }
+  .detail .icon { font-size: 2rem; }
+  .detail .label { text-transform: uppercase; letter-spacing: .2em; font-size: .72rem; margin: 8px 0 4px; opacity: .9; }
+  .detail .value { font-family: var(--groovy); font-size: 1.35rem; }
+  .detail .sub { font-size: .9rem; margin-top: 2px; }
+
+  /* Countdown as light-up dance-floor tiles */
+  .countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; }
+  .unit {
+    border-radius: 14px; padding: 16px 6px; color: var(--night);
+    animation: tile 3s steps(1) infinite;
+  }
+  .unit:nth-child(1) { animation-delay: 0s; }
+  .unit:nth-child(2) { animation-delay: -.75s; }
+  .unit:nth-child(3) { animation-delay: -1.5s; }
+  .unit:nth-child(4) { animation-delay: -2.25s; }
+  @keyframes tile {
+    0%   { background: var(--mustard); box-shadow: 0 0 22px var(--mustard); }
+    25%  { background: var(--pink);    box-shadow: 0 0 22px var(--pink); }
+    50%  { background: var(--teal);    box-shadow: 0 0 22px var(--teal); }
+    75%  { background: var(--orange);  box-shadow: 0 0 22px var(--orange); }
+  }
+  .unit .num { font-family: var(--groovy); font-size: clamp(1.9rem, 7vw, 3rem); font-variant-numeric: tabular-nums; }
+  .unit .lbl { font-size: .75rem; text-transform: uppercase; letter-spacing: .18em; font-weight: 700; }
+  #party-now { display: none; text-align: center; font-family: var(--groovy); font-size: 1.7rem; color: var(--pink); }
+
+  .menu { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; }
+  .menu li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; }
+  .menu li b { display: block; font-family: var(--groovy); font-weight: normal; color: var(--brown); }
+  .menu .e { font-size: 1.6rem; }
+
+  .dress {
+    margin-top: 6px; padding: 16px 18px; border-radius: 18px; color: var(--cream);
+    background: repeating-linear-gradient(135deg, var(--plum) 0 18px, #4b1850 18px 36px);
+  }
+  .dress b { font-family: var(--groovy); font-weight: normal; color: var(--mustard); font-size: 1.15rem; }
+
+  .btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 999px; border: 3px solid var(--brown); cursor: pointer;
+    font: inherit; font-weight: 800; text-decoration: none;
+    background: var(--pink); color: var(--cream);
+    box-shadow: 4px 4px 0 var(--brown);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover, .btn:focus-visible { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--brown); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--brown); }
+  .btn.alt { background: var(--mustard); color: var(--ink); }
+  .btn.ghost { background: var(--teal); color: var(--cream); }
+
+  p { line-height: 1.6; }
+  .muted { color: #7a4a2a; font-size: .95rem; }
+
+  .wishes textarea, .wishes input {
+    width: 100%; font: inherit; padding: 12px 14px; border-radius: 14px;
+    border: 3px solid var(--brown); background: #fff8ea; margin-bottom: 10px; color: var(--ink);
+  }
+  .wishes textarea { min-height: 90px; resize: vertical; }
+  .wish-list { list-style: none; margin-top: 14px; display: grid; gap: 10px; }
+  .wish-list li {
+    background: #fff8ea; border: 2px solid var(--brown); border-left: 10px solid var(--orange);
+    border-radius: 12px; padding: 10px 14px; position: relative;
+  }
+  .wish-list li:nth-child(3n+2) { border-left-color: var(--pink); }
+  .wish-list li:nth-child(3n+3) { border-left-color: var(--teal); }
+  .wish-list li .who { font-family: var(--groovy); color: var(--rust); }
+  .wish-list li button {
+    position: absolute; top: 6px; right: 8px; border: none; background: none;
+    cursor: pointer; font-size: 1rem; color: #a07a5a;
+  }
+
+  /* ---------- Dance floor footer ---------- */
+  .floor {
+    display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
+    margin: 36px 0 18px; perspective: 400px;
+    transform: perspective(500px) rotateX(45deg);
+  }
+  .floor span { aspect-ratio: 1; border-radius: 4px; animation: tile 2.4s steps(1) infinite; }
+  footer { text-align: center; color: var(--cream); font-family: var(--groovy); font-size: 1.25rem; }
+  footer small { display: block; font-family: inherit; font-size: .9rem; color: var(--mustard); margin-top: 6px; }
+
+  @media (max-width: 600px) {
+    .details { grid-template-columns: 1fr; }
+    .menu { grid-template-columns: 1fr; }
+    .card { padding: 22px 18px; box-shadow: 6px 6px 0 var(--orange), 12px 12px 0 var(--pink); }
+    .countdown { gap: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .beams, .ball, .unit, .floor span { animation: none !important; }
+    .unit { background: var(--mustard); }
+    .floor span { background: var(--orange); }
+    canvas#sparkle { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="beams" aria-hidden="true"></div>
+<canvas id="sparkle" aria-hidden="true"></canvas>
+
+<main>
+  <div class="ball-wrap" aria-hidden="true">
+    <div class="string"></div>
+    <div class="ball"></div>
+  </div>
+
+  <header class="hero">
+    <p class="kicker">★ Get down &amp; boogie ★</p>
+    <h1>Disco<span class="line2">Birthday Brunch</span></h1>
+    <p class="tagline">Groovy food, funky friends and plenty of hummus. 🕺💃</p>
+  </header>
+
+  <div class="stripes" aria-hidden="true"></div>
+
+  <section class="card" aria-labelledby="when-where">
+    <h2 id="when-where">🪩 When &amp; Where</h2>
+    <div class="details">
+      <div class="detail">
+        <div class="icon" aria-hidden="true">📅</div>
+        <div class="label">Date</div>
+        <div class="value">Sunday</div>
+        <div class="sub">10 January 2027</div>
+      </div>
+      <div class="detail">
+        <div class="icon" aria-hidden="true">🕛</div>
+        <div class="label">Time</div>
+        <div class="value">12:00</div>
+        <div class="sub">12 o'clock noon</div>
+      </div>
+      <div class="detail">
+        <div class="icon" aria-hidden="true">🍽️</div>
+        <div class="label">Place</div>
+        <div class="value">Habibi &amp; Hawara</div>
+        <div class="sub">Vienna</div>
+      </div>
+    </div>
+    <div class="btns" style="margin-top:20px">
+      <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=Habibi+%26+Hawara+Wien" target="_blank" rel="noopener">🗺️ Open in Maps</a>
+      <button class="btn alt" id="ics" type="button">📆 Add to Calendar (.ics)</button>
+      <a class="btn ghost" id="gcal" target="_blank" rel="noopener" href="#">Google Calendar</a>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="cd-title">
+    <h2 id="cd-title">⏳ Countdown to the Boogie</h2>
+    <div class="countdown" id="countdown" aria-live="polite">
+      <div class="unit"><div class="num" id="d">--</div><div class="lbl">Days</div></div>
+      <div class="unit"><div class="num" id="h">--</div><div class="lbl">Hours</div></div>
+      <div class="unit"><div class="num" id="m">--</div><div class="lbl">Minutes</div></div>
+      <div class="unit"><div class="num" id="s">--</div><div class="lbl">Seconds</div></div>
+    </div>
+    <p id="party-now">🪩 Let's get it on — it's party time! 🪩</p>
+  </section>
+
+  <section class="card" aria-labelledby="brunch-title">
+    <h2 id="brunch-title">🥙 The Brunch</h2>
+    <p style="margin-bottom:16px">
+      Habibi &amp; Hawara is where Middle-Eastern flavours meet Viennese charm —
+      the perfect spot for a long, far-out Sunday brunch together.
+    </p>
+    <ul class="menu">
+      <li><span class="e" aria-hidden="true">🧆</span><span><b>Mezze to share</b>Hummus, falafel &amp; friends</span></li>
+      <li><span class="e" aria-hidden="true">🥚</span><span><b>Brunch classics</b>Something for every appetite</span></li>
+      <li><span class="e" aria-hidden="true">☕</span><span><b>Coffee &amp; tea</b>Plenty of refills</span></li>
+      <li><span class="e" aria-hidden="true">🎂</span><span><b>Birthday cake</b>Right on!</span></li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="dress-title">
+    <h2 id="dress-title">🕺 Dress Code: 70s</h2>
+    <div class="dress">
+      <b>Bring out your inner disco star!</b><br>
+      Flares, sequins, glitter, big collars, platforms, afros &amp; sunglasses —
+      all encouraged, never required. ✨
+    </div>
+  </section>
+
+  <section class="card wishes" aria-labelledby="wish-title">
+    <h2 id="wish-title">💌 Groovy Wishes</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Jot down a wish or a note to bring along. (Saved only in your own browser.)
+    </p>
+    <form id="wish-form">
+      <input id="wish-name" type="text" placeholder="Your name" maxlength="60" aria-label="Your name">
+      <textarea id="wish-text" placeholder="Happy birthday, disco queen/king! …" maxlength="500" aria-label="Your wish" required></textarea>
+      <button class="btn alt" type="submit">✨ Add wish</button>
+    </form>
+    <ul class="wish-list" id="wish-list"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="info-title">
+    <h2 id="info-title">☮️ Good to know</h2>
+    <p>
+      🕛 Please be on time — brunch starts at <b>12:00</b>.<br>
+      🎁 Your presence is the best present!<br>
+      🙋 Please let the birthday person know if you can make it.
+    </p>
+    <div class="btns" style="margin-top:16px">
+      <button class="btn ghost" id="share" type="button">🔗 Share this invitation</button>
+    </div>
+  </section>
+
+  <div class="floor" id="floor" aria-hidden="true"></div>
+  <footer>Can't wait to boogie with you! 🪩<small>Bis bald in Wien!</small></footer>
+</main>
+
+<script>
+(function () {
+  // Event: Sunday 10 Jan 2027, 12:00 Vienna time (CET = UTC+1)
+  var START = new Date("2027-01-10T12:00:00+01:00");
+  var END   = new Date("2027-01-10T15:00:00+01:00");
+  var TITLE = "Disco Birthday Brunch 🪩";
+  var LOCATION = "Habibi & Hawara, Wien";
+  var DESC = "70s Disco Birthday Brunch at Habibi & Hawara, Vienna. Starts 12:00. Dress code: 70s!";
+
+  // ---- Countdown ----
+  var el = { d: document.getElementById("d"), h: document.getElementById("h"),
+             m: document.getElementById("m"), s: document.getElementById("s") };
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function tick() {
+    var diff = START - new Date();
+    if (diff <= 0) {
+      document.getElementById("countdown").style.display = "none";
+      document.getElementById("party-now").style.display = "block";
+      return;
+    }
+    var sec = Math.floor(diff / 1000);
+    el.d.textContent = Math.floor(sec / 86400);
+    el.h.textContent = pad(Math.floor(sec % 86400 / 3600));
+    el.m.textContent = pad(Math.floor(sec % 3600 / 60));
+    el.s.textContent = pad(sec % 60);
+    setTimeout(tick, 1000 - (Date.now() % 1000));
+  }
+  tick();
+
+  // ---- Calendar ----
+  function utc(d) { return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+  document.getElementById("gcal").href =
+    "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+    "&text=" + encodeURIComponent(TITLE) +
+    "&dates=" + utc(START) + "/" + utc(END) +
+    "&details=" + encodeURIComponent(DESC) +
+    "&location=" + encodeURIComponent(LOCATION);
+
+  function icsEscape(s) { return s.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1"); }
+  document.getElementById("ics").addEventListener("click", function () {
+    var ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Disco Birthday Brunch//EN", "CALSCALE:GREGORIAN",
+      "BEGIN:VEVENT",
+      "UID:birthday-brunch-20270110@invite",
+      "DTSTAMP:" + utc(new Date()),
+      "DTSTART:" + utc(START),
+      "DTEND:" + utc(END),
+      "SUMMARY:" + icsEscape(TITLE),
+      "LOCATION:" + icsEscape(LOCATION),
+      "DESCRIPTION:" + icsEscape(DESC),
+      "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", "DESCRIPTION:Disco Birthday Brunch tomorrow!", "END:VALARM",
+      "END:VEVENT", "END:VCALENDAR"
+    ].join("\r\n");
+    var blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "disco-birthday-brunch-2027-01-10.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  // ---- Share ----
+  document.getElementById("share").addEventListener("click", function () {
+    var btn = this, url = location.href;
+    var data = { title: TITLE, text: "70s Disco Birthday Brunch – Sun 10 Jan 2027, 12:00 @ Habibi & Hawara Vienna", url: url };
+    if (navigator.share) { navigator.share(data).catch(function () {}); return; }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function () {
+        btn.textContent = "✅ Link copied!";
+        setTimeout(function () { btn.textContent = "🔗 Share this invitation"; }, 2000);
+      });
+    }
+  });
+
+  // ---- Wishes (localStorage) ----
+  var KEY = "birthday-brunch-2027-wishes";
+  var list = document.getElementById("wish-list");
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+  function save(w) { try { localStorage.setItem(KEY, JSON.stringify(w)); } catch (e) {} }
+  function render() {
+    var wishes = load();
+    list.innerHTML = "";
+    wishes.forEach(function (w, i) {
+      var li = document.createElement("li");
+      var who = document.createElement("div"); who.className = "who"; who.textContent = w.name || "Anonymous";
+      var txt = document.createElement("div"); txt.textContent = w.text;
+      var del = document.createElement("button"); del.type = "button"; del.textContent = "✕";
+      del.setAttribute("aria-label", "Remove wish");
+      del.onclick = function () { var all = load(); all.splice(i, 1); save(all); render(); };
+      li.append(who, txt, del);
+      list.appendChild(li);
+    });
+  }
+  document.getElementById("wish-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("wish-name"), text = document.getElementById("wish-text");
+    if (!text.value.trim()) return;
+    var all = load(); all.push({ name: name.value.trim(), text: text.value.trim() }); save(all);
+    text.value = ""; render(); flash();
+  });
+  render();
+
+  // ---- Dance floor tiles ----
+  var floor = document.getElementById("floor");
+  for (var t = 0; t < 30; t++) {
+    var tile = document.createElement("span");
+    tile.style.animationDelay = (-Math.random() * 2.4).toFixed(2) + "s";
+    tile.style.animationDuration = (1.6 + Math.random() * 1.6).toFixed(2) + "s";
+    floor.appendChild(tile);
+  }
+
+  // ---- Disco-ball reflections & sparkles ----
+  var canvas = document.getElementById("sparkle"), ctx = canvas.getContext("2d");
+  var colors = ["#ffffff", "#f6c026", "#ff3d8b", "#1fb5a8", "#f18805", "#c9a8ff"];
+  var dots = [];
+  function resize() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function make() {
+    return { a: Math.random() * Math.PI * 2, r: 80 + Math.random() * Math.max(innerWidth, innerHeight),
+             size: 1.5 + Math.random() * 3.5, c: colors[(Math.random() * colors.length) | 0],
+             phase: Math.random() * Math.PI * 2, star: Math.random() < 0.25 };
+  }
+  function flash() { for (var i = 0; i < 40; i++) { var d = make(); d.boost = 1; dots.push(d); } }
+  resize(); addEventListener("resize", resize);
+  for (var i = 0; i < 110; i++) dots.push(make());
+
+  function drawStar(x, y, s) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - s * 3); ctx.lineTo(x + s * .6, y - s * .6); ctx.lineTo(x + s * 3, y);
+    ctx.lineTo(x + s * .6, y + s * .6); ctx.lineTo(x, y + s * 3); ctx.lineTo(x - s * .6, y + s * .6);
+    ctx.lineTo(x - s * 3, y); ctx.lineTo(x - s * .6, y - s * .6); ctx.closePath(); ctx.fill();
+  }
+  var rot = 0;
+  (function loop(time) {
+    time = time || 0;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    rot += 0.0016;
+    var cx = innerWidth / 2, cy = 160 - (window.scrollY || 0);
+    for (var i = dots.length - 1; i >= 0; i--) {
+      var d = dots[i];
+      var x = cx + Math.cos(d.a + rot) * d.r;
+      var y = cy + Math.sin(d.a + rot) * d.r * 0.8 + (window.scrollY || 0) * 0.3;
+      var tw = 0.35 + 0.65 * Math.abs(Math.sin(time / 600 + d.phase));
+      if (d.boost) { d.boost -= 0.01; if (d.boost <= 0) { dots.splice(i, 1); continue; } tw = d.boost; }
+      ctx.globalAlpha = tw;
+      ctx.fillStyle = d.c;
+      ctx.shadowColor = d.c; ctx.shadowBlur = 8;
+      if (d.star) drawStar(x, y, d.size * 0.9);
+      else { ctx.beginPath(); ctx.arc(x, y, d.size, 0, Math.PI * 2); ctx.fill(); }
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>
