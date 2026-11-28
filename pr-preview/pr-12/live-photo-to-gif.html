@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Photo → GIF Converter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #1a1a2e;
+    --surface2: #22223a;
+    --accent: #6c63ff;
+    --accent-hover: #5a52e0;
+    --text: #e8e8f0;
+    --text-dim: #9090a8;
+    --border: #2a2a44;
+    --success: #4ecdc4;
+    --danger: #ff6b6b;
+    --warn: #f0c040;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; text-align: center; }
+  .subtitle { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 28px; text-align: center; max-width: 520px; line-height: 1.5; }
+
+  .app { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--surface);
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: var(--surface2); }
+  .drop-zone p { color: var(--text-dim); margin-top: 8px; font-size: 0.85rem; line-height: 1.5; }
+  .drop-zone .icon { font-size: 2.4rem; margin-bottom: 8px; }
+  .drop-zone .browse {
+    display: inline-block; margin-top: 14px; padding: 8px 20px;
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    font-size: 0.9rem; cursor: pointer; transition: background 0.2s;
+  }
+  .drop-zone .browse:hover { background: var(--accent-hover); }
+
+  .how-to {
+    margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);
+    text-align: left; max-width: 420px; margin-left: auto; margin-right: auto;
+  }
+  .how-to summary {
+    font-size: 0.82rem; color: var(--text-dim); cursor: pointer;
+    text-align: center; list-style: none;
+  }
+  .how-to summary::-webkit-details-marker { display: none; }
+  .how-to .steps {
+    margin-top: 10px; padding: 0; list-style: none;
+    font-size: 0.82rem; color: var(--text-dim); line-height: 1.7;
+  }
+  .how-to .steps li { padding-left: 20px; position: relative; }
+  .how-to .steps li::before {
+    content: attr(data-n); position: absolute; left: 0; color: var(--accent); font-weight: 600;
+  }
+
+  /* Status banner */
+  .status-banner {
+    padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5;
+    display: none; align-items: flex-start; gap: 8px;
+  }
+  .status-banner.active { display: flex; }
+  .status-banner.info { background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.3); }
+  .status-banner.warn { background: rgba(240,192,64,0.1); border: 1px solid rgba(240,192,64,0.3); color: var(--warn); }
+  .status-banner.error { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); color: var(--danger); }
+
+  /* Card panel */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; }
+
+  /* Video preview */
+  .preview-wrap {
+    position: relative; width: 100%; border-radius: 8px;
+    overflow: hidden; background: #000;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .preview-wrap video { max-width: 100%; max-height: 420px; display: block; }
+
+  /* Trim controls */
+  .trim-section { display: flex; flex-direction: column; gap: 12px; }
+
+  .range-track {
+    position: relative; height: 48px; background: var(--surface2);
+    border-radius: 8px; overflow: hidden; cursor: pointer;
+    user-select: none; touch-action: none;
+  }
+  .range-track canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+  .range-overlay {
+    position: absolute; top: 0; height: 100%;
+    background: rgba(108,99,255,0.25);
+    border-left: 3px solid var(--accent); border-right: 3px solid var(--accent);
+    pointer-events: none;
+  }
+  .range-handle {
+    position: absolute; top: 0; width: 14px; height: 100%;
+    cursor: ew-resize; z-index: 2;
+  }
+  .range-handle::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px; height: 24px; background: #fff;
+    border-radius: 2px; box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+  .range-handle.left { left: 0; }
+  .range-handle.right { right: 0; }
+
+  .playhead-line {
+    position: absolute; top: 0; width: 2px; height: 100%;
+    background: #fff; pointer-events: none; z-index: 3; display: none;
+  }
+
+  .trim-info { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .trim-info span { font-size: 0.85rem; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .trim-info .duration { color: var(--success); font-weight: 600; }
+
+  /* Settings row */
+  .settings-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .setting { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px; }
+  .setting label { font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .setting select, .setting input {
+    padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-size: 0.9rem; outline: none;
+  }
+  .setting select:focus, .setting input:focus { border-color: var(--accent); }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 24px; border: none; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; flex: 1; justify-content: center; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover:not(:disabled) { background: var(--border); }
+  .btn-download { background: var(--success); color: #000; flex: 1; justify-content: center; }
+  .btn-download:hover { background: #3dbdb5; }
+
+  /* Progress */
+  .progress-wrap { display: none; flex-direction: column; gap: 6px; }
+  .progress-wrap.active { display: flex; }
+  .progress-bar-outer { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .progress-bar-inner { height: 100%; width: 0%; background: var(--accent); border-radius: 4px; transition: width 0.15s; }
+  .progress-text { font-size: 0.82rem; color: var(--text-dim); text-align: center; }
+
+  /* Result */
+  .result-wrap { display: none; flex-direction: column; gap: 14px; align-items: center; }
+  .result-wrap.active { display: flex; }
+  .result-wrap img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+  .result-meta { font-size: 0.85rem; color: var(--text-dim); text-align: center; }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 500px) {
+    h1 { font-size: 1.3rem; }
+    .drop-zone { padding: 28px 16px; }
+    .card { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Live Photo &rarr; GIF</h1>
+<p class="subtitle">Drop an iOS Live Photo and convert it to an animated GIF with optional trimming &mdash; entirely in your browser, no upload.</p>
+
+<div class="app">
+
+  <!-- Drop Zone -->
+  <div class="drop-zone" id="dropZone">
+    <div class="icon">&#9861;</div>
+    <div><strong>Drop your Live Photo here</strong></div>
+    <p>
+      Accepts <strong>.HEIC</strong> Live Photos directly,<br>
+      or the <strong>.MOV</strong> video companion,<br>
+      or both files together.
+    </p>
+    <button class="browse" id="browseBtn">Choose Files</button>
+    <input type="file" id="fileInput" accept=".heic,.heif,.mov,.mp4,.m4v,video/*,image/heic,image/heif" multiple hidden>
+
+    <details class="how-to">
+      <summary>How do I get my Live Photo file?</summary>
+      <ol class="steps">
+        <li data-n="1.">Open <strong>Photos</strong> on iPhone or Mac</li>
+        <li data-n="2.">Select the Live Photo</li>
+        <li data-n="3."><strong>iPhone:</strong> Tap Share &rarr; Save to Files &rarr; pick this page via Safari</li>
+        <li data-n="4."><strong>Mac:</strong> File &rarr; Export &rarr; Export Unmodified Original &mdash; then drag the <code>.HEIC</code> (or both files) here</li>
+        <li data-n="5."><strong>AirDrop</strong> to Mac also gives you the paired files</li>
+      </ol>
+    </details>
+  </div>
+
+  <!-- Status banner (shown during file processing) -->
+  <div class="status-banner" id="statusBanner"></div>
+
+  <!-- Editor Panel -->
+  <div class="card hidden" id="editorPanel">
+    <h2>Preview &amp; Trim</h2>
+
+    <div class="preview-wrap">
+      <video id="videoEl" muted playsinline></video>
+    </div>
+
+    <div class="trim-section" style="margin-top: 14px;">
+      <div class="range-track" id="rangeTrack">
+        <canvas id="thumbCanvas"></canvas>
+        <div class="range-overlay" id="rangeOverlay"></div>
+        <div class="range-handle left" id="handleLeft"></div>
+        <div class="range-handle right" id="handleRight"></div>
+        <div class="playhead-line" id="playhead"></div>
+      </div>
+
+      <div class="trim-info">
+        <span>Start: <strong id="trimStartLabel">0.00s</strong></span>
+        <span class="duration">Duration: <strong id="trimDurLabel">0.00s</strong></span>
+        <span>End: <strong id="trimEndLabel">0.00s</strong></span>
+      </div>
+
+      <div class="btn-row" style="margin-top: 2px;">
+        <button class="btn btn-secondary" id="playTrimBtn">&#9654; Preview Trim</button>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <h2>Settings</h2>
+      <div class="settings-row" style="margin-top: 8px;">
+        <div class="setting">
+          <label>FPS</label>
+          <select id="fpsSelect">
+            <option value="10">10</option>
+            <option value="15" selected>15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Max Width (px)</label>
+          <input type="number" id="widthInput" value="480" min="100" max="1920" step="10">
+        </div>
+        <div class="setting">
+          <label>Quality</label>
+          <select id="qualitySelect">
+            <option value="5">Low (smaller file)</option>
+            <option value="10" selected>Medium</option>
+            <option value="15">High</option>
+            <option value="20">Best (larger file)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top: 18px;">
+      <button class="btn btn-primary" id="convertBtn">Convert to GIF</button>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap" style="margin-top: 14px;">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+      <div class="progress-text" id="progressText">Extracting frames...</div>
+    </div>
+  </div>
+
+  <!-- Result Panel -->
+  <div class="card hidden" id="resultPanel">
+    <h2>Your GIF</h2>
+    <div class="result-wrap active">
+      <img id="resultImg" alt="Converted GIF">
+      <div class="result-meta" id="resultMeta"></div>
+      <div class="btn-row" style="width:100%;">
+        <button class="btn btn-download" id="downloadBtn">&#11015; Download GIF</button>
+        <button class="btn btn-secondary" id="resetBtn">New Live Photo</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  ISOBMFF / HEIC Live Photo parser
+//  Extracts the embedded video track from a HEIC Live Photo
+// ============================================================
+const LivePhotoParser = (() => {
+
+  // Read a 4-byte ASCII tag from a DataView
+  function readTag(dv, offset) {
+    return String.fromCharCode(dv.getUint8(offset), dv.getUint8(offset+1), dv.getUint8(offset+2), dv.getUint8(offset+3));
+  }
+
+  // Parse top-level ISOBMFF boxes
+  function parseBoxes(buffer, start, end) {
+    const dv = new DataView(buffer);
+    const boxes = [];
+    let offset = start;
+    while (offset + 8 <= end) {
+      let size = dv.getUint32(offset);
+      const type = readTag(dv, offset + 4);
+      let headerSize = 8;
+      if (size === 1 && offset + 16 <= end) {
+        // 64-bit extended size
+        const hi = dv.getUint32(offset + 8);
+        const lo = dv.getUint32(offset + 12);
+        size = hi * 0x100000000 + lo;
+        headerSize = 16;
+      } else if (size === 0) {
+        size = end - offset;
+      }
+      if (size < headerSize || offset + size > end) break;
+      boxes.push({ type, offset, size, headerSize, dataOffset: offset + headerSize, dataSize: size - headerSize });
+      offset += size;
+    }
+    return boxes;
+  }
+
+  // Check if a box hierarchy contains a video track (trak → mdia → hdlr with 'vide')
+  function hasVideoTrack(buffer, moovBox) {
+    const inner = parseBoxes(buffer, moovBox.dataOffset, moovBox.offset + moovBox.size);
+    for (const trak of inner.filter(b => b.type === 'trak')) {
+      const trakInner = parseBoxes(buffer, trak.dataOffset, trak.offset + trak.size);
+      for (const mdia of trakInner.filter(b => b.type === 'mdia')) {
+        const mdiaInner = parseBoxes(buffer, mdia.dataOffset, mdia.offset + mdia.size);
+        for (const hdlr of mdiaInner.filter(b => b.type === 'hdlr')) {
+          // handler_type is at offset 8 within hdlr data (after version + flags + pre_defined)
+          if (hdlr.dataSize >= 12) {
+            const dv = new DataView(buffer);
+            const handlerType = readTag(dv, hdlr.dataOffset + 8);
+            if (handlerType === 'vide') return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // Recursively find and rewrite stco / co64 chunk offsets inside a box range.
+  // delta = new_file_position_of_mdat - original_file_position_of_mdat
+  function rewriteChunkOffsets(buffer, start, end, delta) {
+    const boxes = parseBoxes(buffer, start, end);
+    const dv = new DataView(buffer);
+    for (const box of boxes) {
+      if (box.type === 'stco') {
+        // version(1) + flags(3) + entry_count(4) then entries of 4 bytes each
+        const count = dv.getUint32(box.dataOffset + 4);
+        for (let i = 0; i < count; i++) {
+          const pos = box.dataOffset + 8 + i * 4;
+          dv.setUint32(pos, dv.getUint32(pos) + delta);
+        }
+      } else if (box.type === 'co64') {
+        const count = dv.getUint32(box.dataOffset + 4);
+        for (let i = 0; i < count; i++) {
+          const pos = box.dataOffset + 8 + i * 8;
+          const hi = dv.getUint32(pos);
+          const lo = dv.getUint32(pos + 4);
+          const val = hi * 0x100000000 + lo + delta;
+          dv.setUint32(pos, Math.floor(val / 0x100000000));
+          dv.setUint32(pos + 4, val >>> 0);
+        }
+      } else if (['moov','trak','mdia','minf','stbl','dinf','edts','udta'].includes(box.type)) {
+        // Container boxes — recurse
+        rewriteChunkOffsets(buffer, box.dataOffset, box.offset + box.size, delta);
+      }
+    }
+  }
+
+  /**
+   * Attempt to extract a playable video blob from a HEIC Live Photo buffer.
+   * Returns { blob, method } or null if no embedded video found.
+   */
+  function extractVideo(arrayBuffer) {
+    const boxes = parseBoxes(arrayBuffer, 0, arrayBuffer.byteLength);
+    const types = boxes.map(b => b.type);
+
+    // Must have a moov box with a video track
+    const moovBox = boxes.find(b => b.type === 'moov');
+    if (!moovBox) return null;
+    if (!hasVideoTrack(arrayBuffer, moovBox)) return null;
+
+    // Collect all mdat boxes
+    const mdatBoxes = boxes.filter(b => b.type === 'mdat');
+    if (mdatBoxes.length === 0) return null;
+
+    // Strategy 1: try the whole file as video/mp4 (works in Safari & some Chrome)
+    // We'll try this later in the caller as a fallback-first approach.
+
+    // Strategy 2: build a minimal MP4 from ftyp + moov + mdat(s)
+    // Create a synthetic ftyp that says "isom" so browsers accept it as MP4.
+    const syntheticFtyp = new Uint8Array(20);
+    const ftypDv = new DataView(syntheticFtyp.buffer);
+    ftypDv.setUint32(0, 20); // box size
+    syntheticFtyp[4] = 0x66; syntheticFtyp[5] = 0x74; syntheticFtyp[6] = 0x79; syntheticFtyp[7] = 0x70; // 'ftyp'
+    // major brand = 'isom'
+    syntheticFtyp[8] = 0x69; syntheticFtyp[9] = 0x73; syntheticFtyp[10] = 0x6F; syntheticFtyp[11] = 0x6D;
+    ftypDv.setUint32(12, 0x200); // minor version
+    // compatible brand = 'isom'
+    syntheticFtyp[16] = 0x69; syntheticFtyp[17] = 0x73; syntheticFtyp[18] = 0x6F; syntheticFtyp[19] = 0x6D;
+
+    // Clone moov and mdat so we can adjust offsets
+    const moovBytes = new Uint8Array(arrayBuffer.slice(moovBox.offset, moovBox.offset + moovBox.size));
+
+    // Gather mdat slices
+    const mdatSlices = mdatBoxes.map(b => new Uint8Array(arrayBuffer, b.offset, b.size));
+
+    // New layout: syntheticFtyp(20) + moov + mdat(s)
+    // The original chunk offsets point into the original file. We need to adjust them.
+    // In the new file, the offset shift for each mdat relative to original:
+    //   new_offset = syntheticFtyp.length + moov.size + sum_of_preceding_mdats_in_new - original_offset
+    // But since we might have multiple mdats and they might be interleaved with other boxes,
+    // the simplest correct approach: compute delta for each mdat box.
+    // However chunk offsets point to absolute positions that land within any mdat.
+    // Since we're keeping all mdats in their original order, and moov might have been between some,
+    // we can compute a unified delta if we know the mapping.
+
+    // Simpler: place moov first, then all mdats in original order.
+    // For each chunk offset, find which mdat it belongs to (by checking ranges),
+    // then compute new position.
+
+    // Build a position map: for each original byte position that falls in an mdat,
+    // compute the new byte position.
+    let newFileOffset = syntheticFtyp.length + moovBytes.length;
+    const mdatMap = []; // { origStart, origEnd, newStart }
+    for (const b of mdatBoxes) {
+      mdatMap.push({ origStart: b.offset, origEnd: b.offset + b.size, newStart: newFileOffset });
+      newFileOffset += b.size;
+    }
+
+    // Rewrite chunk offsets in the cloned moov buffer
+    // We need a temporary ArrayBuffer for the moov so DataView works
+    const moovBuf = moovBytes.buffer.slice(moovBytes.byteOffset, moovBytes.byteOffset + moovBytes.byteLength);
+    const moovDv = new DataView(moovBuf);
+
+    // Walk moov's sub-boxes to find stco/co64 and rewrite
+    function rewriteInClone(start, end) {
+      const bx = [];
+      let off = start;
+      while (off + 8 <= end) {
+        let sz = moovDv.getUint32(off);
+        const tp = String.fromCharCode(moovDv.getUint8(off+4), moovDv.getUint8(off+5), moovDv.getUint8(off+6), moovDv.getUint8(off+7));
+        let hs = 8;
+        if (sz === 1 && off + 16 <= end) { sz = moovDv.getUint32(off+8) * 0x100000000 + moovDv.getUint32(off+12); hs = 16; }
+        else if (sz === 0) sz = end - off;
+        if (sz < hs || off + sz > end) break;
+        bx.push({ type: tp, offset: off, size: sz, dataOffset: off + hs });
+        off += sz;
+      }
+
+      for (const b of bx) {
+        if (b.type === 'stco') {
+          const count = moovDv.getUint32(b.dataOffset + 4);
+          for (let i = 0; i < count; i++) {
+            const pos = b.dataOffset + 8 + i * 4;
+            const origChunkOff = moovDv.getUint32(pos);
+            // Find which mdat this points into
+            for (const m of mdatMap) {
+              if (origChunkOff >= m.origStart && origChunkOff < m.origEnd) {
+                moovDv.setUint32(pos, origChunkOff - m.origStart + m.newStart);
+                break;
+              }
+            }
+          }
+        } else if (b.type === 'co64') {
+          const count = moovDv.getUint32(b.dataOffset + 4);
+          for (let i = 0; i < count; i++) {
+            const pos = b.dataOffset + 8 + i * 8;
+            const hi = moovDv.getUint32(pos);
+            const lo = moovDv.getUint32(pos + 4);
+            const origChunkOff = hi * 0x100000000 + lo;
+            for (const m of mdatMap) {
+              if (origChunkOff >= m.origStart && origChunkOff < m.origEnd) {
+                const newOff = origChunkOff - m.origStart + m.newStart;
+                moovDv.setUint32(pos, Math.floor(newOff / 0x100000000));
+                moovDv.setUint32(pos + 4, newOff >>> 0);
+                break;
+              }
+            }
+          }
+        } else if (['moov','trak','mdia','minf','stbl','dinf','edts','udta'].includes(b.type)) {
+          rewriteInClone(b.dataOffset, b.offset + b.size);
+        }
+      }
+    }
+    // moov data starts at headerSize offset within the clone (which starts at 0)
+    rewriteInClone(moovBox.headerSize, moovBytes.length);
+
+    // Assemble the new file
+    const parts = [syntheticFtyp, new Uint8Array(moovBuf), ...mdatSlices];
+    return { blob: new Blob(parts, { type: 'video/mp4' }), method: 'extracted' };
+  }
+
+  /**
+   * Quick check: does this buffer look like it might be a HEIC/HEIF?
+   */
+  function isHEIC(arrayBuffer) {
+    if (arrayBuffer.byteLength < 12) return false;
+    const dv = new DataView(arrayBuffer);
+    const ftyp = readTag(dv, 4);
+    if (ftyp !== 'ftyp') return false;
+    const brand = readTag(dv, 8);
+    const heifBrands = ['heic','heix','hevc','hevx','heim','heis','hevm','hevs','mif1','msf1'];
+    return heifBrands.includes(brand);
+  }
+
+  return { extractVideo, isHEIC };
+})();
+
+
+// ============================================================
+//  GIF Encoder — pure JS, GIF89a with LZW compression
+// ============================================================
+class GIFEncoder {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    this.frames = [];
+    this.data = [];
+  }
+
+  static quantize(pixels, maxColors = 256) {
+    const colorMap = new Map();
+    const step = Math.max(1, Math.floor(pixels.length / (4 * 50000)));
+    for (let i = 0; i < pixels.length; i += 4 * step) {
+      const r = pixels[i] & 0xF8, g = pixels[i+1] & 0xFC, b = pixels[i+2] & 0xF8;
+      const key = (r << 16) | (g << 8) | b;
+      colorMap.set(key, (colorMap.get(key) || 0) + 1);
+    }
+
+    let boxes = [Array.from(colorMap.entries()).map(([k, c]) => [((k>>16)&0xFF), ((k>>8)&0xFF), (k&0xFF), c])];
+    while (boxes.length < maxColors) {
+      let bestIdx = 0, bestRange = -1, bestCh = 0;
+      for (let i = 0; i < boxes.length; i++) {
+        const box = boxes[i]; if (box.length < 2) continue;
+        for (let ch = 0; ch < 3; ch++) {
+          let mn = 255, mx = 0;
+          for (const c of box) { mn = Math.min(mn, c[ch]); mx = Math.max(mx, c[ch]); }
+          if (mx - mn > bestRange) { bestRange = mx - mn; bestIdx = i; bestCh = ch; }
+        }
+      }
+      if (bestRange <= 0) break;
+      const box = boxes[bestIdx];
+      box.sort((a, b) => a[bestCh] - b[bestCh]);
+      const mid = box.length >> 1;
+      boxes.splice(bestIdx, 1, box.slice(0, mid), box.slice(mid));
+    }
+
+    const palette = [];
+    for (const box of boxes) {
+      let rS = 0, gS = 0, bS = 0, t = 0;
+      for (const [r, g, b, c] of box) { rS += r*c; gS += g*c; bS += b*c; t += c; }
+      palette.push(t === 0 ? [0,0,0] : [Math.round(rS/t), Math.round(gS/t), Math.round(bS/t)]);
+    }
+    let bits = 1;
+    while ((1 << bits) < palette.length) bits++;
+    while (palette.length < (1 << bits)) palette.push([0,0,0]);
+    return { palette, bits };
+  }
+
+  static mapPixels(pixels, w, h, palette) {
+    const n = w * h, indices = new Uint8Array(n), cache = new Map();
+    const findClosest = (r, g, b) => {
+      const key = ((r&0xFC)<<16)|((g&0xFC)<<8)|(b&0xFC);
+      if (cache.has(key)) return cache.get(key);
+      let best = Infinity, bi = 0;
+      for (let i = 0; i < palette.length; i++) {
+        const dr = r-palette[i][0], dg = g-palette[i][1], db = b-palette[i][2], d = dr*dr+dg*dg+db*db;
+        if (d < best) { best = d; bi = i; }
+      }
+      cache.set(key, bi); return bi;
+    };
+    const eR = new Float32Array(n), eG = new Float32Array(n), eB = new Float32Array(n);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y*w+x, p = i*4;
+      const r = Math.max(0, Math.min(255, pixels[p]+eR[i]));
+      const g = Math.max(0, Math.min(255, pixels[p+1]+eG[i]));
+      const b = Math.max(0, Math.min(255, pixels[p+2]+eB[i]));
+      const ci = findClosest(r, g, b); indices[i] = ci;
+      const dr = r-palette[ci][0], dg = g-palette[ci][1], db = b-palette[ci][2];
+      if (x+1<w) { eR[i+1]+=dr*7/16; eG[i+1]+=dg*7/16; eB[i+1]+=db*7/16; }
+      if (y+1<h) {
+        if (x>0) { eR[i+w-1]+=dr*3/16; eG[i+w-1]+=dg*3/16; eB[i+w-1]+=db*3/16; }
+        eR[i+w]+=dr*5/16; eG[i+w]+=dg*5/16; eB[i+w]+=db*5/16;
+        if (x+1<w) { eR[i+w+1]+=dr*1/16; eG[i+w+1]+=dg*1/16; eB[i+w+1]+=db*1/16; }
+      }
+    }
+    return indices;
+  }
+
+  addFrame(imageData, delay = 100) { this.frames.push({ data: imageData, delay }); }
+
+  static lzwEncode(indices, minCodeSize) {
+    const clearCode = 1 << minCodeSize, eoiCode = clearCode + 1, output = [];
+    let codeSize = minCodeSize + 1, nextCode = eoiCode + 1;
+    let dict = new Map();
+    const initDict = () => { dict.clear(); for (let i = 0; i < clearCode; i++) dict.set(String(i), i); codeSize = minCodeSize + 1; nextCode = eoiCode + 1; };
+    let buffer = 0, bufBits = 0;
+    const emit = (code) => { buffer |= (code << bufBits); bufBits += codeSize; while (bufBits >= 8) { output.push(buffer & 0xFF); buffer >>= 8; bufBits -= 8; } };
+    initDict(); emit(clearCode);
+    let w = String(indices[0]);
+    for (let i = 1; i < indices.length; i++) {
+      const k = String(indices[i]), wk = w + ',' + k;
+      if (dict.has(wk)) { w = wk; }
+      else { emit(dict.get(w)); if (nextCode < 4096) { dict.set(wk, nextCode++); if (nextCode > (1<<codeSize) && codeSize < 12) codeSize++; } else { emit(clearCode); initDict(); } w = k; }
+    }
+    emit(dict.get(w)); emit(eoiCode);
+    if (bufBits > 0) output.push(buffer & 0xFF);
+    return output;
+  }
+
+  encode() {
+    const out = this.data, w = this.width, h = this.height;
+    const { palette, bits: colorBits } = GIFEncoder.quantize(this.frames[0].data);
+    const tableSize = 1 << colorBits;
+    out.push(0x47,0x49,0x46,0x38,0x39,0x61); // GIF89a
+    out.push(w&0xFF,(w>>8)&0xFF,h&0xFF,(h>>8)&0xFF);
+    out.push(0x80|((colorBits-1)<<4)|(colorBits-1), 0, 0);
+    for (let i = 0; i < tableSize; i++) out.push(palette[i][0], palette[i][1], palette[i][2]);
+    // Netscape loop
+    out.push(0x21,0xFF,0x0B, 0x4E,0x45,0x54,0x53,0x43,0x41,0x50,0x45,0x32,0x2E,0x30, 0x03,0x01,0x00,0x00,0x00);
+    for (const frame of this.frames) {
+      const indices = GIFEncoder.mapPixels(frame.data, w, h, palette);
+      out.push(0x21,0xF9,0x04, 0x00);
+      const d = Math.round(frame.delay / 10);
+      out.push(d&0xFF,(d>>8)&0xFF, 0x00, 0x00);
+      out.push(0x2C, 0,0,0,0, w&0xFF,(w>>8)&0xFF, h&0xFF,(h>>8)&0xFF, 0x00);
+      const mcs = Math.max(2, colorBits); out.push(mcs);
+      const lzw = GIFEncoder.lzwEncode(indices, mcs);
+      let off = 0;
+      while (off < lzw.length) { const sz = Math.min(255, lzw.length - off); out.push(sz); for (let i = 0; i < sz; i++) out.push(lzw[off++]); }
+      out.push(0x00);
+    }
+    out.push(0x3B);
+    return new Uint8Array(out);
+  }
+}
+
+
+// ============================================================
+//  App Logic
+// ============================================================
+(() => {
+  const $ = s => document.querySelector(s);
+  const dropZone      = $('#dropZone');
+  const browseBtn     = $('#browseBtn');
+  const fileInput     = $('#fileInput');
+  const statusBanner  = $('#statusBanner');
+  const editorPanel   = $('#editorPanel');
+  const resultPanel   = $('#resultPanel');
+  const videoEl       = $('#videoEl');
+  const rangeTrack    = $('#rangeTrack');
+  const thumbCanvas   = $('#thumbCanvas');
+  const rangeOverlay  = $('#rangeOverlay');
+  const handleLeft    = $('#handleLeft');
+  const handleRight   = $('#handleRight');
+  const playhead      = $('#playhead');
+  const trimStartLbl  = $('#trimStartLabel');
+  const trimEndLbl    = $('#trimEndLabel');
+  const trimDurLbl    = $('#trimDurLabel');
+  const playTrimBtn   = $('#playTrimBtn');
+  const fpsSelect     = $('#fpsSelect');
+  const widthInput    = $('#widthInput');
+  const convertBtn    = $('#convertBtn');
+  const progressWrap  = $('#progressWrap');
+  const progressBar   = $('#progressBar');
+  const progressText  = $('#progressText');
+  const resultImg     = $('#resultImg');
+  const resultMeta    = $('#resultMeta');
+  const downloadBtn   = $('#downloadBtn');
+  const resetBtn      = $('#resetBtn');
+
+  let trimStart = 0, trimEnd = 1;
+  let duration = 0;
+  let videoURL = null;
+  let gifBlob = null;
+  let dragging = null;
+  let isConverting = false;
+
+  function showStatus(msg, type = 'info') {
+    statusBanner.textContent = msg;
+    statusBanner.className = 'status-banner active ' + type;
+  }
+  function hideStatus() { statusBanner.className = 'status-banner'; }
+
+  // ---- File handling ----
+  browseBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFiles(fileInput.files); });
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  });
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList);
+    hideStatus();
+
+    // Classify files
+    const videos = [];
+    const heics = [];
+    const others = [];
+
+    for (const f of files) {
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (['mov', 'mp4', 'm4v'].includes(ext) || f.type.startsWith('video/')) {
+        videos.push(f);
+      } else if (['heic', 'heif'].includes(ext) || f.type === 'image/heic' || f.type === 'image/heif') {
+        heics.push(f);
+      } else {
+        others.push(f);
+      }
+    }
+
+    // Case 1: paired files — HEIC + MOV dropped together → use the MOV
+    if (videos.length > 0 && heics.length > 0) {
+      showStatus('Detected Live Photo pair — using the video companion.', 'info');
+      return useVideoFile(videos[0]);
+    }
+
+    // Case 2: video file(s) only
+    if (videos.length > 0) {
+      return useVideoFile(videos[0]);
+    }
+
+    // Case 3: HEIC file — extract embedded video
+    if (heics.length > 0) {
+      showStatus('Reading Live Photo...', 'info');
+      return extractFromHEIC(heics[0]);
+    }
+
+    // Case 4: unknown
+    showStatus('Unrecognized file type. Drop a .HEIC Live Photo or its .MOV companion video.', 'error');
+  }
+
+  function useVideoFile(file) {
+    if (videoURL) URL.revokeObjectURL(videoURL);
+    videoURL = URL.createObjectURL(file);
+    loadVideoIntoEditor(videoURL);
+  }
+
+  async function extractFromHEIC(file) {
+    try {
+      const buffer = await file.arrayBuffer();
+
+      if (!LivePhotoParser.isHEIC(buffer)) {
+        showStatus('This doesn\'t look like a HEIC file. Try exporting the Live Photo from the Photos app.', 'error');
+        return;
+      }
+
+      showStatus('Extracting embedded video from Live Photo...', 'info');
+
+      // Strategy 1: try using the whole HEIC as a video source directly (works in Safari)
+      const directBlob = new Blob([buffer], { type: 'video/mp4' });
+      const directURL = URL.createObjectURL(directBlob);
+      const directOK = await tryVideoURL(directURL, 2000);
+
+      if (directOK) {
+        hideStatus();
+        if (videoURL) URL.revokeObjectURL(videoURL);
+        videoURL = directURL;
+        loadVideoIntoEditor(videoURL);
+        return;
+      }
+      URL.revokeObjectURL(directURL);
+
+      // Strategy 2: extract and rebuild the video track
+      const result = LivePhotoParser.extractVideo(buffer);
+      if (!result) {
+        showStatus('No embedded video found in this HEIC. It may be a still photo, not a Live Photo. Try exporting with "Export Unmodified Original" to get the .MOV companion file.', 'warn');
+        return;
+      }
+
+      const extractedURL = URL.createObjectURL(result.blob);
+      const extractedOK = await tryVideoURL(extractedURL, 3000);
+
+      if (extractedOK) {
+        hideStatus();
+        if (videoURL) URL.revokeObjectURL(videoURL);
+        videoURL = extractedURL;
+        loadVideoIntoEditor(videoURL);
+        return;
+      }
+      URL.revokeObjectURL(extractedURL);
+
+      // Strategy 3: try as video/quicktime
+      const qtBlob = new Blob([buffer], { type: 'video/quicktime' });
+      const qtURL = URL.createObjectURL(qtBlob);
+      const qtOK = await tryVideoURL(qtURL, 2000);
+
+      if (qtOK) {
+        hideStatus();
+        if (videoURL) URL.revokeObjectURL(videoURL);
+        videoURL = qtURL;
+        loadVideoIntoEditor(videoURL);
+        return;
+      }
+      URL.revokeObjectURL(qtURL);
+
+      showStatus(
+        'Your browser can\'t decode the video in this Live Photo (likely HEVC). ' +
+        'Try Safari, or export the .MOV companion file separately from Photos: File → Export → Export Unmodified Original.',
+        'warn'
+      );
+    } catch (err) {
+      console.error('HEIC extraction error:', err);
+      showStatus('Failed to read the file: ' + err.message, 'error');
+    }
+  }
+
+  // Test if a video URL is playable by the browser
+  function tryVideoURL(url, timeoutMs) {
+    return new Promise(resolve => {
+      const v = document.createElement('video');
+      v.muted = true;
+      v.preload = 'metadata';
+      const timer = setTimeout(() => { cleanup(); resolve(false); }, timeoutMs);
+      const cleanup = () => { clearTimeout(timer); v.removeAttribute('src'); v.load(); };
+      v.addEventListener('loadedmetadata', () => {
+        if (v.duration > 0 && v.videoWidth > 0) { cleanup(); resolve(true); }
+        else { cleanup(); resolve(false); }
+      }, { once: true });
+      v.addEventListener('error', () => { cleanup(); resolve(false); }, { once: true });
+      v.src = url;
+    });
+  }
+
+  function loadVideoIntoEditor(url) {
+    videoEl.src = url;
+    videoEl.addEventListener('loadedmetadata', () => {
+      duration = videoEl.duration;
+      trimStart = 0;
+      trimEnd = 1;
+      updateTrimUI();
+      generateThumbnails();
+      dropZone.classList.add('hidden');
+      editorPanel.classList.remove('hidden');
+      resultPanel.classList.add('hidden');
+    }, { once: true });
+    videoEl.addEventListener('error', () => {
+      showStatus('Could not play the video. Try a different browser or export the .MOV file separately.', 'error');
+    }, { once: true });
+  }
+
+  // ---- Thumbnail strip ----
+  function generateThumbnails() {
+    const rect = rangeTrack.getBoundingClientRect();
+    const cw = rect.width * devicePixelRatio;
+    const ch = rect.height * devicePixelRatio;
+    thumbCanvas.width = cw; thumbCanvas.height = ch;
+    thumbCanvas.style.width = rect.width + 'px';
+    thumbCanvas.style.height = rect.height + 'px';
+    const ctx = thumbCanvas.getContext('2d');
+    const numThumbs = Math.min(Math.ceil(rect.width / 48), 30);
+
+    const tv = document.createElement('video');
+    tv.muted = true; tv.src = videoURL; tv.preload = 'auto';
+    tv.addEventListener('loadedmetadata', () => {
+      const draw = (i) => {
+        if (i >= numThumbs) return;
+        tv.currentTime = (i / numThumbs) * tv.duration;
+        tv.addEventListener('seeked', () => {
+          const tw = cw / numThumbs;
+          ctx.drawImage(tv, i * tw, 0, tw, ch);
+          draw(i + 1);
+        }, { once: true });
+      };
+      draw(0);
+    });
+  }
+
+  // ---- Trim range ----
+  function updateTrimUI() {
+    rangeOverlay.style.left = (trimStart * 100) + '%';
+    rangeOverlay.style.width = ((trimEnd - trimStart) * 100) + '%';
+    handleLeft.style.left = (trimStart * 100) + '%';
+    handleRight.style.left = (trimEnd * 100) + '%';
+    handleRight.style.transform = 'translateX(-100%)';
+    const ts = trimStart * duration, te = trimEnd * duration;
+    trimStartLbl.textContent = ts.toFixed(2) + 's';
+    trimEndLbl.textContent = te.toFixed(2) + 's';
+    trimDurLbl.textContent = (te - ts).toFixed(2) + 's';
+  }
+
+  function getFraction(e) {
+    const rect = rangeTrack.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    return Math.max(0, Math.min(1, (cx - rect.left) / rect.width));
+  }
+
+  handleLeft.addEventListener('mousedown', e => { e.stopPropagation(); dragging = 'left'; });
+  handleRight.addEventListener('mousedown', e => { e.stopPropagation(); dragging = 'right'; });
+  handleLeft.addEventListener('touchstart', e => { e.stopPropagation(); dragging = 'left'; }, { passive: true });
+  handleRight.addEventListener('touchstart', e => { e.stopPropagation(); dragging = 'right'; }, { passive: true });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const f = getFraction(e);
+    if (dragging === 'left') trimStart = Math.min(f, trimEnd - 0.01);
+    else trimEnd = Math.max(f, trimStart + 0.01);
+    updateTrimUI();
+  });
+  document.addEventListener('mouseup', () => { dragging = null; });
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const f = getFraction(e);
+    if (dragging === 'left') trimStart = Math.min(f, trimEnd - 0.01);
+    else trimEnd = Math.max(f, trimStart + 0.01);
+    updateTrimUI();
+  }, { passive: true });
+  document.addEventListener('touchend', () => { dragging = null; });
+
+  rangeTrack.addEventListener('click', e => {
+    if (e.target === handleLeft || e.target === handleRight) return;
+    videoEl.currentTime = getFraction(e) * duration;
+  });
+
+  // ---- Preview trim ----
+  playTrimBtn.addEventListener('click', () => {
+    const s = trimStart * duration, e2 = trimEnd * duration;
+    videoEl.currentTime = s;
+    videoEl.muted = true;
+    videoEl.play();
+    playhead.style.display = 'block';
+    const tick = () => {
+      if (videoEl.paused) { playhead.style.display = 'none'; return; }
+      if (videoEl.currentTime >= e2) { videoEl.pause(); playhead.style.display = 'none'; return; }
+      playhead.style.left = (videoEl.currentTime / duration * 100) + '%';
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+
+  // ---- Conversion ----
+  convertBtn.addEventListener('click', async () => {
+    if (isConverting) return;
+    isConverting = true;
+    convertBtn.disabled = true;
+    progressWrap.classList.add('active');
+    resultPanel.classList.add('hidden');
+
+    try {
+      const fps = parseInt(fpsSelect.value);
+      const maxW = parseInt(widthInput.value);
+      const start = trimStart * duration, end = trimEnd * duration, clipDur = end - start;
+      const vw = videoEl.videoWidth, vh = videoEl.videoHeight;
+      const scale = Math.min(1, maxW / vw);
+      const outW = Math.round(vw * scale), outH = Math.round(vh * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = outW; canvas.height = outH;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+      const totalFrames = Math.ceil(clipDur * fps);
+      const frameDelay = 1000 / fps;
+      const encoder = new GIFEncoder(outW, outH);
+
+      progressText.textContent = `Extracting frames (0/${totalFrames})...`;
+      progressBar.style.width = '0%';
+
+      for (let i = 0; i < totalFrames; i++) {
+        await new Promise(resolve => {
+          videoEl.currentTime = Math.min(start + i / fps, end);
+          videoEl.addEventListener('seeked', () => {
+            ctx.drawImage(videoEl, 0, 0, outW, outH);
+            const px = new Uint8Array(ctx.getImageData(0, 0, outW, outH).data);
+            encoder.addFrame(px, frameDelay);
+            progressBar.style.width = Math.round(((i+1)/totalFrames) * 70) + '%';
+            progressText.textContent = `Extracting frames (${i+1}/${totalFrames})...`;
+            resolve();
+          }, { once: true });
+        });
+      }
+
+      progressText.textContent = 'Encoding GIF...';
+      progressBar.style.width = '75%';
+      await new Promise(r => setTimeout(r, 50));
+      const bytes = encoder.encode();
+      progressBar.style.width = '100%';
+
+      gifBlob = new Blob([bytes], { type: 'image/gif' });
+      resultImg.src = URL.createObjectURL(gifBlob);
+      const sizeMB = (gifBlob.size / (1024*1024)).toFixed(2);
+      resultMeta.textContent = `${outW}\u00D7${outH} \u00B7 ${totalFrames} frames \u00B7 ${fps} fps \u00B7 ${sizeMB} MB`;
+
+      progressWrap.classList.remove('active');
+      resultPanel.classList.remove('hidden');
+    } catch (err) {
+      console.error(err);
+      progressText.textContent = 'Error: ' + err.message;
+    } finally {
+      isConverting = false;
+      convertBtn.disabled = false;
+    }
+  });
+
+  // ---- Download ----
+  downloadBtn.addEventListener('click', () => {
+    if (!gifBlob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(gifBlob);
+    a.download = 'live-photo.gif';
+    a.click();
+  });
+
+  // ---- Reset ----
+  resetBtn.addEventListener('click', () => {
+    editorPanel.classList.add('hidden');
+    resultPanel.classList.add('hidden');
+    dropZone.classList.remove('hidden');
+    hideStatus();
+    videoEl.pause();
+    videoEl.removeAttribute('src');
+    fileInput.value = '';
+    gifBlob = null;
+    progressWrap.classList.remove('active');
+  });
+})();
+</script>
+</body>
+</html>
