@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Brunch · 10 January 2027 · Habibi &amp; Hawara Vienna</title>
+<meta name="description" content="You're invited! Birthday Brunch on Sunday, 10 January 2027 at 12:00 at Habibi & Hawara, Vienna.">
+<style>
+  :root {
+    --bg1: #2b1055;
+    --bg2: #7c3a8c;
+    --bg3: #f26b5b;
+    --gold: #ffc857;
+    --cream: #fff6e9;
+    --ink: #2a1838;
+    --card: rgba(255, 246, 233, 0.96);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; background: var(--bg3); }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+    overflow-x: hidden;
+  }
+  canvas#confetti {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+  main {
+    position: relative; z-index: 1;
+    max-width: 760px; margin: 0 auto; padding: 48px 20px 64px;
+  }
+  header.hero { text-align: center; color: var(--cream); padding: 24px 0 36px; }
+  .balloons { font-size: 3.2rem; letter-spacing: 0.3rem; animation: float 4s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .kicker {
+    text-transform: uppercase; letter-spacing: 0.35em; font-size: 0.85rem;
+    color: var(--gold); margin-top: 18px;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.6rem, 9vw, 4.8rem);
+    line-height: 1.05; margin: 12px 0 14px;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  }
+  h1 span { color: var(--gold); font-style: italic; }
+  .tagline { font-size: 1.15rem; opacity: 0.92; }
+
+  .card {
+    background: var(--card);
+    border-radius: 22px;
+    padding: 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 18px 40px rgba(20, 5, 40, 0.35);
+  }
+  .card h2 {
+    font-family: Georgia, serif; font-size: 1.5rem; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .detail {
+    background: #fff; border-radius: 16px; padding: 18px 12px; text-align: center;
+    border: 2px solid #f3e2cc;
+  }
+  .detail .icon { font-size: 2rem; }
+  .detail .label {
+    text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.72rem;
+    color: #8a6f8f; margin: 8px 0 4px;
+  }
+  .detail .value { font-weight: 700; font-size: 1.05rem; }
+  .detail .sub { font-size: 0.88rem; color: #6b5470; margin-top: 2px; }
+
+  .countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center; }
+  .unit {
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    color: var(--cream); border-radius: 16px; padding: 16px 6px;
+  }
+  .unit .num {
+    font-family: Georgia, serif; font-size: clamp(1.8rem, 7vw, 2.8rem); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .unit .lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); }
+  #party-now { display: none; text-align: center; font-size: 1.4rem; font-weight: 700; }
+
+  .menu { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+  .menu li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; }
+  .menu li b { display: block; }
+  .menu .e { font-size: 1.5rem; }
+
+  .btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: 999px; border: none; cursor: pointer;
+    font: inherit; font-weight: 700; text-decoration: none;
+    background: var(--ink); color: var(--cream);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover, .btn:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.25); }
+  .btn.alt { background: var(--gold); color: var(--ink); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+
+  p { line-height: 1.6; }
+  .muted { color: #6b5470; font-size: 0.95rem; }
+
+  .wishes textarea, .wishes input {
+    width: 100%; font: inherit; padding: 12px 14px; border-radius: 12px;
+    border: 2px solid #ead7bf; background: #fff; margin-bottom: 10px; color: var(--ink);
+  }
+  .wishes textarea { min-height: 90px; resize: vertical; }
+  .wish-list { list-style: none; margin-top: 14px; display: grid; gap: 10px; }
+  .wish-list li {
+    background: #fff; border-left: 5px solid var(--gold); border-radius: 10px;
+    padding: 10px 14px; position: relative;
+  }
+  .wish-list li .who { font-weight: 700; font-size: 0.9rem; color: #7c3a8c; }
+  .wish-list li button {
+    position: absolute; top: 6px; right: 8px; border: none; background: none;
+    cursor: pointer; font-size: 1rem; color: #b19bb5;
+  }
+
+  footer { text-align: center; color: var(--cream); opacity: .85; margin-top: 28px; font-size: 0.95rem; }
+
+  @media (max-width: 600px) {
+    .details { grid-template-columns: 1fr; }
+    .menu { grid-template-columns: 1fr; }
+    .card { padding: 22px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .balloons { animation: none; }
+    canvas#confetti { display: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main>
+  <header class="hero">
+    <div class="balloons" aria-hidden="true">🎈🎂🎈</div>
+    <p class="kicker">You're invited</p>
+    <h1>Birthday <span>Brunch</span></h1>
+    <p class="tagline">Let's celebrate with good food, great people and plenty of hummus. 🥳</p>
+  </header>
+
+  <section class="card" aria-labelledby="when-where">
+    <h2 id="when-where">📍 When &amp; Where</h2>
+    <div class="details">
+      <div class="detail">
+        <div class="icon" aria-hidden="true">📅</div>
+        <div class="label">Date</div>
+        <div class="value">Sunday</div>
+        <div class="sub">10 January 2027</div>
+      </div>
+      <div class="detail">
+        <div class="icon" aria-hidden="true">🕛</div>
+        <div class="label">Time</div>
+        <div class="value">12:00</div>
+        <div class="sub">12 o'clock noon</div>
+      </div>
+      <div class="detail">
+        <div class="icon" aria-hidden="true">🍽️</div>
+        <div class="label">Place</div>
+        <div class="value">Habibi &amp; Hawara</div>
+        <div class="sub">Vienna</div>
+      </div>
+    </div>
+    <div class="btns" style="margin-top:18px">
+      <a class="btn" href="https://www.google.com/maps/search/?api=1&amp;query=Habibi+%26+Hawara+Wien" target="_blank" rel="noopener">🗺️ Open in Maps</a>
+      <button class="btn alt" id="ics" type="button">📆 Add to Calendar (.ics)</button>
+      <a class="btn ghost" id="gcal" target="_blank" rel="noopener" href="#">Google Calendar</a>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="cd-title">
+    <h2 id="cd-title">⏳ Countdown</h2>
+    <div class="countdown" id="countdown" aria-live="polite">
+      <div class="unit"><div class="num" id="d">--</div><div class="lbl">Days</div></div>
+      <div class="unit"><div class="num" id="h">--</div><div class="lbl">Hours</div></div>
+      <div class="unit"><div class="num" id="m">--</div><div class="lbl">Minutes</div></div>
+      <div class="unit"><div class="num" id="s">--</div><div class="lbl">Seconds</div></div>
+    </div>
+    <p id="party-now">🎉 It's party time! 🎉</p>
+  </section>
+
+  <section class="card" aria-labelledby="brunch-title">
+    <h2 id="brunch-title">🥙 The Brunch</h2>
+    <p style="margin-bottom:16px">
+      Habibi &amp; Hawara is where Middle-Eastern flavours meet Viennese charm —
+      the perfect spot for a long, cosy Sunday brunch together.
+    </p>
+    <ul class="menu">
+      <li><span class="e" aria-hidden="true">🧆</span><span><b>Mezze to share</b>Hummus, falafel &amp; friends</span></li>
+      <li><span class="e" aria-hidden="true">🥚</span><span><b>Brunch classics</b>Something for every appetite</span></li>
+      <li><span class="e" aria-hidden="true">☕</span><span><b>Coffee &amp; tea</b>Plenty of refills</span></li>
+      <li><span class="e" aria-hidden="true">🎂</span><span><b>Birthday cake</b>Of course!</span></li>
+    </ul>
+  </section>
+
+  <section class="card wishes" aria-labelledby="wish-title">
+    <h2 id="wish-title">💌 Birthday Wishes</h2>
+    <p class="muted" style="margin-bottom:12px">
+      Jot down a wish or a note to bring along. (Saved only in your own browser.)
+    </p>
+    <form id="wish-form">
+      <input id="wish-name" type="text" placeholder="Your name" maxlength="60" aria-label="Your name">
+      <textarea id="wish-text" placeholder="Happy birthday! …" maxlength="500" aria-label="Your wish" required></textarea>
+      <button class="btn alt" type="submit">✨ Add wish</button>
+    </form>
+    <ul class="wish-list" id="wish-list"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="info-title">
+    <h2 id="info-title">ℹ️ Good to know</h2>
+    <p>
+      🕛 Please be on time — brunch starts at <b>12:00</b>.<br>
+      🎁 Your presence is the best present!<br>
+      🙋 Please let the birthday person know if you can make it.
+    </p>
+    <div class="btns" style="margin-top:16px">
+      <button class="btn ghost" id="share" type="button">🔗 Share this invitation</button>
+    </div>
+  </section>
+
+  <footer>Can't wait to celebrate with you! 🎉 · Bis bald in Wien!</footer>
+</main>
+
+<script>
+(function () {
+  // Event: Sunday 10 Jan 2027, 12:00 Vienna time (CET = UTC+1)
+  var START = new Date("2027-01-10T12:00:00+01:00");
+  var END   = new Date("2027-01-10T15:00:00+01:00");
+  var TITLE = "Birthday Brunch 🎂";
+  var LOCATION = "Habibi & Hawara, Wien";
+  var DESC = "Birthday Brunch at Habibi & Hawara, Vienna. Starts 12:00.";
+
+  // ---- Countdown ----
+  var el = { d: document.getElementById("d"), h: document.getElementById("h"),
+             m: document.getElementById("m"), s: document.getElementById("s") };
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function tick() {
+    var diff = START - new Date();
+    if (diff <= 0) {
+      document.getElementById("countdown").style.display = "none";
+      document.getElementById("party-now").style.display = "block";
+      return;
+    }
+    var sec = Math.floor(diff / 1000);
+    el.d.textContent = Math.floor(sec / 86400);
+    el.h.textContent = pad(Math.floor(sec % 86400 / 3600));
+    el.m.textContent = pad(Math.floor(sec % 3600 / 60));
+    el.s.textContent = pad(sec % 60);
+    setTimeout(tick, 1000 - (Date.now() % 1000));
+  }
+  tick();
+
+  // ---- Calendar ----
+  function utc(d) { return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+  document.getElementById("gcal").href =
+    "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+    "&text=" + encodeURIComponent(TITLE) +
+    "&dates=" + utc(START) + "/" + utc(END) +
+    "&details=" + encodeURIComponent(DESC) +
+    "&location=" + encodeURIComponent(LOCATION);
+
+  document.getElementById("ics").addEventListener("click", function () {
+    var ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Birthday Brunch//EN", "CALSCALE:GREGORIAN",
+      "BEGIN:VEVENT",
+      "UID:birthday-brunch-20270110@invite",
+      "DTSTAMP:" + utc(new Date()),
+      "DTSTART:" + utc(START),
+      "DTEND:" + utc(END),
+      "SUMMARY:" + TITLE,
+      "LOCATION:" + LOCATION.replace(/,/g, "\\,"),
+      "DESCRIPTION:" + DESC.replace(/,/g, "\\,"),
+      "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", "DESCRIPTION:Birthday Brunch tomorrow!", "END:VALARM",
+      "END:VEVENT", "END:VCALENDAR"
+    ].join("\r\n");
+    var blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "birthday-brunch-2027-01-10.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  // ---- Share ----
+  document.getElementById("share").addEventListener("click", function () {
+    var btn = this, url = location.href;
+    var data = { title: TITLE, text: "Birthday Brunch – Sun 10 Jan 2027, 12:00 @ Habibi & Hawara Vienna", url: url };
+    if (navigator.share) { navigator.share(data).catch(function () {}); return; }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function () {
+        btn.textContent = "✅ Link copied!";
+        setTimeout(function () { btn.textContent = "🔗 Share this invitation"; }, 2000);
+      });
+    }
+  });
+
+  // ---- Wishes (localStorage) ----
+  var KEY = "birthday-brunch-2027-wishes";
+  var list = document.getElementById("wish-list");
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+  function save(w) { try { localStorage.setItem(KEY, JSON.stringify(w)); } catch (e) {} }
+  function render() {
+    var wishes = load();
+    list.innerHTML = "";
+    wishes.forEach(function (w, i) {
+      var li = document.createElement("li");
+      var who = document.createElement("div"); who.className = "who"; who.textContent = w.name || "Anonymous";
+      var txt = document.createElement("div"); txt.textContent = w.text;
+      var del = document.createElement("button"); del.type = "button"; del.textContent = "✕";
+      del.setAttribute("aria-label", "Remove wish");
+      del.onclick = function () { var all = load(); all.splice(i, 1); save(all); render(); };
+      li.append(who, txt, del);
+      list.appendChild(li);
+    });
+  }
+  document.getElementById("wish-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("wish-name"), text = document.getElementById("wish-text");
+    if (!text.value.trim()) return;
+    var all = load(); all.push({ name: name.value.trim(), text: text.value.trim() }); save(all);
+    text.value = ""; render(); burst();
+  });
+  render();
+
+  // ---- Confetti ----
+  var canvas = document.getElementById("confetti"), ctx = canvas.getContext("2d");
+  var colors = ["#ffc857", "#f26b5b", "#7cd1c3", "#ffffff", "#c58cf2", "#ff9ecb"];
+  var pieces = [];
+  function resize() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function make(y) {
+    return { x: Math.random() * innerWidth, y: y, w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+             c: colors[(Math.random() * colors.length) | 0], vy: 0.6 + Math.random() * 1.4,
+             vx: -0.5 + Math.random(), r: Math.random() * Math.PI, vr: -0.05 + Math.random() * 0.1 };
+  }
+  function burst() { for (var i = 0; i < 80; i++) pieces.push(make(-20 - Math.random() * 200)); }
+  resize(); addEventListener("resize", resize);
+  for (var i = 0; i < 70; i++) pieces.push(make(Math.random() * innerHeight));
+  burst();
+  (function loop() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (var i = pieces.length - 1; i >= 0; i--) {
+      var p = pieces[i];
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      if (p.y > innerHeight + 20) {
+        if (pieces.length > 70) { pieces.splice(i, 1); continue; }
+        p.y = -20; p.x = Math.random() * innerWidth;
+      }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.globalAlpha = 0.85;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.cos(p.r * 2));
+      ctx.restore();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>
