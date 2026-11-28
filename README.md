@@ -23,7 +23,7 @@ Some public stuff of kertal inc
 - [Unità 3 – A scuola (Vokabeltrainer)](./italiano-unita3-a-scuola.html)
 
 ## Events
-- [Birthday Brunch – 10.1.2027, 12:00, Habibi & Hawara Wien](./birthday-brunch-habibi-hawara.html)
+- [70s Disco Birthday Brunch – 10.1.2027, 12:00, Habibi & Hawara Wien](./birthday-brunch-habibi-hawara.html)
 
 ## Preview deployments
 Every pull request from a branch of this repository (not from forks) is deployed to `https://kertal.github.io/public/pr-preview/pr-<number>/`
